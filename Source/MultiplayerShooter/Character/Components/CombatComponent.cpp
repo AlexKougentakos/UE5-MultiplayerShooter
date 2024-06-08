@@ -12,17 +12,31 @@
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	
+	m_AimingWalkSpeed = 450.0f;
 }
 
 void UCombatComponent::BeginPlay()
 {
-	Super::BeginPlay();	
+	Super::BeginPlay();
+
+	m_BaseWalkSpeed = m_pCharacter->GetCharacterMovement()->MaxWalkSpeed;
 }
 
 void UCombatComponent::SetAiming(const bool isAiming)
 {
 	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
 	ServerSetAiming(isAiming);
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
+{
+	m_IsAiming = isAiming;
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -33,10 +47,6 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	m_pCharacter->bUseControllerRotationYaw = true;
 }
 
-void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
-{
-	m_IsAiming = isAiming;
-}
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

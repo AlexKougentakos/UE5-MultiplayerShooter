@@ -25,20 +25,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
-	
-protected:
 	virtual void BeginPlay() override;
 
-	void MoveForward(const float value);
-	void MoveRight(const float value);
-	void Turn(const float value);
-	void LookUp(const float value);
-	void EquipButtonPressed();
-	void CrouchButtonPressed();
-	void AimButtonPressed();
-	void AimButtonReleased();
-
-private:
+private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* m_pCameraBoom{};
 
@@ -54,14 +43,31 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* m_pOverlappingWeapon{};
 
+	float m_AimOffsetPitch{};
+	float m_AimOffsetYaw{};
+
+	FRotator m_LastFrameRotation{};
+private: // Functions
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(const  AWeapon* const pOldWeapon) const;
 	
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
+	void MoveForward(const float value);
+	void MoveRight(const float value);
+	void Turn(const float value);
+	void LookUp(const float value);
+	void EquipButtonPressed();
+	void CrouchButtonPressed();
+	void AimButtonPressed();
+	void AimButtonReleased();
+	void CalculateAimOffset(float deltaTime);
 public:
 	void SetOverlappingWeapon(AWeapon* const pWeapon);
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
+	
+	float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
+	float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
 };

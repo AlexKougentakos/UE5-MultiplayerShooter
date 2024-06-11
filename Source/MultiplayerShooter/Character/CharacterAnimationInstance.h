@@ -43,6 +43,12 @@ private:
 	 UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "Lean")
 	 float m_Lean{};
 
+	UPROPERTY(BlueprintReadOnly, Category = Aiming, meta = (AllowPrivateAccess = "true"), DisplayName = "Aim Offset Yaw")
+	float m_AimOffsetYaw{};
+	
+	UPROPERTY(BlueprintReadOnly, Category = Aiming, meta = (AllowPrivateAccess = "true"), DisplayName = "Aim Offset Pitch")
+	float m_AimOffsetPitch{};
+	
 	FRotator m_LastFrameRotation{};
 	FRotator m_CurrentRotation{};
 	FRotator m_DeltaRotation{};

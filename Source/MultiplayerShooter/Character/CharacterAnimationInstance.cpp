@@ -49,4 +49,7 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 	const float target = delta.Yaw / deltaTime;
 	const float interpolated = FMath::FInterpTo(m_Lean, target, deltaTime, 6.f);
 	m_Lean = FMath::Clamp(interpolated, -45.f, 45.f);
+
+	m_AimOffsetYaw = m_pBlasterCharacter->GetAimOffsetYaw();
+	m_AimOffsetPitch = m_pBlasterCharacter->GetAimOffsetPitch();
 }

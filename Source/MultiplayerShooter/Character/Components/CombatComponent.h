@@ -22,6 +22,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void EquipWeapon(AWeapon* const pWeapon);
+	bool HasWeapon() const { return m_pEquippedWeapon != nullptr; }
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);

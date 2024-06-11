@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -38,6 +39,8 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	CalculateAimOffset(DeltaTime);
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -131,6 +134,33 @@ void ABlasterCharacter::AimButtonReleased()
 	if (!m_pCombat) return;
 
 	m_pCombat->SetAiming(false);
+}
+
+void ABlasterCharacter::CalculateAimOffset(float deltaTime)
+{
+	if (!m_pCombat->HasWeapon()) return;
+	
+	const FVector velocity = GetVelocity();
+	const FVector lateralVelocity = FVector{velocity.X, velocity.Y, 0.f};
+	const float speed = lateralVelocity.Size();
+	const bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	if (speed < 0.1f && !bIsInAir) // STATE: Standing still & not jumping
+	{
+		const FRotator aimRotation = FRotator{0.f, GetBaseAimRotation().Yaw, 0.f};
+		const FRotator deltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(aimRotation, m_LastFrameRotation);
+		m_AimOffsetYaw = deltaAimRotation.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+	else //STATE: Moving or jumping
+	{
+		m_LastFrameRotation = FRotator(0.f, m_LastFrameRotation.Yaw, 0.f);
+		m_AimOffsetYaw = 0.f;
+		bUseControllerRotationYaw = true;
+	}
+
+	// Now we set the pitch regardless of if the player is moving/jumping or not
+	m_AimOffsetPitch = GetBaseAimRotation().Pitch;
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon) const

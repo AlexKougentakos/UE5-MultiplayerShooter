@@ -1,4 +1,4 @@
-#include "D:/UnrealEngine/Projects/MultiplayerShooter/Intermediate/Build/Win64/x64/MultiplayerShooter/Shipping/Engine/SharedDefinitions.Engine.Cpp20.h"
+#include "D:/UnrealEngine/Projects/MenuSystem/Intermediate/Build/Win64/x64/MenuSystem/Shipping/Engine/SharedDefinitions.Engine.Cpp20.h"
 #undef UE_IS_ENGINE_MODULE
 #undef DEPRECATED_FORGAME
 #define DEPRECATED_FORGAME DEPRECATED
@@ -13,8 +13,8 @@
 #define UE_ENABLE_INCLUDE_ORDER_DEPRECATED_IN_5_1 0
 #define UE_ENABLE_INCLUDE_ORDER_DEPRECATED_IN_5_2 0
 #define UE_ENABLE_INCLUDE_ORDER_DEPRECATED_IN_5_3 0
-#define UE_PROJECT_NAME MultiplayerShooter
-#define UE_TARGET_NAME MultiplayerShooter
+#define UE_PROJECT_NAME MenuSystem
+#define UE_TARGET_NAME MenuSystem
 #define UE_MODULE_NAME "MultiplayerSessions"
 #define UE_PLUGIN_NAME "MultiplayerSessions"
 #define IMPLEMENT_ENCRYPTION_KEY_REGISTRATION() 

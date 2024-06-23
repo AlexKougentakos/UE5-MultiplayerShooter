@@ -1,11 +1,11 @@
-"D:\UnrealEngine\Projects\MenuSystem\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Module.MultiplayerSessions.cpp"
-/FI"D:\UnrealEngine\Projects\MenuSystem\Intermediate\Build\Win64\x64\MenuSystem\Shipping\Engine\SharedPCH.Engine.Cpp20.h"
-/FI"D:\UnrealEngine\Projects\MenuSystem\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Definitions.MultiplayerSessions.h"
-/Yu"D:\UnrealEngine\Projects\MenuSystem\Intermediate\Build\Win64\x64\MenuSystem\Shipping\Engine\SharedPCH.Engine.Cpp20.h"
-/Fp"D:\UnrealEngine\Projects\MenuSystem\Intermediate\Build\Win64\x64\MenuSystem\Shipping\Engine\SharedPCH.Engine.Cpp20.h.pch"
-/Fo"D:\UnrealEngine\Projects\MenuSystem\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Module.MultiplayerSessions.cpp.obj"
-/sourceDependencies "D:\UnrealEngine\Projects\MenuSystem\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Module.MultiplayerSessions.cpp.dep.json"
-@"D:\UnrealEngine\Projects\MenuSystem\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\MultiplayerSessions.Shared.rsp"
+"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Module.MultiplayerSessions.cpp"
+/FI"D:\UnrealEngine\Projects\MultiplayerShooter\Intermediate\Build\Win64\x64\MultiplayerShooter\Shipping\Engine\SharedPCH.Engine.Cpp20.h"
+/FI"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Definitions.MultiplayerSessions.h"
+/Yu"D:\UnrealEngine\Projects\MultiplayerShooter\Intermediate\Build\Win64\x64\MultiplayerShooter\Shipping\Engine\SharedPCH.Engine.Cpp20.h"
+/Fp"D:\UnrealEngine\Projects\MultiplayerShooter\Intermediate\Build\Win64\x64\MultiplayerShooter\Shipping\Engine\SharedPCH.Engine.Cpp20.h.pch"
+/Fo"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Module.MultiplayerSessions.cpp.obj"
+/sourceDependencies "D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\Module.MultiplayerSessions.cpp.dep.json"
+@"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealGame\Shipping\MultiplayerSessions\MultiplayerSessions.Shared.rsp"
 /Zc:inline
 /nologo
 /Oi

@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "TurningInPlace.h"
 #include "CharacterAnimationInstance.generated.h"
 
+class AWeapon;
 class ABlasterCharacter;
 UCLASS()
 class MULTIPLAYERSHOOTER_API UCharacterAnimationInstance : public UAnimInstance
@@ -18,6 +20,9 @@ public:
 private:
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"), DisplayName = "BlasterCharacter")
 	ABlasterCharacter* m_pBlasterCharacter{};
+	
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"), DisplayName = "Left Hand Location")
+	FTransform m_LeftHandTransform{};
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "Speed")
 	float m_Speed{};
@@ -28,8 +33,10 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "IsAccelerating")
 	bool m_IsAccelerating{};
 
-	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "IsWeaponEquipped")
+	UPROPERTY(BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"), DisplayName = "IsWeaponEquipped")
 	bool m_IsWeaponEquipped{};
+
+	AWeapon* m_pEquippedWeapon{};
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "IsCrouched")
 	bool m_IsCrouched{};
@@ -48,8 +55,13 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, Category = Aiming, meta = (AllowPrivateAccess = "true"), DisplayName = "Aim Offset Pitch")
 	float m_AimOffsetPitch{};
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "Turning In Place")
+	ETurningInPlace m_TurningInPlace{};
 	
 	FRotator m_LastFrameRotation{};
 	FRotator m_CurrentRotation{};
 	FRotator m_DeltaRotation{};
+
+
 };

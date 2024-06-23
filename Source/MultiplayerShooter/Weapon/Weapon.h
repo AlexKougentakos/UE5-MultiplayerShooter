@@ -69,4 +69,5 @@ private:
 
 public:
 	void SetWeaponState(const EWeaponState state);
+	USkeletalMeshComponent* GetWeaponMesh() const { return m_pWeaponMesh; }
 };

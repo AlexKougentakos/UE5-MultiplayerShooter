@@ -29,11 +29,14 @@ ABlasterCharacter::ABlasterCharacter()
 
 	m_pCombat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	m_pCombat->SetIsReplicated(true);
+	
+	m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -150,17 +153,54 @@ void ABlasterCharacter::CalculateAimOffset(float deltaTime)
 		const FRotator aimRotation = FRotator{0.f, GetBaseAimRotation().Yaw, 0.f};
 		const FRotator deltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(aimRotation, m_LastFrameRotation);
 		m_AimOffsetYaw = deltaAimRotation.Yaw;
-		bUseControllerRotationYaw = false;
+		if (m_TurningInPlace == ETurningInPlace::ETIP_NotTurning)
+			m_InterpolatedAimOffsetYaw = m_AimOffsetYaw;
+		bUseControllerRotationYaw = true;
+		TurnInPlace(deltaTime);
 	}
 	else //STATE: Moving or jumping
 	{
-		m_LastFrameRotation = FRotator(0.f, m_LastFrameRotation.Yaw, 0.f);
+		m_LastFrameRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		m_AimOffsetYaw = 0.f;
 		bUseControllerRotationYaw = true;
+		m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
 
 	// Now we set the pitch regardless of if the player is moving/jumping or not
 	m_AimOffsetPitch = GetBaseAimRotation().Pitch;
+
+	// UE5 packages the pitch to send more efficiently over the network when replicating but it becomes a unsigned int
+	// so our negative values need to be adjusted. This is not needed when locally controlled because we are not sending
+	// data over the network
+	if (m_AimOffsetPitch > 90.f && !IsLocallyControlled())
+	{
+		// map [270, 360) to [-90, 0)
+		const FVector2d inRange = FVector2d{270.f, 360.f};
+		const FVector2d outRange = FVector2d{-90.f, 0.f};
+		m_AimOffsetPitch = FMath::GetMappedRangeValueClamped(inRange, outRange, m_AimOffsetPitch);
+	}
+}
+
+void ABlasterCharacter::TurnInPlace(float deltaTime)
+{
+	if (m_AimOffsetYaw > m_StandingPlayerRotationAngle)
+	{
+		m_TurningInPlace = ETurningInPlace::ETIP_Right;
+		UE_LOG(LogTemp, Warning, TEXT("Turning Right"));
+	}
+	else if (m_AimOffsetYaw < -m_StandingPlayerRotationAngle)
+		m_TurningInPlace = ETurningInPlace::ETIP_Left;
+	
+	if (m_TurningInPlace != ETurningInPlace::ETIP_NotTurning)
+	{
+		m_InterpolatedAimOffsetYaw = FMath::FInterpTo(m_InterpolatedAimOffsetYaw, 0.f, deltaTime, m_RotationSpeed);
+		m_AimOffsetYaw = m_InterpolatedAimOffsetYaw;
+		if (FMath::Abs(m_AimOffsetYaw) < 10.f)
+		{
+			m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			m_LastFrameRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon) const
@@ -203,5 +243,10 @@ bool ABlasterCharacter::IsWeaponEquipped() const
 bool ABlasterCharacter::IsAiming() const
 {
 	return (m_pCombat && m_pCombat->m_IsAiming);
+}
+
+AWeapon* ABlasterCharacter::GetEquippedWeapon() const
+{
+	return m_pCombat->m_pEquippedWeapon;
 }
 

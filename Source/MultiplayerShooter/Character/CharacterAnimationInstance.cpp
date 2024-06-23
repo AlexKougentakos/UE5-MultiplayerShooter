@@ -6,6 +6,7 @@
 #include "BlasterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MultiplayerShooter/Weapon/Weapon.h"
 
 void UCharacterAnimationInstance::NativeInitializeAnimation()
 {
@@ -32,8 +33,14 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 	m_IsInAir = m_pBlasterCharacter->GetCharacterMovement()->IsFalling();
 	m_IsAccelerating = m_pBlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f;
 	m_IsWeaponEquipped = m_pBlasterCharacter->IsWeaponEquipped();
+	m_pEquippedWeapon = m_pBlasterCharacter->GetEquippedWeapon();
 	m_IsCrouched = m_pBlasterCharacter->bIsCrouched;
 	m_IsAiming = m_pBlasterCharacter->IsAiming();
+	m_TurningInPlace = m_pBlasterCharacter->GetTurningInPlace();
+	if (m_pBlasterCharacter->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Turning in place: %d"), static_cast<int>(m_TurningInPlace));
+	}
 
 	//Offset the Yaw for Strafing left and right while aiming in the same direction,
 	//you don't want the weapon to be pointing in the direction of the movement
@@ -52,4 +59,22 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 
 	m_AimOffsetYaw = m_pBlasterCharacter->GetAimOffsetYaw();
 	m_AimOffsetPitch = m_pBlasterCharacter->GetAimOffsetPitch();
+
+	if (m_IsWeaponEquipped)
+	{
+		const auto pWeaponMesh = m_pEquippedWeapon->GetWeaponMesh();
+		const auto pCharacterMesh = m_pBlasterCharacter->GetMesh();
+		
+		checkf(m_pEquippedWeapon, TEXT("Equipped weapon is nullptr while equipped is true"));
+		checkf(pWeaponMesh, TEXT("Equipped weapon mesh is nullptr"));
+		checkf(pCharacterMesh, TEXT("Character mesh is nullptr"));
+
+		m_LeftHandTransform = pWeaponMesh->GetSocketTransform(FName("LeftHandSocket"), RTS_World);
+
+		FVector outPosition{};
+		FRotator outRotation{};
+		pCharacterMesh->TransformToBoneSpace(FName("hand_r"), m_LeftHandTransform.GetLocation(), FRotator::ZeroRotator, outPosition, outRotation);
+		m_LeftHandTransform.SetLocation(outPosition);
+		m_LeftHandTransform.SetRotation(FQuat(outRotation));
+	}
 }

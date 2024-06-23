@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "TurningInPlace.h"
 #include "BlasterCharacter.generated.h"
 
 class UCombatComponent;
@@ -27,6 +28,16 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
+public: //Variables
+	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Standing", meta = (ToolTip = "The angle at which the player rotates when turning in place when standing"))
+	float m_StandingPlayerRotationAngle{80.f};
+
+	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Crouched", meta = (ToolTip = "The angle at which the player rotates when turning in place when crouched"))
+	float m_CrouchingPlayerRotationAngle{60.f};
+
+	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Speed")
+	float m_RotationSpeed{5.f};
+
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* m_pCameraBoom{};
@@ -45,8 +56,12 @@ private: // Variables
 
 	float m_AimOffsetPitch{};
 	float m_AimOffsetYaw{};
+	float m_InterpolatedAimOffsetYaw{};
 
 	FRotator m_LastFrameRotation{};
+
+	ETurningInPlace m_TurningInPlace{};
+	
 private: // Functions
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(const  AWeapon* const pOldWeapon) const;
@@ -63,11 +78,15 @@ private: // Functions
 	void AimButtonPressed();
 	void AimButtonReleased();
 	void CalculateAimOffset(float deltaTime);
-public:
+	void TurnInPlace(float deltaTime);
+	
+public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
 	
 	float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
 	float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
+	AWeapon* GetEquippedWeapon() const;
+	ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
 };

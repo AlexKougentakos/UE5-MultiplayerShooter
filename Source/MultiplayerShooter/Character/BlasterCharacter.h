@@ -29,6 +29,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Jump() override;
 
+	void PlayFireMontage(const bool isAiming) const;
+
 public: //Variables
 	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Standing", meta = (ToolTip = "The angle at which the player rotates when turning in place when standing"))
 	float m_StandingPlayerRotationAngle{80.f};
@@ -62,6 +64,9 @@ private: // Variables
 	FRotator m_LastFrameRotation{};
 
 	ETurningInPlace m_TurningInPlace{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Fire Weapon Montage")
+	UAnimMontage* m_pFireWeaponMontage{};
 	
 private: // Functions
 	UFUNCTION()
@@ -80,6 +85,8 @@ private: // Functions
 	void AimButtonReleased();
 	void CalculateAimOffset(float deltaTime);
 	void TurnInPlace(float deltaTime);
+	void FireButtonPressed();
+	void FireButtonReleased();
 	
 public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);

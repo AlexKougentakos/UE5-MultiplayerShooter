@@ -33,6 +33,16 @@ void UCombatComponent::SetAiming(const bool isAiming)
 	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
 }
 
+void UCombatComponent::FireButtonPressed(const bool isPressed)
+{
+	m_IsFireButtonPressed = isPressed;
+
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+
+	if (isPressed)
+		m_pCharacter->PlayFireMontage(m_IsAiming);
+}
+
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
 {
 	m_IsAiming = isAiming;

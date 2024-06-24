@@ -26,6 +26,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
+	void FireButtonPressed(const bool isPressed);
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(const bool isAiming);
@@ -40,6 +41,8 @@ private:
 
 	UPROPERTY(Replicated)
 	bool m_IsAiming{};
+
+	bool m_IsFireButtonPressed{};
 
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Base Walk Speed")
 	float m_BaseWalkSpeed{};

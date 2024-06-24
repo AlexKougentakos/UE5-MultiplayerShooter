@@ -61,6 +61,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ABlasterCharacter::CrouchButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABlasterCharacter::AimButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABlasterCharacter::AimButtonReleased);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABlasterCharacter::FireButtonPressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -85,6 +87,23 @@ void ABlasterCharacter::Jump()
 	if (bIsCrouched) UnCrouch();
 	
 	else Super::Jump();
+}
+
+void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+
+	if (!m_pCombat->HasWeapon()) return;
+
+	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
+	
+	checkf (pAnimInstance, TEXT("AnimInstance is nullptr"));
+	checkf(m_pFireWeaponMontage, TEXT("Fire Weapon Montage is nullptr"));
+
+	// Play the montage and then decide which section to play depending on if we are using iron sights or hip fire
+	pAnimInstance->Montage_Play(m_pFireWeaponMontage, 1.f);
+	const FName sectionName = isAiming ? "RifleAim" : "RifleHip";
+	pAnimInstance->Montage_JumpToSection(sectionName);
 }
 
 void ABlasterCharacter::MoveForward(const float value)
@@ -209,6 +228,20 @@ void ABlasterCharacter::TurnInPlace(float deltaTime)
 			m_LastFrameRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		}
 	}
+}
+
+void ABlasterCharacter::FireButtonPressed()
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	
+	m_pCombat->FireButtonPressed(true);
+}
+
+void ABlasterCharacter::FireButtonReleased()
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	
+	m_pCombat->FireButtonPressed(false);
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon) const

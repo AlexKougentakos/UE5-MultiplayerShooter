@@ -24,6 +24,14 @@ void UCombatComponent::BeginPlay()
 	m_BaseWalkSpeed = m_pCharacter->GetCharacterMovement()->MaxWalkSpeed;
 }
 
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, m_pEquippedWeapon);
+	DOREPLIFETIME(ThisClass, m_IsAiming);
+}
+
 void UCombatComponent::SetAiming(const bool isAiming)
 {
 	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
@@ -37,10 +45,23 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 {
 	m_IsFireButtonPressed = isPressed;
 
+	if (isPressed)
+		ServerFire();
+}
+
+void UCombatComponent::ServerFire_Implementation()
+{
+	MulticastFire();
+}
+
+void UCombatComponent::MulticastFire_Implementation()
+{
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 
-	if (isPressed)
-		m_pCharacter->PlayFireMontage(m_IsAiming);
+    if (!m_pEquippedWeapon) return;
+    
+    m_pCharacter->PlayFireMontage(m_IsAiming);
+    m_pEquippedWeapon->Fire();
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
@@ -58,18 +79,13 @@ void UCombatComponent::OnRep_EquippedWeapon()
 }
 
 
+
+
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, m_pEquippedWeapon);
-	DOREPLIFETIME(ThisClass, m_IsAiming);
-}
 
 void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 {

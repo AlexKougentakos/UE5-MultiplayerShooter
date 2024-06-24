@@ -78,8 +78,8 @@ void ABlasterCharacter::PostInitializeComponents()
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(ThisClass, m_pOverlappingWeapon, COND_OwnerOnly);
+	
+	DOREPLIFETIME_CONDITION(ABlasterCharacter, m_pOverlappingWeapon, COND_OwnerOnly);
 }
 
 void ABlasterCharacter::Jump()

@@ -33,6 +33,12 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire();
 private:
 	ABlasterCharacter* m_pCharacter{};
 	

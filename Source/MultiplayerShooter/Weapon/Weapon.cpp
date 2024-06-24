@@ -128,3 +128,10 @@ void AWeapon::ShowPickupWidget(bool show) const
 
 	m_pPickUpWidget->SetVisibility(show);
 }
+
+void AWeapon::Fire()
+{
+	checkf(m_pFireAnimation, TEXT("Fire animation is nullptr"));
+
+	m_pWeaponMesh->PlayAnimation(m_pFireAnimation, false);
+}

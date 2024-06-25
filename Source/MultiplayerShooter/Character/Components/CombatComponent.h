@@ -28,6 +28,8 @@ protected:
 	void SetAiming(const bool isAiming);
 	void FireButtonPressed(const bool isPressed);
 
+	void TraceUnderCrosshairs(FHitResult& hitResult);
+	
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(const bool isAiming);
 
@@ -39,6 +41,7 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire();
+
 private:
 	ABlasterCharacter* m_pCharacter{};
 	
@@ -55,4 +58,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Aiming Walk Speed")
 	float m_AimingWalkSpeed{};
+
+	FVector m_HitTarget{};
 };

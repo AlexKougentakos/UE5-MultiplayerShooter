@@ -129,7 +129,7 @@ void AWeapon::ShowPickupWidget(bool show) const
 	m_pPickUpWidget->SetVisibility(show);
 }
 
-void AWeapon::Fire()
+void AWeapon::Fire(const FVector& hitTarget)
 {
 	checkf(m_pFireAnimation, TEXT("Fire animation is nullptr"));
 

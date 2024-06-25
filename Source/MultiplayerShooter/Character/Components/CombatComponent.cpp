@@ -5,13 +5,14 @@
 
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	
 	m_AimingWalkSpeed = 450.0f;
@@ -22,6 +23,14 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 
 	m_BaseWalkSpeed = m_pCharacter->GetCharacterMovement()->MaxWalkSpeed;
+}
+
+void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	FHitResult hitResult{};
+	TraceUnderCrosshairs(hitResult);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -49,6 +58,39 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 		ServerFire();
 }
 
+void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
+{
+	FVector2D viewport{};
+	GEngine->GameViewport->GetViewportSize(viewport);
+
+	const FVector2D crosshairLocation = viewport / 2.0f;
+	FVector crosshairWorldPosition{};
+	FVector crosshairWorldDirection{};
+
+	const bool screenToWorldSucceeded =
+		UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(GetWorld(), 0), crosshairLocation, crosshairWorldPosition, crosshairWorldDirection);
+
+	if (!screenToWorldSucceeded) return;
+
+	const FVector start = crosshairWorldPosition;
+	const FVector end = start + crosshairWorldDirection * 100000.0f;
+	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
+
+	// Manually set the end point to the furthest away point when the trace doesn't hit anything (example: when shooting in the sky)
+	if (!hitResult.bBlockingHit)
+	{
+		hitResult.ImpactPoint = end;
+		m_HitTarget = end;
+	}
+	else //Draw a debug sphere where we hit
+	{
+		m_HitTarget = hitResult.ImpactPoint;
+		
+		DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 0.f);
+	}
+	 
+}
+
 void UCombatComponent::ServerFire_Implementation()
 {
 	MulticastFire();
@@ -61,7 +103,7 @@ void UCombatComponent::MulticastFire_Implementation()
     if (!m_pEquippedWeapon) return;
     
     m_pCharacter->PlayFireMontage(m_IsAiming);
-    m_pEquippedWeapon->Fire();
+    m_pEquippedWeapon->Fire(m_HitTarget);
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
@@ -77,15 +119,6 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
 }
-
-
-
-
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-
 
 void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 {

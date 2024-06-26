@@ -5,6 +5,14 @@ void AProjectileWeapon::Fire(const FVector& hitTarget)
 {
 	Super::Fire(hitTarget);
 
+	if (SpawnParticleEffect(hitTarget)) return;
+}
+
+bool AProjectileWeapon::SpawnParticleEffect(const FVector& hitTarget)
+{
+	// We only want to spawn the particle effect on the server
+	if (!HasAuthority()) return true;
+	
 	const auto pWeaponMesh = GetWeaponMesh();
 	const auto pMuzzleFlashSocket = pWeaponMesh->GetSocketByName(FName("MuzzleFlash"));
 
@@ -24,5 +32,5 @@ void AProjectileWeapon::Fire(const FVector& hitTarget)
 
 	
 	GetWorld()->SpawnActor<AProjectile>(m_pProjectileClass, socketTransform.GetLocation(), rotationFromSocketToTarget, spawnParameters);
-	
+	return false;
 }

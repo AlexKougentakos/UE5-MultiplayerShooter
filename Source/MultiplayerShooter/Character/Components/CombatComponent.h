@@ -37,10 +37,10 @@ protected:
 	void OnRep_EquippedWeapon();
 	
 	UFUNCTION(Server, Reliable)
-	void ServerFire();
+	void ServerFire(const FVector_NetQuantize& traceHitLocation);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire();
+	void MulticastFire(const FVector_NetQuantize& traceHitLocation);
 
 private:
 	ABlasterCharacter* m_pCharacter{};
@@ -59,5 +59,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Aiming Walk Speed")
 	float m_AimingWalkSpeed{};
 
+	UPROPERTY(Replicated)
 	FVector m_HitTarget{};
 };

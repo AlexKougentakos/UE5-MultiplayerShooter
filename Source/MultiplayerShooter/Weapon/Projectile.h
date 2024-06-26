@@ -23,4 +23,9 @@ private:
 
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Movement Component")
 	UProjectileMovementComponent* m_pProjectileMovementComponent{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Projectile Tracer Effect")
+	UParticleSystem* m_pTracerEffect{};
+
+	UParticleSystemComponent* m_pParticleSystemComponent{};	
 };

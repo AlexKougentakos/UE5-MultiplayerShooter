@@ -28,9 +28,6 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	FHitResult hitResult{};
-	TraceUnderCrosshairs(hitResult);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -55,7 +52,12 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 	m_IsFireButtonPressed = isPressed;
 
 	if (isPressed)
-		ServerFire();
+	{
+		
+		FHitResult hitResult{};
+		TraceUnderCrosshairs(hitResult);
+		ServerFire(hitResult.ImpactPoint);
+	}
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
@@ -74,36 +76,22 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 
 	const FVector start = crosshairWorldPosition;
 	const FVector end = start + crosshairWorldDirection * 100000.0f;
-	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
-
-	// Manually set the end point to the furthest away point when the trace doesn't hit anything (example: when shooting in the sky)
-	if (!hitResult.bBlockingHit)
-	{
-		hitResult.ImpactPoint = end;
-		m_HitTarget = end;
-	}
-	else //Draw a debug sphere where we hit
-	{
-		m_HitTarget = hitResult.ImpactPoint;
-		
-		DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 0.f);
-	}
-	 
+	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);	 
 }
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)
 {
-	MulticastFire();
+	MulticastFire(traceHitLocation);
 }
 
-void UCombatComponent::MulticastFire_Implementation()
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& traceHitLocation)
 {
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 
     if (!m_pEquippedWeapon) return;
     
     m_pCharacter->PlayFireMontage(m_IsAiming);
-    m_pEquippedWeapon->Fire(m_HitTarget);
+    m_pEquippedWeapon->Fire(traceHitLocation);
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)

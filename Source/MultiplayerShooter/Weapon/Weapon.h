@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class ABulletShell;
 class UWidgetComponent;
 class USphereComponent;
 
@@ -57,7 +58,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")
 	USkeletalMeshComponent* m_pWeaponMesh{};
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Pickup Area Sphere")
 	USphereComponent* m_pAreaSphere{};
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon State")
@@ -69,8 +70,11 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Pick Up Widget")
 	UWidgetComponent* m_pPickUpWidget{};
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Fire Animation")
+	UPROPERTY(EditAnywhere, Category = "Weapon FX", DisplayName = "Fire Animation")
 	UAnimationAsset* m_pFireAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon FX", DisplayName = "Bullet Shell Class")
+	TSubclassOf<ABulletShell> m_pBulletShellClass{};
 public:
 	void SetWeaponState(const EWeaponState state);
 	USkeletalMeshComponent* GetWeaponMesh() const { return m_pWeaponMesh; }

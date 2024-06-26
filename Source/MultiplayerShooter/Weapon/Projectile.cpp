@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 AProjectile::AProjectile()
 {
@@ -37,11 +38,34 @@ void AProjectile::BeginPlay()
 		GetActorLocation(),
 		GetActorRotation(),
 		EAttachLocation::KeepWorldPosition);
+
+	if (!HasAuthority()) return;
+	m_pCollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
 }
 
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+	
+	checkf(m_pImpactEffect, TEXT("Impact effect is nullptr"));
+	checkf(m_pImpactSound, TEXT("Impact sound is nullptr"));
+
+	//Play effect
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pImpactEffect, GetActorTransform());
+
+	//Play sound
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
+}
+
+void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
+                        FVector NormalImpulse, const FHitResult& Hit)
+{
+	Destroy();
 }
 

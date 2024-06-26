@@ -2,8 +2,11 @@
 
 
 #include "Weapon.h"
+
+#include "BulletShell.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
 
@@ -132,6 +135,20 @@ void AWeapon::ShowPickupWidget(bool show) const
 void AWeapon::Fire(const FVector& hitTarget)
 {
 	checkf(m_pFireAnimation, TEXT("Fire animation is nullptr"));
-
+	checkf(m_pBulletShellClass, TEXT("Bullet shell class is nullptr"));
+	
 	m_pWeaponMesh->PlayAnimation(m_pFireAnimation, false);
+	
+	const auto pAmmoEjectSocket = m_pWeaponMesh->GetSocketByName(FName("AmmoEject"));
+
+	//Various checks for points that should never be null
+	checkf(pAmmoEjectSocket, TEXT("MuzzleFlash socket is nullptr"));
+	
+	const FTransform socketTransform = pAmmoEjectSocket->GetSocketTransform(m_pWeaponMesh);
+	
+	const auto pBulletShell = GetWorld()->SpawnActor<ABulletShell>(
+	m_pBulletShellClass,
+	socketTransform.GetLocation(),
+	socketTransform.GetRotation().Rotator(),
+	FActorSpawnParameters());
 }

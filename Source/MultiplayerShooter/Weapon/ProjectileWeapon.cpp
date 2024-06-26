@@ -32,5 +32,5 @@ bool AProjectileWeapon::SpawnParticleEffect(const FVector& hitTarget)
 
 	
 	GetWorld()->SpawnActor<AProjectile>(m_pProjectileClass, socketTransform.GetLocation(), rotationFromSocketToTarget, spawnParameters);
-	return false;
+	return true;
 }

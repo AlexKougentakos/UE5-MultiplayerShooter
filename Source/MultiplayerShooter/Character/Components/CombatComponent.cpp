@@ -76,7 +76,14 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 
 	const FVector start = crosshairWorldPosition;
 	const FVector end = start + crosshairWorldDirection * 100000.0f;
-	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);	 
+	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
+
+	// Manually set the end point to the furthest away point when the trace doesn't hit anything (example: when shooting in the sky)
+	if (!hitResult.bBlockingHit)
+	{
+		hitResult.ImpactPoint = end;
+	}
+	 
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)

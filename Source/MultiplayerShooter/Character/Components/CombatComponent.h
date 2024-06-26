@@ -58,7 +58,4 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Aiming Walk Speed")
 	float m_AimingWalkSpeed{};
-
-	UPROPERTY(Replicated)
-	FVector m_HitTarget{};
 };

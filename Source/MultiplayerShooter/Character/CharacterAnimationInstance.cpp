@@ -26,6 +26,21 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 
 	if (!m_pBlasterCharacter) return;
 
+	InitializeVariables();
+
+	HandleLeaning(deltaTime);
+
+	m_AimOffsetYaw = m_pBlasterCharacter->GetAimOffsetYaw();
+	m_AimOffsetPitch = m_pBlasterCharacter->GetAimOffsetPitch();
+
+	if (m_IsWeaponEquipped)
+	{
+		ApplyInverseKinematicsToHand();
+	}
+}
+
+void UCharacterAnimationInstance::InitializeVariables()
+{
 	FVector velocity = m_pBlasterCharacter->GetVelocity();
 	velocity.Z = 0.f;
 	m_Speed = velocity.Size();
@@ -37,11 +52,10 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 	m_IsCrouched = m_pBlasterCharacter->bIsCrouched;
 	m_IsAiming = m_pBlasterCharacter->IsAiming();
 	m_TurningInPlace = m_pBlasterCharacter->GetTurningInPlace();
-	if (m_pBlasterCharacter->HasAuthority())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Turning in place: %d"), static_cast<int>(m_TurningInPlace));
-	}
+}
 
+void UCharacterAnimationInstance::HandleLeaning(float deltaTime)
+{
 	//Offset the Yaw for Strafing left and right while aiming in the same direction,
 	//you don't want the weapon to be pointing in the direction of the movement
 	const FRotator aimRotation =  m_pBlasterCharacter->GetBaseAimRotation();
@@ -56,25 +70,27 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 	const float target = delta.Yaw / deltaTime;
 	const float interpolated = FMath::FInterpTo(m_Lean, target, deltaTime, 6.f);
 	m_Lean = FMath::Clamp(interpolated, -45.f, 45.f);
+}
 
-	m_AimOffsetYaw = m_pBlasterCharacter->GetAimOffsetYaw();
-	m_AimOffsetPitch = m_pBlasterCharacter->GetAimOffsetPitch();
-
-	if (m_IsWeaponEquipped)
-	{
-		const auto pWeaponMesh = m_pEquippedWeapon->GetWeaponMesh();
-		const auto pCharacterMesh = m_pBlasterCharacter->GetMesh();
+void UCharacterAnimationInstance::ApplyInverseKinematicsToHand()
+{
+	const auto pWeaponMesh = m_pEquippedWeapon->GetWeaponMesh();
+	const auto pCharacterMesh = m_pBlasterCharacter->GetMesh();
 		
-		checkf(m_pEquippedWeapon, TEXT("Equipped weapon is nullptr while equipped is true"));
-		checkf(pWeaponMesh, TEXT("Equipped weapon mesh is nullptr"));
-		checkf(pCharacterMesh, TEXT("Character mesh is nullptr"));
+	checkf(m_pEquippedWeapon, TEXT("Equipped weapon is nullptr while equipped is true"));
+	checkf(pWeaponMesh, TEXT("Equipped weapon mesh is nullptr"));
+	checkf(pCharacterMesh, TEXT("Character mesh is nullptr"));
 
-		m_LeftHandTransform = pWeaponMesh->GetSocketTransform(FName("LeftHandSocket"), RTS_World);
+	m_LeftHandTransform = pWeaponMesh->GetSocketTransform(FName("LeftHandSocket"), RTS_World);
 
-		FVector outPosition{};
-		FRotator outRotation{};
-		pCharacterMesh->TransformToBoneSpace(FName("hand_r"), m_LeftHandTransform.GetLocation(), FRotator::ZeroRotator, outPosition, outRotation);
-		m_LeftHandTransform.SetLocation(outPosition);
-		m_LeftHandTransform.SetRotation(FQuat(outRotation));
-	}
+	FVector outPosition{};
+	FRotator outRotation{};
+	pCharacterMesh->TransformToBoneSpace(FName("hand_r"), m_LeftHandTransform.GetLocation(), FRotator::ZeroRotator, outPosition, outRotation);
+	m_LeftHandTransform.SetLocation(outPosition);
+	m_LeftHandTransform.SetRotation(FQuat(outRotation));
+
+	if (!m_pBlasterCharacter->IsLocallyControlled()) return;
+	m_IsLocallyControlled = true;
+	const FTransform rightHandTransform = m_pBlasterCharacter->GetMesh()->GetSocketTransform(FName("hand_r"), RTS_World);
+	m_RightHandRotation = UKismetMathLibrary::FindLookAtRotation(FVector3d(), rightHandTransform.GetLocation() - m_pBlasterCharacter->GetHitTarget());
 }

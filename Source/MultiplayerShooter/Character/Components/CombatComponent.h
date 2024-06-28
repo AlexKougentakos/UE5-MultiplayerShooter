@@ -64,4 +64,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Aiming Walk Speed")
 	float m_AimingWalkSpeed{};
+
+	float m_CrosshairInAirFactor{};
+	FVector hitTarget{};
 };

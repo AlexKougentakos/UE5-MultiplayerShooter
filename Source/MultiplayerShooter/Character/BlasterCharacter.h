@@ -97,4 +97,6 @@ public: // Getters & Setters
 	float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
 	AWeapon* GetEquippedWeapon() const;
 	ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
+
+	FVector GetHitTarget() const;
 };

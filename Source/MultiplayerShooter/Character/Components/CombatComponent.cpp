@@ -36,6 +36,14 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	SetHudCrosshairs(DeltaTime);
+
+	if (m_pCharacter->IsLocallyControlled())
+	{
+		FHitResult hitResult{};
+		TraceUnderCrosshairs(hitResult);
+		hitTarget = hitResult.ImpactPoint;	
+	}
+	
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -148,6 +156,24 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 			hudPackageTemp.CrosshairsBottom = nullptr;
 			hudPackageTemp.CrosshairsLeft = nullptr;
 		}
+		// Calculate the spread
+		const FVector2D walkSpeedRange(0.f, m_pCharacter->GetCharacterMovement()->MaxWalkSpeed);
+		const FVector2D velocityMultiplierRange{0.f, 1.f};
+		FVector velocity = m_pCharacter->GetVelocity();
+		velocity.Z = 0.f;
+		
+		const float crosshairVelocityFactor =  FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
+
+		if (m_pCharacter->GetMovementComponent()->IsFalling())
+		{
+			m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 2.25f, deltaTime, 2.25f);
+		}
+		else
+		{
+			m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 0.f, deltaTime, 30.f);
+		}
+
+		hudPackageTemp.CrosshairSpread = crosshairVelocityFactor + m_CrosshairInAirFactor;
 		return hudPackageTemp;
 	}();
 	

@@ -15,6 +15,9 @@ class MULTIPLAYERSHOOTER_API UCharacterAnimationInstance : public UAnimInstance
 	GENERATED_BODY()
 public:
 	virtual void NativeInitializeAnimation() override;
+	void ApplyInverseKinematicsToHand();
+	void HandleLeaning(float deltaTime);
+	void InitializeVariables();
 	virtual void NativeUpdateAnimation(float deltaTime) override;
 	
 private:
@@ -35,6 +38,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"), DisplayName = "IsWeaponEquipped")
 	bool m_IsWeaponEquipped{};
+	
+	UPROPERTY(BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"), DisplayName = "Right Hand Location")
+	FRotator m_RightHandRotation{};
 
 	AWeapon* m_pEquippedWeapon{};
 
@@ -58,6 +64,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "Turning In Place")
 	ETurningInPlace m_TurningInPlace{};
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "Is Locally Controlled")
+	bool m_IsLocallyControlled{false};
 	
 	FRotator m_LastFrameRotation{};
 	FRotator m_CurrentRotation{};

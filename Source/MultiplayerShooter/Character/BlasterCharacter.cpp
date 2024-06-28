@@ -291,3 +291,9 @@ AWeapon* ABlasterCharacter::GetEquippedWeapon() const
 	return m_pCombat->m_pEquippedWeapon;
 }
 
+FVector ABlasterCharacter::GetHitTarget() const
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	return m_pCombat->hitTarget;
+}
+

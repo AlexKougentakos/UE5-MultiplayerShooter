@@ -25,10 +25,6 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 
 	m_BaseWalkSpeed = m_pCharacter->GetCharacterMovement()->MaxWalkSpeed;
-
-	// Set up references
-	m_pPlayerController = Cast<ABlasterPlayerController>(m_pCharacter->GetController());
-	m_pHud = Cast<ABlasterHUD>(m_pPlayerController->GetHUD());
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -134,9 +130,13 @@ void UCombatComponent::OnRep_EquippedWeapon()
 void UCombatComponent::SetHudCrosshairs(float deltaTime)
 {
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
-	checkf(m_pHud, TEXT("HUD is nullptr"));
-	checkf(m_pPlayerController, TEXT("Player controller is nullptr"));
 
+	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
+	if (!m_pPlayerController) return;
+
+	m_pHud = m_pHud == nullptr ? Cast<ABlasterHUD>(m_pPlayerController->GetHUD()) : m_pHud;
+	if(!m_pHud) return;
+	
 	const FHUDPackage hudPackage = [&]()-> FHUDPackage 
 	{
 		FHUDPackage hudPackageTemp{};

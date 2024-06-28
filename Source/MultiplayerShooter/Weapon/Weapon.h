@@ -94,7 +94,16 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon FX", DisplayName = "Bullet Shell Class")
 	TSubclassOf<ABulletShell> m_pBulletShellClass{};
+	
+	// Zooming
+	UPROPERTY(EditAnywhere, Category = "Zooming", DisplayName = "Zoomed FOV")
+	float m_ZoomedFOV {30.f};
+
+	UPROPERTY(EditAnywhere, Category = "Zooming", DisplayName = "Zoom Interpolation Speed")
+	float m_ZoomInterpolationSpeed{20.f};
 public:
 	void SetWeaponState(const EWeaponState state);
 	USkeletalMeshComponent* GetWeaponMesh() const { return m_pWeaponMesh; }
+	float GetZoomedFOV() const { return m_ZoomedFOV; }
+	float GetZoomInterpolationSpeed() const { return m_ZoomInterpolationSpeed; }
 };

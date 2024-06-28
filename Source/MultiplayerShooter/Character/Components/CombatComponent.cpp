@@ -3,6 +3,7 @@
 
 #include "CombatComponent.h"
 
+#include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -24,20 +25,30 @@ void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
 	m_BaseWalkSpeed = m_pCharacter->GetCharacterMovement()->MaxWalkSpeed;
+	
+	const auto pPlayerCamera = m_pCharacter->GetFollowCamera();
+	checkf(pPlayerCamera, TEXT("Player camera is nullptr"));
+
+	m_DefaultFOV = pPlayerCamera->FieldOfView;
+	m_CurrentFOV = m_DefaultFOV;
 }
 
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UCombatComponent::TickComponent(float deltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(deltaTime, TickType, ThisTickFunction);
 
-	SetHudCrosshairs(DeltaTime);
 
 	if (m_pCharacter->IsLocallyControlled())
 	{
 		FHitResult hitResult{};
 		TraceUnderCrosshairs(hitResult);
-		hitTarget = hitResult.ImpactPoint;	
+		m_HitTarget = hitResult.ImpactPoint;
+		SetHudCrosshairs(deltaTime);
+
+		// Handles the FOV changes when aiming
+		InterpolateFOV(deltaTime);
 	}
 	
 }
@@ -69,6 +80,10 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 		FHitResult hitResult{};
 		TraceUnderCrosshairs(hitResult);
 		ServerFire(hitResult.ImpactPoint);
+
+		if (!HasWeapon()) return;
+
+		m_CrosshairShootingFactor = 0.9f;
 	}
 }
 
@@ -156,6 +171,7 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 			hudPackageTemp.CrosshairsBottom = nullptr;
 			hudPackageTemp.CrosshairsLeft = nullptr;
 		}
+		
 		// Calculate the spread
 		const FVector2D walkSpeedRange(0.f, m_pCharacter->GetCharacterMovement()->MaxWalkSpeed);
 		const FVector2D velocityMultiplierRange{0.f, 1.f};
@@ -165,20 +181,41 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 		const float crosshairVelocityFactor =  FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
 
 		if (m_pCharacter->GetMovementComponent()->IsFalling())
-		{
 			m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 2.25f, deltaTime, 2.25f);
-		}
 		else
-		{
 			m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 0.f, deltaTime, 30.f);
-		}
 
-		hudPackageTemp.CrosshairSpread = crosshairVelocityFactor + m_CrosshairInAirFactor;
+		if (m_IsAiming)
+			m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.5f, deltaTime, 30.f);
+		else
+			m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.f, deltaTime, 30.f);
+
+		m_CrosshairShootingFactor = FMath::FInterpTo(m_CrosshairShootingFactor, 0.f, deltaTime, 30.f);
+
+		//Add all the different spread factors together
+		hudPackageTemp.CrosshairSpread =
+			0.5f + 						// Base spread
+			crosshairVelocityFactor + // How fast you are moving
+			m_CrosshairShootingFactor + // If you are shooting
+			m_CrosshairInAirFactor -  //if you are in the air
+			m_CrosshairAimFactor; //if you are aiming
 		return hudPackageTemp;
 	}();
 	
 	m_pHud->SetHudPackage(hudPackage);
 	
+}
+
+void UCombatComponent::InterpolateFOV(const float deltaTime)
+{
+	if (!HasWeapon()) return;
+
+	if (m_IsAiming)
+		m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, m_pEquippedWeapon->GetZoomedFOV(), deltaTime, m_pEquippedWeapon->GetZoomInterpolationSpeed()); //Zooming in is defined by the weapon
+	else
+		m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, m_DefaultFOV, deltaTime, m_ZoomInterpolationSpeed); //Zooming out is always the same speed
+
+	m_pCharacter->GetFollowCamera()->SetFieldOfView(m_CurrentFOV);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)

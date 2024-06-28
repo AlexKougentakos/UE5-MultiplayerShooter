@@ -99,4 +99,6 @@ public: // Getters & Setters
 	ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
 
 	FVector GetHitTarget() const;
+
+	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
 };

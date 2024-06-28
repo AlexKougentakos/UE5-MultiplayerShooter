@@ -20,7 +20,7 @@ public:
 	UCombatComponent();
 	friend class ABlasterCharacter;
 	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float deltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void EquipWeapon(AWeapon* const pWeapon);
@@ -65,6 +65,24 @@ private:
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Aiming Walk Speed")
 	float m_AimingWalkSpeed{};
 
+	UPROPERTY(EditAnywhere, Category = Combat, DisplayName = "Crosshairs Center", meta = (ToolTip = "The amount the crosshair will move outwards when the player shoots 1 bullet"))
+	float m_ShootingCrosshairSpread{1.f};
+	
 	float m_CrosshairInAirFactor{};
-	FVector hitTarget{};
+	float m_CrosshairAimFactor{};
+	float m_CrosshairShootingFactor{};
+	
+	FVector m_HitTarget{};
+
+	// Aiming
+	float m_DefaultFOV{};
+	UPROPERTY(EditAnywhere, Category = "Combat", DisplayName = "Zoomed FOV")
+	float m_ZoomedFOV{30.f};
+
+	float m_CurrentFOV{};
+	
+	UPROPERTY(EditAnywhere, Category = "Combat", DisplayName = "Zoom Interpolation Speed")
+	float m_ZoomInterpolationSpeed{20.f};
+
+	void InterpolateFOV(const float deltaTime);
 };

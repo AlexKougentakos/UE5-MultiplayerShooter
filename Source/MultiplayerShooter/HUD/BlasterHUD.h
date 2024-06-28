@@ -18,6 +18,7 @@ public:
 	UTexture2D* CrosshairsBottom{};
 
 	float CrosshairSpread{};
+	FLinearColor CrosshairColor{FLinearColor::White};
 };
 
 /**
@@ -36,7 +37,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshair Spread Max")
 	float m_CrosshairSpreadMax{8.f};
 
-	void DrawCrosshair(UTexture2D* crosshair, const FVector2D& viewportCenter, const FVector2D& spread);
+	void DrawCrosshair(UTexture2D* crosshair, const FVector2D& viewportCenter, const FVector2D& spread, const FLinearColor& color);
 public: // Getters & Setters
 	void SetHudPackage(const FHUDPackage& hudPackage) { m_HUDPackage = hudPackage; }
 

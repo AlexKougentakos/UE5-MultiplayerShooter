@@ -15,7 +15,7 @@ class MULTIPLAYERSHOOTER_API UCharacterAnimationInstance : public UAnimInstance
 	GENERATED_BODY()
 public:
 	virtual void NativeInitializeAnimation() override;
-	void ApplyInverseKinematicsToHand();
+	void ApplyInverseKinematicsToHand(const float deltaTime);
 	void HandleLeaning(float deltaTime);
 	void InitializeVariables();
 	virtual void NativeUpdateAnimation(float deltaTime) override;

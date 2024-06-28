@@ -35,7 +35,7 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 
 	if (m_IsWeaponEquipped)
 	{
-		ApplyInverseKinematicsToHand();
+		ApplyInverseKinematicsToHand(deltaTime);
 	}
 }
 
@@ -72,7 +72,7 @@ void UCharacterAnimationInstance::HandleLeaning(float deltaTime)
 	m_Lean = FMath::Clamp(interpolated, -45.f, 45.f);
 }
 
-void UCharacterAnimationInstance::ApplyInverseKinematicsToHand()
+void UCharacterAnimationInstance::ApplyInverseKinematicsToHand(const float deltaTime)
 {
 	const auto pWeaponMesh = m_pEquippedWeapon->GetWeaponMesh();
 	const auto pCharacterMesh = m_pBlasterCharacter->GetMesh();
@@ -92,5 +92,6 @@ void UCharacterAnimationInstance::ApplyInverseKinematicsToHand()
 	if (!m_pBlasterCharacter->IsLocallyControlled()) return;
 	m_IsLocallyControlled = true;
 	const FTransform rightHandTransform = m_pBlasterCharacter->GetMesh()->GetSocketTransform(FName("hand_r"), RTS_World);
-	m_RightHandRotation = UKismetMathLibrary::FindLookAtRotation(FVector3d(), rightHandTransform.GetLocation() - m_pBlasterCharacter->GetHitTarget());
+	const FRotator lookAtRotation = UKismetMathLibrary::FindLookAtRotation(FVector3d(), rightHandTransform.GetLocation() - m_pBlasterCharacter->GetHitTarget());
+	m_RightHandRotation = FMath::RInterpTo(m_RightHandRotation, lookAtRotation, deltaTime, 30.f);
 }

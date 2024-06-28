@@ -105,6 +105,11 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 	const FVector end = start + crosshairWorldDirection * 100000.0f;
 	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
 
+	if (hitResult.GetActor() && hitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
+		m_HudPackage.CrosshairColor = FLinearColor::Red;
+	else
+		m_HudPackage.CrosshairColor = FLinearColor::White;
+	
 	// Manually set the end point to the furthest away point when the trace doesn't hit anything (example: when shooting in the sky)
 	if (!hitResult.bBlockingHit)
 	{
@@ -151,58 +156,52 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 
 	m_pHud = m_pHud == nullptr ? Cast<ABlasterHUD>(m_pPlayerController->GetHUD()) : m_pHud;
 	if(!m_pHud) return;
-	
-	const FHUDPackage hudPackage = [&]()-> FHUDPackage 
+	if (HasWeapon())
 	{
-		FHUDPackage hudPackageTemp{};
-		if (HasWeapon())
-		{
-			hudPackageTemp.CrosshairsCenter = m_pEquippedWeapon->m_pCrosshairsCenter;
-			hudPackageTemp.CrosshairsTop = m_pEquippedWeapon->m_pCrosshairsTop;
-			hudPackageTemp.CrosshairsRight = m_pEquippedWeapon->m_pCrosshairsRight;
-			hudPackageTemp.CrosshairsBottom = m_pEquippedWeapon->m_pCrosshairsBottom;
-			hudPackageTemp.CrosshairsLeft = m_pEquippedWeapon->m_pCrosshairsLeft;	
-		}
-		else
-		{
-			hudPackageTemp.CrosshairsCenter = nullptr;
-			hudPackageTemp.CrosshairsTop = nullptr;
-			hudPackageTemp.CrosshairsRight = nullptr;
-			hudPackageTemp.CrosshairsBottom = nullptr;
-			hudPackageTemp.CrosshairsLeft = nullptr;
-		}
-		
-		// Calculate the spread
-		const FVector2D walkSpeedRange(0.f, m_pCharacter->GetCharacterMovement()->MaxWalkSpeed);
-		const FVector2D velocityMultiplierRange{0.f, 1.f};
-		FVector velocity = m_pCharacter->GetVelocity();
-		velocity.Z = 0.f;
-		
-		const float crosshairVelocityFactor =  FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
-
-		if (m_pCharacter->GetMovementComponent()->IsFalling())
-			m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 2.25f, deltaTime, 2.25f);
-		else
-			m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 0.f, deltaTime, 30.f);
-
-		if (m_IsAiming)
-			m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.5f, deltaTime, 30.f);
-		else
-			m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.f, deltaTime, 30.f);
-
-		m_CrosshairShootingFactor = FMath::FInterpTo(m_CrosshairShootingFactor, 0.f, deltaTime, 30.f);
-
-		//Add all the different spread factors together
-		hudPackageTemp.CrosshairSpread =
-			0.5f + 						// Base spread
-			crosshairVelocityFactor + // How fast you are moving
-			m_CrosshairShootingFactor + // If you are shooting
-			m_CrosshairInAirFactor -  //if you are in the air
-			m_CrosshairAimFactor; //if you are aiming
-		return hudPackageTemp;
-	}();
+		m_HudPackage.CrosshairsCenter = m_pEquippedWeapon->m_pCrosshairsCenter;
+		m_HudPackage.CrosshairsTop = m_pEquippedWeapon->m_pCrosshairsTop;
+		m_HudPackage.CrosshairsRight = m_pEquippedWeapon->m_pCrosshairsRight;
+		m_HudPackage.CrosshairsBottom = m_pEquippedWeapon->m_pCrosshairsBottom;
+		m_HudPackage.CrosshairsLeft = m_pEquippedWeapon->m_pCrosshairsLeft;	
+	}
+	else
+	{
+		m_HudPackage.CrosshairsCenter = nullptr;
+		m_HudPackage.CrosshairsTop = nullptr;
+		m_HudPackage.CrosshairsRight = nullptr;
+		m_HudPackage.CrosshairsBottom = nullptr;
+		m_HudPackage.CrosshairsLeft = nullptr;
+	}
 	
-	m_pHud->SetHudPackage(hudPackage);
+	// Calculate the spread
+	const FVector2D walkSpeedRange(0.f, m_pCharacter->GetCharacterMovement()->MaxWalkSpeed);
+	const FVector2D velocityMultiplierRange{0.f, 1.f};
+	FVector velocity = m_pCharacter->GetVelocity();
+	velocity.Z = 0.f;
+	
+	const float crosshairVelocityFactor =  FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
+
+	if (m_pCharacter->GetMovementComponent()->IsFalling())
+		m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 2.25f, deltaTime, 2.25f);
+	else
+		m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, 0.f, deltaTime, 30.f);
+
+	if (m_IsAiming)
+		m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.5f, deltaTime, 30.f);
+	else
+		m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.f, deltaTime, 30.f);
+
+	m_CrosshairShootingFactor = FMath::FInterpTo(m_CrosshairShootingFactor, 0.f, deltaTime, 30.f);
+
+	//Add all the different spread factors together
+	m_HudPackage.CrosshairSpread =
+		0.5f + 						// Base spread
+		crosshairVelocityFactor + // How fast you are moving
+		m_CrosshairShootingFactor + // If you are shooting
+		m_CrosshairInAirFactor -  //if you are in the air
+		m_CrosshairAimFactor; //if you are aiming
+	
+	m_pHud->SetHudPackage(m_HudPackage);
 	
 }
 

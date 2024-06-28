@@ -7,6 +7,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/HUD/BlasterHUD.h"
+#include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -23,11 +25,17 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 
 	m_BaseWalkSpeed = m_pCharacter->GetCharacterMovement()->MaxWalkSpeed;
+
+	// Set up references
+	m_pPlayerController = Cast<ABlasterPlayerController>(m_pCharacter->GetController());
+	m_pHud = Cast<ABlasterHUD>(m_pPlayerController->GetHUD());
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	SetHudCrosshairs(DeltaTime);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -113,6 +121,38 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::SetHudCrosshairs(float deltaTime)
+{
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	checkf(m_pHud, TEXT("HUD is nullptr"));
+	checkf(m_pPlayerController, TEXT("Player controller is nullptr"));
+
+	const FHUDPackage hudPackage = [&]()-> FHUDPackage 
+	{
+		FHUDPackage hudPackageTemp{};
+		if (HasWeapon())
+		{
+			hudPackageTemp.CrosshairsCenter = m_pEquippedWeapon->m_pCrosshairsCenter;
+			hudPackageTemp.CrosshairsTop = m_pEquippedWeapon->m_pCrosshairsTop;
+			hudPackageTemp.CrosshairsRight = m_pEquippedWeapon->m_pCrosshairsRight;
+			hudPackageTemp.CrosshairsBottom = m_pEquippedWeapon->m_pCrosshairsBottom;
+			hudPackageTemp.CrosshairsLeft = m_pEquippedWeapon->m_pCrosshairsLeft;	
+		}
+		else
+		{
+			hudPackageTemp.CrosshairsCenter = nullptr;
+			hudPackageTemp.CrosshairsTop = nullptr;
+			hudPackageTemp.CrosshairsRight = nullptr;
+			hudPackageTemp.CrosshairsBottom = nullptr;
+			hudPackageTemp.CrosshairsLeft = nullptr;
+		}
+		return hudPackageTemp;
+	}();
+	
+	m_pHud->SetHudPackage(hudPackage);
+	
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)

@@ -7,6 +7,8 @@
 #include "CombatComponent.generated.h"
 
 
+class ABlasterHUD;
+class ABlasterPlayerController;
 class AWeapon;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -42,8 +44,12 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire(const FVector_NetQuantize& traceHitLocation);
 
+	void SetHudCrosshairs(float deltaTime);
+
 private:
 	ABlasterCharacter* m_pCharacter{};
+	ABlasterPlayerController* m_pPlayerController{};
+	ABlasterHUD* m_pHud{};
 	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* m_pEquippedWeapon{};

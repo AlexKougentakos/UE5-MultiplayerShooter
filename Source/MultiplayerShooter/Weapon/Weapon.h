@@ -35,6 +35,25 @@ public:
 
 	virtual void Fire(const FVector& hitTarget);
 
+	/*
+	 * Textures for the weapon crosshairs
+	 */
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshairs Center")
+	UTexture2D* m_pCrosshairsCenter{};
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshairs Top")
+	UTexture2D* m_pCrosshairsTop{};
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshairs Right")
+	UTexture2D* m_pCrosshairsRight{};
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshairs Bottom")
+	UTexture2D* m_pCrosshairsBottom{};
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshairs Left")
+	UTexture2D* m_pCrosshairsLeft{};
+
 protected:
 	virtual void BeginPlay() override;
 

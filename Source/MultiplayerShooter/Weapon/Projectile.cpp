@@ -61,7 +61,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 		ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 		if (pBlasterCharacter)
 		{
-			pBlasterCharacter->MulticastHit();
+			//pBlasterCharacter->MulticastHit();
 			materialOfHitObject = m_pPlayerPhysicalMaterial;
 		}
 		else materialOfHitObject = OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->GetSimplePhysicalMaterial();
@@ -90,5 +90,6 @@ UParticleSystem* AProjectile::GetImpactEffect(const UPhysicalMaterial* physicalM
 	if (physicalMaterial == m_pWoodPhysicalMaterial) return m_pWoodImpactEffect;
 	if (physicalMaterial == m_pMetalPhysicalMaterial) return m_pMetalImpactEffect;
 	if (physicalMaterial == m_pPlayerPhysicalMaterial) return m_pPlayerImpactEffect;
+	if (physicalMaterial == m_pRockPhysicalMaterial) return m_pRockImpactEffect;
 	return m_pMetalImpactEffect;
 }

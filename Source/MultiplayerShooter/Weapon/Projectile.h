@@ -44,11 +44,17 @@ private:
 	UPROPERTY(EditAnywhere, DisplayName = "Player Impact Effect", Category = "Effects|Impact Particles")
 	UParticleSystem* m_pPlayerImpactEffect{};
 	
-	UPROPERTY(EditAnywhere, DisplayName = "Grass Physical Material", Category = "Effects|Physical Materials")
-	UPhysicalMaterial* m_pGrassPhysicalMaterial{};
+	UPROPERTY(EditAnywhere, DisplayName = "Rock Impact Effect", Category = "Effects|Impact Particles")
+	UParticleSystem* m_pRockImpactEffect{};
 	
 	UPROPERTY(EditAnywhere, DisplayName = "Metal Impact Effect", Category = "Effects|Impact Particles")
 	UParticleSystem* m_pMetalImpactEffect{};
+
+
+	
+
+	UPROPERTY(EditAnywhere, DisplayName = "Grass Physical Material", Category = "Effects|Physical Materials")
+    UPhysicalMaterial* m_pGrassPhysicalMaterial{};
 
 	UPROPERTY(EditAnywhere, DisplayName = "Wood Physical Material", Category = "Effects|Physical Materials")
 	UPhysicalMaterial* m_pWoodPhysicalMaterial{};
@@ -59,6 +65,9 @@ private:
 	UPROPERTY(EditAnywhere, DisplayName = "Metal Physical Material", Category = "Effects|Physical Materials")
 	UPhysicalMaterial* m_pMetalPhysicalMaterial{};
 
+	UPROPERTY(EditAnywhere, DisplayName = "Rock Physical Material", Category = "Effects|Physical Materials")
+	UPhysicalMaterial* m_pRockPhysicalMaterial{};
+
 protected:
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
@@ -66,6 +75,9 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastOnHit(const UPhysicalMaterial* physicalMaterial);
 	
-	
 	virtual UParticleSystem* GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const;
+
+	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Projectile")
+	float m_Damage{ 20.0f };
+
 };

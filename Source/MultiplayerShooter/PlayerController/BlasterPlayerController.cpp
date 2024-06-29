@@ -1,4 +1,32 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "BlasterPlayerController.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+#include "MultiplayerShooter/HUD/BlasterHUD.h"
+#include "MultiplayerShooter/HUD/CharacterOverlay.h"
 
+void ABlasterPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
 
-#include "BlasterPlayerController.h"
+	m_pHUD = Cast<ABlasterHUD>(GetHUD());
+}
+
+void ABlasterPlayerController::SetHudHealth(float health, float maxHealth)
+{
+	//m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+
+	if (!m_pHUD ||
+		!m_pHUD->m_pCharacterOverlay ||
+		!m_pHUD->m_pCharacterOverlay->HealthBar ||
+		!m_pHUD->m_pCharacterOverlay->HealthText) return;
+
+	// Set health bar
+	const float healthPercentage = health / maxHealth;
+	m_pHUD->m_pCharacterOverlay->HealthBar->SetPercent(healthPercentage);
+
+	// Set health text
+	const FString healthString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(health), FMath::CeilToInt(maxHealth));
+	m_pHUD->m_pCharacterOverlay->HealthText->SetText(FText::FromString(healthString));
+
+	
+}

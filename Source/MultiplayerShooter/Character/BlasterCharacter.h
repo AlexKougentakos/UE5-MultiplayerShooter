@@ -87,6 +87,21 @@ private: // Variables
 	FRotator m_ProxyRotationLastFrame{};
 	FRotator m_CurrentProxyRotation{};
 	float m_TimeSinceLastMovementReplication{};
+
+	/*
+	 * Player Health
+	 */
+
+	UPROPERTY(EditAnywhere, DisplayName = "Max Health", Category = "Player Stats")
+	float m_MaxHealth{100.f};
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, DisplayName = "Current Health", Category = "Player Stats")
+	float m_CurrentHealth{};
+
+	UFUNCTION()
+	void OnRep_Health();
+
+	ABlasterPlayerController* m_pPlayerController{};
 	
 private: // Functions
 	UFUNCTION()
@@ -111,6 +126,8 @@ private: // Functions
 	void FireButtonPressed();
 	void FireButtonReleased();
 
+	UFUNCTION()
+	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatedBy, AActor* damageCauser);
 	
 public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);

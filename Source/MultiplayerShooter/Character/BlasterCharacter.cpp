@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/MultiplayerShooter.h"
+#include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -38,12 +39,22 @@ ABlasterCharacter::ABlasterCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
+	
+	m_CurrentHealth = m_MaxHealth;
 }
 
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	m_pPlayerController = Cast<ABlasterPlayerController>(GetController());
 
+	
+	if (m_pPlayerController)
+		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+
+	if (HasAuthority())
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 }
 
 
@@ -104,6 +115,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, m_pOverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ABlasterCharacter, m_CurrentHealth);
 }
 
 void ABlasterCharacter::Jump()
@@ -337,6 +349,16 @@ void ABlasterCharacter::FireButtonReleased()
 	m_pCombat->FireButtonPressed(false);
 }
 
+void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType,
+	AController* instigatedBy, AActor* damageCauser)
+{
+	m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
+	if (m_pPlayerController)
+		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+	
+	PlayHitReactMontage();
+}
+
 void ABlasterCharacter::HideCameraWhenPlayerIsClose()
 {
 	if (!IsLocallyControlled()) return;
@@ -357,6 +379,13 @@ void ABlasterCharacter::HideCameraWhenPlayerIsClose()
 			m_pCombat->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
+}
+
+void ABlasterCharacter::OnRep_Health()
+{
+	PlayHitReactMontage();
+	if (m_pPlayerController)
+		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon) const

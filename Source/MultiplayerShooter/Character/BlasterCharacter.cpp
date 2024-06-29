@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MultiplayerShooter/MultiplayerShooter.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -36,6 +37,7 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -108,8 +110,28 @@ void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
 
 	// Play the montage and then decide which section to play depending on if we are using iron sights or hip fire
 	pAnimInstance->Montage_Play(m_pFireWeaponMontage, 1.f);
-	const FName sectionName = isAiming ? "RifleAim" : "RifleHip";
+	const FName sectionName = isAiming ? "Rifle Ironsights" : "Rifle Hip";
 	pAnimInstance->Montage_JumpToSection(sectionName);
+}
+
+void ABlasterCharacter::PlayHitReactMontage() const
+{	
+	if (!m_pCombat->HasWeapon()) return;
+		
+	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
+	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
+	checkf(m_pHitReactMontage, TEXT("Hit React Montage is nullptr"));
+
+	pAnimInstance->Montage_Play(m_pHitReactMontage, 1.f);
+	const FName sectionName = "FromFront";
+	pAnimInstance->Montage_JumpToSection(sectionName); 
+	
+	
+}
+
+void ABlasterCharacter::MulticastHit_Implementation()
+{
+	PlayHitReactMontage();
 }
 
 void ABlasterCharacter::MoveForward(const float value)

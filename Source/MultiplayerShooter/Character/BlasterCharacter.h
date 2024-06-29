@@ -31,17 +31,11 @@ public:
 	virtual void Jump() override;
 
 	void PlayFireMontage(const bool isAiming) const;
-
-public: //Variables
-	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Standing", meta = (ToolTip = "The angle at which the player rotates when turning in place when standing"))
-	float m_StandingPlayerRotationAngle{80.f};
-
-	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Crouched", meta = (ToolTip = "The angle at which the player rotates when turning in place when crouched"))
-	float m_CrouchingPlayerRotationAngle{60.f};
-
-	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Speed")
-	float m_RotationSpeed{5.f};
-
+	void PlayHitReactMontage() const;
+	
+	UFUNCTION(NetMulticast, Unreliable) //Unreliable because it's a cosmetic effect that will mostly go unnoticed with so many hits
+	void MulticastHit();
+	
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* m_pCameraBoom{};
@@ -65,9 +59,18 @@ private: // Variables
 	FRotator m_LastFrameRotation{};
 
 	ETurningInPlace m_TurningInPlace{};
-
-	UPROPERTY(EditAnywhere, DisplayName = "Fire Weapon Montage")
+	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Standing", meta = (ToolTip = "The angle at which the player rotates when turning in place when standing"))
+	float m_StandingPlayerRotationAngle{80.f};
+	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Crouched", meta = (ToolTip = "The angle at which the player rotates when turning in place when crouched"))
+	float m_CrouchingPlayerRotationAngle{60.f};
+	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Speed")
+	float m_RotationSpeed{5.f};
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Fire Weapon Montage", Category = "Animation")
 	UAnimMontage* m_pFireWeaponMontage{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Hit React Montage", Category = "Animation")
+	UAnimMontage* m_pHitReactMontage{};
 
 	void HideCameraWhenPlayerIsClose();
 	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
@@ -79,6 +82,7 @@ private: // Functions
 	
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
 
 	void MoveForward(const float value);
 	void MoveRight(const float value);
@@ -92,6 +96,7 @@ private: // Functions
 	void TurnInPlace(float deltaTime);
 	void FireButtonPressed();
 	void FireButtonReleased();
+
 	
 public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);

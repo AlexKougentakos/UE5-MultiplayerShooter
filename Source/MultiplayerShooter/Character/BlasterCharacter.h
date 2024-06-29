@@ -68,6 +68,10 @@ private: // Variables
 
 	UPROPERTY(EditAnywhere, DisplayName = "Fire Weapon Montage")
 	UAnimMontage* m_pFireWeaponMontage{};
+
+	void HideCameraWhenPlayerIsClose();
+	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
+	float m_PlayerHideDistance{200.f}; // The minimum distance there needs to be between the player and the camera for the camera to remain active
 	
 private: // Functions
 	UFUNCTION()

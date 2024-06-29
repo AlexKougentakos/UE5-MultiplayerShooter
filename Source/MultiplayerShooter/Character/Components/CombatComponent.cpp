@@ -101,10 +101,17 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 
 	if (!screenToWorldSucceeded) return;
 
-	const FVector start = crosshairWorldPosition;
+	FVector start = crosshairWorldPosition;
+
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	const float distanceToCharacter = FVector::Dist(start, m_pCharacter->GetActorLocation());
+	start += crosshairWorldDirection * (distanceToCharacter + 100.f);
+	
+	
 	const FVector end = start + crosshairWorldDirection * 100000.0f;
 	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
 
+	// Detect when you are aiming at a player
 	if (hitResult.GetActor() && hitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		m_HudPackage.CrosshairColor = FLinearColor::Red;
 	else

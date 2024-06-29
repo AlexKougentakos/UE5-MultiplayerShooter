@@ -50,6 +50,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	CalculateAimOffset(DeltaTime);
+	HideCameraWhenPlayerIsClose();
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -247,6 +248,28 @@ void ABlasterCharacter::FireButtonReleased()
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	
 	m_pCombat->FireButtonPressed(false);
+}
+
+void ABlasterCharacter::HideCameraWhenPlayerIsClose()
+{
+	if (!IsLocallyControlled()) return;
+
+	if (FVector::Dist(m_pFollowCamera->GetComponentLocation(), GetActorLocation()) < m_PlayerHideDistance)
+	{
+		GetMesh()->SetVisibility(false);
+		if (m_pCombat->HasWeapon())
+		{
+			m_pCombat->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if (m_pCombat->HasWeapon())
+		{
+			m_pCombat->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon) const

@@ -141,8 +141,6 @@ void ABlasterCharacter::PlayHitReactMontage() const
 	pAnimInstance->Montage_Play(m_pHitReactMontage, 1.f);
 	const FName sectionName = "FromFront";
 	pAnimInstance->Montage_JumpToSection(sectionName); 
-	
-	
 }
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()

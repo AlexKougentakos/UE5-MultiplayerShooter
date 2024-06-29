@@ -52,27 +52,43 @@ void AProjectile::Tick(float DeltaTime)
 
 }
 
-void AProjectile::Destroyed()
-{
-	Super::Destroyed();
-	
-	checkf(m_pImpactEffect, TEXT("Impact effect is nullptr"));
-	checkf(m_pImpactSound, TEXT("Impact sound is nullptr"));
-
-	//Play effect
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pImpactEffect, GetActorTransform());
-
-	//Play sound
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
-}
-
 void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
                         FVector NormalImpulse, const FHitResult& Hit)
 {
-	//Temp: to be replaced in the inherited classes
-	ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	if (pBlasterCharacter) pBlasterCharacter->MulticastHit();
-	
+	if (HasAuthority())
+	{
+		UPhysicalMaterial* materialOfHitObject;
+		ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+		if (pBlasterCharacter)
+		{
+			pBlasterCharacter->MulticastHit();
+			materialOfHitObject = m_pPlayerPhysicalMaterial;
+		}
+		else materialOfHitObject = OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->GetSimplePhysicalMaterial();
+
+		MulticastOnHit(materialOfHitObject);
+	}
+}
+
+void AProjectile::MulticastOnHit_Implementation(const UPhysicalMaterial* physicalMaterial)
+{
+	checkf(m_pMetalImpactEffect, TEXT("Impact effect is nullptr"));
+	checkf(m_pImpactSound, TEXT("Impact sound is nullptr"));
+
+	//Play effect
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GetImpactEffect(physicalMaterial), GetActorTransform());
+
+	//Play sound
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
+
 	Destroy();
 }
 
+UParticleSystem* AProjectile::GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const
+{
+	if (physicalMaterial == m_pGrassPhysicalMaterial) return m_pGrassImpactEffect;
+	if (physicalMaterial == m_pWoodPhysicalMaterial) return m_pWoodImpactEffect;
+	if (physicalMaterial == m_pMetalPhysicalMaterial) return m_pMetalImpactEffect;
+	if (physicalMaterial == m_pPlayerPhysicalMaterial) return m_pPlayerImpactEffect;
+	return m_pMetalImpactEffect;
+}

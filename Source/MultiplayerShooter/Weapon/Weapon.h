@@ -72,6 +72,21 @@ protected:
 		, AActor* OtherActor
 		, UPrimitiveComponent* OtherComp
 		, int32 OtherBodyIndex);
+
+		
+	// Zooming
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Zooming", DisplayName = "Zoomed FOV")
+	float m_ZoomedFOV {30.f};
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Zooming", DisplayName = "Zoom Interpolation Speed")
+	float m_ZoomInterpolationSpeed{20.f};
+
+	//Weapon Stats
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Fire Delay")
+	float m_FireDelay{.15f};
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Has Automatic Fire")
+	bool m_CurrentWeaponHasAutomaticFire{true};
 	
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")
@@ -94,16 +109,13 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon FX", DisplayName = "Bullet Shell Class")
 	TSubclassOf<ABulletShell> m_pBulletShellClass{};
-	
-	// Zooming
-	UPROPERTY(EditAnywhere, Category = "Zooming", DisplayName = "Zoomed FOV")
-	float m_ZoomedFOV {30.f};
 
-	UPROPERTY(EditAnywhere, Category = "Zooming", DisplayName = "Zoom Interpolation Speed")
-	float m_ZoomInterpolationSpeed{20.f};
 public:
 	void SetWeaponState(const EWeaponState state);
 	USkeletalMeshComponent* GetWeaponMesh() const { return m_pWeaponMesh; }
 	float GetZoomedFOV() const { return m_ZoomedFOV; }
 	float GetZoomInterpolationSpeed() const { return m_ZoomInterpolationSpeed; }
+
+	float GetFireDelay() const { return m_FireDelay; }
+	bool HasAutomaticFire() const { return m_CurrentWeaponHasAutomaticFire; }
 };

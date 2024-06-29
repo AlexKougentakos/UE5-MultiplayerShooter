@@ -51,7 +51,23 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	CalculateAimOffset(DeltaTime);
+	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		CalculateAimOffset(DeltaTime);
+	}
+	// The reason for this is that OnRep_ReplicatedMovement only gets called when there's a change in the movement of the character
+	// So if the character is standing still, the replicated movement won't get called and the proxies won't update their rotation
+	// This is a relatively cheap call
+	else
+	{
+		m_TimeSinceLastMovementReplication += DeltaTime;
+		if (m_TimeSinceLastMovementReplication >  0.15f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAimOffsetPitch();
+	}
+	
 	HideCameraWhenPlayerIsClose();
 }
 
@@ -129,6 +145,14 @@ void ABlasterCharacter::PlayHitReactMontage() const
 	
 }
 
+void ABlasterCharacter::OnRep_ReplicatedMovement()
+{
+	Super::OnRep_ReplicatedMovement();
+
+	SimulateProxiesTurn();
+	m_TimeSinceLastMovementReplication = 0.f;
+}
+
 void ABlasterCharacter::MulticastHit_Implementation()
 {
 	PlayHitReactMontage();
@@ -194,33 +218,8 @@ void ABlasterCharacter::AimButtonReleased()
 	m_pCombat->SetAiming(false);
 }
 
-void ABlasterCharacter::CalculateAimOffset(float deltaTime)
+void ABlasterCharacter::CalculateAimOffsetPitch()
 {
-	if (!m_pCombat->HasWeapon()) return;
-	
-	const FVector velocity = GetVelocity();
-	const FVector lateralVelocity = FVector{velocity.X, velocity.Y, 0.f};
-	const float speed = lateralVelocity.Size();
-	const bool bIsInAir = GetCharacterMovement()->IsFalling();
-
-	if (speed < 0.1f && !bIsInAir) // STATE: Standing still & not jumping
-	{
-		const FRotator aimRotation = FRotator{0.f, GetBaseAimRotation().Yaw, 0.f};
-		const FRotator deltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(aimRotation, m_LastFrameRotation);
-		m_AimOffsetYaw = deltaAimRotation.Yaw;
-		if (m_TurningInPlace == ETurningInPlace::ETIP_NotTurning)
-			m_InterpolatedAimOffsetYaw = m_AimOffsetYaw;
-		bUseControllerRotationYaw = true;
-		TurnInPlace(deltaTime);
-	}
-	else //STATE: Moving or jumping
-	{
-		m_LastFrameRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
-		m_AimOffsetYaw = 0.f;
-		bUseControllerRotationYaw = true;
-		m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-	}
-
 	// Now we set the pitch regardless of if the player is moving/jumping or not
 	m_AimOffsetPitch = GetBaseAimRotation().Pitch;
 
@@ -234,6 +233,74 @@ void ABlasterCharacter::CalculateAimOffset(float deltaTime)
 		const FVector2d outRange = FVector2d{-90.f, 0.f};
 		m_AimOffsetPitch = FMath::GetMappedRangeValueClamped(inRange, outRange, m_AimOffsetPitch);
 	}
+}
+
+void ABlasterCharacter::CalculateAimOffset(float deltaTime)
+{
+	if (!m_pCombat->HasWeapon()) return;
+	
+	const FVector velocity = GetVelocity();
+	const FVector lateralVelocity = FVector{velocity.X, velocity.Y, 0.f};
+	const float speed = lateralVelocity.Size();
+	const bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	if (speed < 0.1f && !bIsInAir) // STATE: Standing still & not jumping
+	{
+		m_RotateRootBone = true;
+		const FRotator aimRotation = FRotator{0.f, GetBaseAimRotation().Yaw, 0.f};
+		const FRotator deltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(aimRotation, m_LastFrameRotation);
+		m_AimOffsetYaw = deltaAimRotation.Yaw;
+		if (m_TurningInPlace == ETurningInPlace::ETIP_NotTurning)
+			m_InterpolatedAimOffsetYaw = m_AimOffsetYaw;
+		bUseControllerRotationYaw = true;
+		TurnInPlace(deltaTime);
+	}
+	else if(speed > 0.1f || bIsInAir)//STATE: Moving or jumping
+	{
+		m_RotateRootBone = false;
+		m_LastFrameRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		m_AimOffsetYaw = 0.f;
+		bUseControllerRotationYaw = true;
+		m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	}
+
+	CalculateAimOffsetPitch();
+}
+
+void ABlasterCharacter::SimulateProxiesTurn()
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	if (!m_pCombat->HasWeapon()) return;
+
+	m_RotateRootBone = false;
+	
+	const FVector velocity = GetVelocity();
+	const FVector lateralVelocity = FVector{velocity.X, velocity.Y, 0.f};
+	const float speed = lateralVelocity.Size();
+
+	if (speed > 0.f || GetCharacterMovement()->IsFalling())
+	{
+		m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+
+	m_ProxyRotationLastFrame = m_CurrentProxyRotation;
+	m_CurrentProxyRotation = GetActorRotation();
+	const float proxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(m_CurrentProxyRotation, m_ProxyRotationLastFrame).Yaw;
+	
+	if (FMath::Abs(proxyYaw) > m_TurnThreshold)
+	{
+		if (proxyYaw > m_TurnThreshold)
+			m_TurningInPlace = ETurningInPlace::ETIP_Right;
+		else if (proxyYaw < -m_TurnThreshold)
+			m_TurningInPlace = ETurningInPlace::ETIP_Left;
+		else
+			m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		
+		return;	
+	}
+	
+	m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void ABlasterCharacter::TurnInPlace(float deltaTime)

@@ -21,6 +21,16 @@ UCombatComponent::UCombatComponent()
 	m_AimingWalkSpeed = 450.0f;
 }
 
+
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, m_pEquippedWeapon);
+	DOREPLIFETIME(ThisClass, m_IsAiming);
+}
+
+
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -51,40 +61,6 @@ void UCombatComponent::TickComponent(float deltaTime, ELevelTick TickType, FActo
 		InterpolateFOV(deltaTime);
 	}
 	
-}
-
-void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, m_pEquippedWeapon);
-	DOREPLIFETIME(ThisClass, m_IsAiming);
-}
-
-void UCombatComponent::SetAiming(const bool isAiming)
-{
-	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
-	ServerSetAiming(isAiming);
-	checkf(m_pCharacter, TEXT("Character is nullptr"));
-	
-	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
-}
-
-void UCombatComponent::FireButtonPressed(const bool isPressed)
-{
-	m_IsFireButtonPressed = isPressed;
-
-	if (isPressed)
-	{
-		
-		FHitResult hitResult{};
-		TraceUnderCrosshairs(hitResult);
-		ServerFire(hitResult.ImpactPoint);
-
-		if (!HasWeapon()) return;
-
-		m_CrosshairShootingFactor = 0.9f;
-	}
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
@@ -123,6 +99,59 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 		hitResult.ImpactPoint = end;
 	}
 	 
+}
+
+void UCombatComponent::SetAiming(const bool isAiming)
+{
+	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
+	ServerSetAiming(isAiming);
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
+}
+
+void UCombatComponent::FireButtonPressed(const bool isPressed)
+{
+	m_IsFireButtonPressed = isPressed;
+
+	if (isPressed)
+	{
+		Fire();
+	}
+}
+
+void UCombatComponent::Fire()
+{
+	if (!m_CanFire) return;
+
+	m_CanFire = false;
+	ServerFire(m_HitTarget);
+
+	if (HasWeapon())
+		m_CrosshairShootingFactor = 0.9f;
+
+	StartFireTimer();
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if (!HasWeapon())
+	{
+		m_CanFire = true;
+		return;	
+	}
+	
+	m_pCharacter->GetWorldTimerManager().SetTimer(m_FireTimer, this, &UCombatComponent::FireTimerFinished, m_pEquippedWeapon->GetFireDelay());
+	
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	m_CanFire = true;
+	if (m_IsFireButtonPressed && m_pEquippedWeapon->HasAutomaticFire())
+	{
+		Fire();
+	}
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)

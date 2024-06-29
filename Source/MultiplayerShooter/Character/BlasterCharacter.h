@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "TurningInPlace.h"
+#include "Components/CombatComponent.h"
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
@@ -35,6 +36,8 @@ public:
 	
 	UFUNCTION(NetMulticast, Unreliable) //Unreliable because it's a cosmetic effect that will mostly go unnoticed with so many hits
 	void MulticastHit();
+
+	virtual void OnRep_ReplicatedMovement() override;
 	
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -75,6 +78,15 @@ private: // Variables
 	void HideCameraWhenPlayerIsClose();
 	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
 	float m_PlayerHideDistance{200.f}; // The minimum distance there needs to be between the player and the camera for the camera to remain active
+
+	/*
+	 * PROXY SIMULATED TURNING
+	 */
+	bool m_RotateRootBone{};
+	float m_TurnThreshold{2.f};
+	FRotator m_ProxyRotationLastFrame{};
+	FRotator m_CurrentProxyRotation{};
+	float m_TimeSinceLastMovementReplication{};
 	
 private: // Functions
 	UFUNCTION()
@@ -92,7 +104,9 @@ private: // Functions
 	void CrouchButtonPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
+	void CalculateAimOffsetPitch();
 	void CalculateAimOffset(float deltaTime);
+	void SimulateProxiesTurn();
 	void TurnInPlace(float deltaTime);
 	void FireButtonPressed();
 	void FireButtonReleased();
@@ -102,6 +116,7 @@ public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
+	bool RotateRootBone() const { return m_RotateRootBone; }
 	
 	float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
 	float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
@@ -111,4 +126,5 @@ public: // Getters & Setters
 	FVector GetHitTarget() const;
 
 	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
+	
 };

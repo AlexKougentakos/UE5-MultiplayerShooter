@@ -26,7 +26,7 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 
 	if (!m_pBlasterCharacter) return;
 
-	InitializeVariables();
+	UpdateVariables();
 
 	HandleLeaning(deltaTime);
 
@@ -39,7 +39,7 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 	}
 }
 
-void UCharacterAnimationInstance::InitializeVariables()
+void UCharacterAnimationInstance::UpdateVariables()
 {
 	FVector velocity = m_pBlasterCharacter->GetVelocity();
 	velocity.Z = 0.f;
@@ -52,6 +52,7 @@ void UCharacterAnimationInstance::InitializeVariables()
 	m_IsCrouched = m_pBlasterCharacter->bIsCrouched;
 	m_IsAiming = m_pBlasterCharacter->IsAiming();
 	m_TurningInPlace = m_pBlasterCharacter->GetTurningInPlace();
+	m_RotateRootBone = m_pBlasterCharacter->RotateRootBone();
 }
 
 void UCharacterAnimationInstance::HandleLeaning(float deltaTime)

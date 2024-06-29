@@ -29,6 +29,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
+	void Fire();
 	void FireButtonPressed(const bool isPressed);
 
 	void TraceUnderCrosshairs(FHitResult& hitResult);
@@ -87,4 +88,11 @@ private:
 	float m_ZoomInterpolationSpeed{20.f};
 
 	void InterpolateFOV(const float deltaTime);
+
+	// Automatic Fire
+	FTimerHandle m_FireTimer{};
+	bool m_CanFire{true};
+	
+	void StartFireTimer();
+	void FireTimerFinished();
 };

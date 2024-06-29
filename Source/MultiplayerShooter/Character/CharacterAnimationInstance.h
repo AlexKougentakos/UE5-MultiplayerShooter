@@ -17,7 +17,7 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	void ApplyInverseKinematicsToHand(const float deltaTime);
 	void HandleLeaning(float deltaTime);
-	void InitializeVariables();
+	void UpdateVariables();
 	virtual void NativeUpdateAnimation(float deltaTime) override;
 	
 private:
@@ -72,5 +72,6 @@ private:
 	FRotator m_CurrentRotation{};
 	FRotator m_DeltaRotation{};
 
-
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "Rotate Root Bone")
+	bool m_RotateRootBone{};
 };

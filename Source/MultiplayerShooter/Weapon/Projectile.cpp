@@ -61,7 +61,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 		ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 		if (pBlasterCharacter)
 		{
-			//pBlasterCharacter->MulticastHit();
+			//BlasterCharacter->MulticastHit();
 			materialOfHitObject = m_pPlayerPhysicalMaterial;
 		}
 		else materialOfHitObject = OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->GetSimplePhysicalMaterial();

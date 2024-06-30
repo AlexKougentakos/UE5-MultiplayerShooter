@@ -10,6 +10,7 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class USoundCue;
 class UCombatComponent;
 class AWeapon;
 class UWidgetComponent;
@@ -31,6 +32,7 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Jump() override;
+	virtual void Destroyed() override;
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEliminated();
@@ -113,7 +115,9 @@ private: // Variables
 	ABlasterPlayerController* m_pPlayerController{};
 	bool m_IsAlive{};
 
-	// Eliminations
+	/*
+	 * ELIMINATIONS
+	 */
 	FTimerHandle m_EliminationTimer{};
 	void EliminationTimerFinished();
 
@@ -138,6 +142,15 @@ private: // Variables
 	//The material instance set in the editor
 	UPROPERTY(EditAnywhere, DisplayName = "Dissolve Material", Category = "Animation|Dissolve")
 	UMaterialInstance* m_pDissolveMaterialInstance{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Elimination Bot Effect", Category = "Animation|EliminationBot")
+	UParticleSystem* m_pEliminationBotEffect{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Elimination Bot Sound Effect", Category = "Animation|EliminationBot")
+	USoundCue* m_pEliminationSound{};
+	
+	UParticleSystemComponent* m_pEliminationBotEffectComponent{};
+
 	
 	
 private: // Functions
@@ -181,4 +194,7 @@ public: // Getters & Setters
 
 	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
 	bool IsAlive() const { return m_IsAlive; }
+
+	float GetMaxHealth() const { return m_MaxHealth; }
+	float GetCurrentHealth() const { return m_CurrentHealth; }
 };

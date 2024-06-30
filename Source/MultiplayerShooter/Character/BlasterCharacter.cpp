@@ -8,12 +8,15 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/MultiplayerShooter.h"
 #include "MultiplayerShooter/GameModes/BlasterGameMode.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -133,6 +136,14 @@ void ABlasterCharacter::Jump()
 	else Super::Jump();
 }
 
+void ABlasterCharacter::Destroyed()
+{
+	Super::Destroyed();
+
+	// We do this in the destroyed function since it gets replicated to all clients
+	if (m_pEliminationBotEffectComponent) m_pEliminationBotEffectComponent->DestroyComponent();
+}
+
 void ABlasterCharacter::Eliminated()
 {
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
@@ -169,6 +180,15 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	//Disable Collisions
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//Spawn the elimination bot effect
+	checkf(m_pEliminationBotEffect, TEXT("Elimination bot effect is nullptr"));
+	const FVector location = GetActorLocation();
+	const FVector eliminationBotEffectLocation = FVector{location.X, location.Y, location.Z + 200.f};
+	m_pEliminationBotEffectComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pEliminationBotEffect, eliminationBotEffectLocation, GetActorRotation());
+
+	checkf(m_pEliminationSound, TEXT("Elimination sound is nullptr"));
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEliminationSound, GetActorLocation());
 }
 
 void ABlasterCharacter::EliminationTimerFinished()
@@ -413,6 +433,7 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 	AController* instigatedBy, AActor* damageCauser)
 {
 	m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
+	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
 	if (m_pPlayerController)
 		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
 	
@@ -456,6 +477,7 @@ void ABlasterCharacter::HideCameraWhenPlayerIsClose()
 void ABlasterCharacter::OnRep_Health()
 {
 	PlayHitReactMontage();
+	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
 	if (m_pPlayerController)
 		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
 }

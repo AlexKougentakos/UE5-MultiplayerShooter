@@ -88,22 +88,6 @@ void AWeapon::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActo
 	}	
 }
 
-void AWeapon::OnRep_WeaponState() const
-{
-	switch (m_WeaponState)
-	{
-	case EWeaponState::EWS_Initial:
-		break;
-	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		break;
-	case EWeaponState::EWS_Dropped:
-		break;
-	case EWeaponState::EWS_MAX:
-		break;
-	}
-}
-
 void AWeapon::SetWeaponState(const EWeaponState state)
 {
 	//We change the state here to call the OnRep_WeaponState function
@@ -116,13 +100,43 @@ void AWeapon::SetWeaponState(const EWeaponState state)
 	case EWeaponState::EWS_Equipped:
 		ShowPickupWidget(false);
 		m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		m_pWeaponMesh->SetSimulatePhysics(false);
+		m_pWeaponMesh->SetEnableGravity(false);
+		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	case EWeaponState::EWS_Dropped:
+		if (HasAuthority())
+			m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		m_pWeaponMesh->SetSimulatePhysics(true);
+		m_pWeaponMesh->SetEnableGravity(true);
+		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EWeaponState::EWS_MAX:
 		break;
 	}
 
+}
+
+void AWeapon::OnRep_WeaponState() const
+{
+	switch (m_WeaponState)
+	{
+	case EWeaponState::EWS_Initial:
+		break;
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		m_pWeaponMesh->SetSimulatePhysics(false);
+		m_pWeaponMesh->SetEnableGravity(false);
+		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		m_pWeaponMesh->SetSimulatePhysics(true);
+		m_pWeaponMesh->SetEnableGravity(true);
+		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EWeaponState::EWS_MAX:
+		break;
+	}
 }
 
 void AWeapon::ShowPickupWidget(bool show) const
@@ -151,4 +165,14 @@ void AWeapon::Fire(const FVector& hitTarget)
 	socketTransform.GetLocation(),
 	socketTransform.GetRotation().Rotator(),
 	FActorSpawnParameters());
+}
+
+void AWeapon::Dropped()
+{
+		
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	const FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld, true);
+	m_pWeaponMesh->DetachFromComponent(detachRules);
+
+	SetOwner(nullptr);
 }

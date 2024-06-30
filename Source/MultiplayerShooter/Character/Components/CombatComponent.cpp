@@ -175,9 +175,39 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
 	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
 }
 
+void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
+{
+	if (!m_pCharacter || !pWeapon) return;
+
+	m_pEquippedWeapon = pWeapon;
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+
+	if (weaponSocket)
+		weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
+	
+	m_pEquippedWeapon->SetOwner(m_pCharacter);
+	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	m_pCharacter->bUseControllerRotationYaw = true;
+
+	
+}
+
+
 void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (!m_pEquippedWeapon) return;
+
+	//I repeat this here because we have two things that are replicated, the weapon state and the attachment of the weapon to the character
+	// Just because I called one before the other doesn't guarantee that it will happen first so there's a chance that the weapon will be attached to the character before the weapon state is set
+	// meaning that the weapon will still have physics enabled when you pick it up, which is why I am explicitly setting it here
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+
+	if (weaponSocket)
+		weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
 	
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
@@ -251,23 +281,4 @@ void UCombatComponent::InterpolateFOV(const float deltaTime)
 		m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, m_DefaultFOV, deltaTime, m_ZoomInterpolationSpeed); //Zooming out is always the same speed
 
 	m_pCharacter->GetFollowCamera()->SetFieldOfView(m_CurrentFOV);
-}
-
-void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
-{
-	if (!m_pCharacter || !pWeapon) return;
-
-	m_pEquippedWeapon = pWeapon;
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-
-	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-
-	if (!weaponSocket) return;
-	weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
-	
-	m_pEquippedWeapon->SetOwner(m_pCharacter);
-	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-	m_pCharacter->bUseControllerRotationYaw = true;
-
-	
 }

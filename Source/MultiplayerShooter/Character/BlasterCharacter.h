@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "TurningInPlace.h"
 #include "Components/CombatComponent.h"
+#include "Components/TimelineComponent.h"
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
@@ -45,16 +46,16 @@ public:
 	virtual void OnRep_ReplicatedMovement() override;
 
 private: // Variables
-	UPROPERTY(VisibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
 	USpringArmComponent* m_pCameraBoom{};
 
-	UPROPERTY(VisibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Follow Camera")
 	UCameraComponent* m_pFollowCamera{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), DisplayName = "Overhead Widget")
 	UWidgetComponent* m_pOverheadWidget{};
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, DisplayName = "Combat Component")
 	UCombatComponent* m_pCombat{};
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
@@ -118,6 +119,25 @@ private: // Variables
 
 	UPROPERTY(EditDefaultsOnly, DisplayName = "Respawn Time", Category = "Player Stats")
 	float m_RespawnTimer{5.f};
+
+	UPROPERTY(VisibleAnywhere, DisplayName = "Dissolve Timeline Component", Category = "Animation|Dissolve")
+	UTimelineComponent* m_pDissolveTimeLine{};
+	FOnTimelineFloat m_DissolveTrack{};
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float dissolveValue);
+	void StartDissolve();
+
+	UPROPERTY(EditAnywhere, DisplayName = "Dissolve Curve", Category = "Animation|Dissolve")
+	UCurveFloat* m_pDissolveCurve{};
+
+	// The dynamic instance that we will update during run time
+	UPROPERTY(VisibleAnywhere, DisplayName = "Dissolve Material", Category = "Animation|Dissolve")
+	UMaterialInstanceDynamic* m_pDynamicDissolveMaterialInstance{};
+
+	//The material instance set in the editor
+	UPROPERTY(EditAnywhere, DisplayName = "Dissolve Material", Category = "Animation|Dissolve")
+	UMaterialInstance* m_pDissolveMaterialInstance{};
 	
 	
 private: // Functions

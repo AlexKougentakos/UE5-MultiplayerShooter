@@ -19,6 +19,7 @@ ABlasterCharacter::ABlasterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	//Set up the camera
 	m_pCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	m_pCameraBoom->SetupAttachment(GetMesh());
 	m_pCameraBoom->TargetArmLength = 600.0f;
@@ -28,19 +29,24 @@ ABlasterCharacter::ABlasterCharacter()
 	m_pFollowCamera->SetupAttachment(m_pCameraBoom, USpringArmComponent::SocketName);
 	m_pFollowCamera->bUsePawnControlRotation = false;
 
+	//Set up the overhead widget
 	m_pOverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	m_pOverheadWidget->SetupAttachment(RootComponent);
 
+	//Set up components
 	m_pCombat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	m_pCombat->SetIsReplicated(true);
 	
-	m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-
+	m_pDissolveTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline"));
+	
+	//Set up the collisions
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	
+	//Set up variables that need to be initialized
+	m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	m_CurrentHealth = m_MaxHealth;
 	m_IsAlive = true;
 }
@@ -129,6 +135,11 @@ void ABlasterCharacter::Jump()
 
 void ABlasterCharacter::Eliminated()
 {
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+
+	if (m_pCombat->HasWeapon())
+		m_pCombat->m_pEquippedWeapon->Dropped();
+	
 	MulticastEliminated();
 	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);
 }
@@ -136,7 +147,28 @@ void ABlasterCharacter::Eliminated()
 void ABlasterCharacter::MulticastEliminated_Implementation()
 {
 	m_IsAlive = false;
-	PlayEliminationMontage();	
+	PlayEliminationMontage();
+
+	// Play dissolve effect
+	checkf(m_pDissolveMaterialInstance, TEXT("Dissolve material instance is nullptr"));
+	m_pDynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(m_pDissolveMaterialInstance, this);
+
+	GetMesh()->SetMaterial(0, m_pDynamicDissolveMaterialInstance);
+	m_pDynamicDissolveMaterialInstance->SetScalarParameterValue("DissolveAmount", 0.55f);
+	m_pDynamicDissolveMaterialInstance->SetScalarParameterValue("Glow Intensity", 30.f);
+
+	StartDissolve();
+
+	//Disable Character Movement
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+
+	if(m_pPlayerController)
+		DisableInput(m_pPlayerController);
+
+	//Disable Collisions
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABlasterCharacter::EliminationTimerFinished()
@@ -426,6 +458,21 @@ void ABlasterCharacter::OnRep_Health()
 	PlayHitReactMontage();
 	if (m_pPlayerController)
 		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+}
+
+void ABlasterCharacter::UpdateDissolveMaterial(const float dissolveValue)
+{
+	checkf(m_pDynamicDissolveMaterialInstance, TEXT("Dynamic dissolve material instance is nullptr"));
+	m_pDynamicDissolveMaterialInstance->SetScalarParameterValue("DissolveAmount", dissolveValue);
+}
+
+void ABlasterCharacter::StartDissolve()
+{
+	m_DissolveTrack.BindDynamic(this, &ABlasterCharacter::UpdateDissolveMaterial);
+	checkf(m_pDissolveCurve, TEXT("Dissolve curve is nullptr"));
+
+	m_pDissolveTimeLine->AddInterpFloat(m_pDissolveCurve, m_DissolveTrack);
+	m_pDissolveTimeLine->Play();
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon) const

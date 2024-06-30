@@ -10,6 +10,7 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class ABlasterPlayerState;
 class USoundCue;
 class UCombatComponent;
 class AWeapon;
@@ -67,8 +68,14 @@ private: // Variables
 	float m_AimOffsetYaw{};
 	float m_InterpolatedAimOffsetYaw{};
 
+	bool m_PollInitializedComplete{};
+	float m_ElapsedPollingTime{0.f};
+	const float m_MaxPollingTime{3.f};
+
 	FRotator m_LastFrameRotation{};
 
+	ABlasterPlayerState* m_pBlasterPlayerState{};
+	
 	ETurningInPlace m_TurningInPlace{};
 	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Standing", meta = (ToolTip = "The angle at which the player rotates when turning in place when standing"))
 	float m_StandingPlayerRotationAngle{80.f};
@@ -160,6 +167,8 @@ private: // Functions
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
+	//Some variables are not available for the first frames of the game in begin play so you should initialize them in this function
+	void PollInitialize(float deltaTime);
 
 	void MoveForward(const float value);
 	void MoveRight(const float value);

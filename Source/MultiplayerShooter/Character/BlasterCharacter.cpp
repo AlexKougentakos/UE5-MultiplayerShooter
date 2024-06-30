@@ -13,6 +13,7 @@
 #include "MultiplayerShooter/MultiplayerShooter.h"
 #include "MultiplayerShooter/GameModes/BlasterGameMode.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
+#include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -68,11 +69,37 @@ void ABlasterCharacter::BeginPlay()
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 }
 
+void ABlasterCharacter::PollInitialize(float deltaTime)
+{
+	if (m_PollInitializedComplete) return;
+
+	if (!m_pBlasterPlayerState)
+	{
+		m_pBlasterPlayerState = Cast<ABlasterPlayerState>(GetPlayerState());
+		if (m_pBlasterPlayerState)
+		{
+			m_pBlasterPlayerState->AddToSore(0);
+		}
+		return;
+	}
+	
+	//Keep this at the bottom
+	m_ElapsedPollingTime += deltaTime;
+	if (m_ElapsedPollingTime > m_MaxPollingTime)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Polling initialization took too long"));
+		GEngine->AddOnScreenDebugMessage(1947, 5.f, FColor::Red, TEXT("Polling initialization took too long"));
+		m_PollInitializedComplete = true;
+	}
+	m_PollInitializedComplete = true;
+}
 
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	PollInitialize(DeltaTime);
+	
 	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
 	{
 		CalculateAimOffset(DeltaTime);

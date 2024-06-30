@@ -18,7 +18,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 		
-	void SetHudHealth(float health, float maxHealth);
+	void SetHudHealth(const float health, const float maxHealth);
+	void SetHudScore(const float score);
 private:
 	ABlasterHUD* m_pHUD{};
 };

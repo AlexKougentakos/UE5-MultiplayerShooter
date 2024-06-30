@@ -22,9 +22,9 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	SetHudHealth(pCharacter->GetCurrentHealth(), pCharacter->GetMaxHealth());
 }
 
-void ABlasterPlayerController::SetHudHealth(float health, float maxHealth)
+void ABlasterPlayerController::SetHudHealth(const float health, const float maxHealth)
 {
-	//m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
 
 	if (!m_pHUD ||
 		!m_pHUD->m_pCharacterOverlay ||
@@ -40,4 +40,16 @@ void ABlasterPlayerController::SetHudHealth(float health, float maxHealth)
 	m_pHUD->m_pCharacterOverlay->HealthText->SetText(FText::FromString(healthString));
 
 	
+}
+
+void ABlasterPlayerController::SetHudScore(const float score)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	
+	if (!m_pHUD ||
+	!m_pHUD->m_pCharacterOverlay ||
+	!m_pHUD->m_pCharacterOverlay->ScoreAmount) return;
+
+	const FString scoreText = FString::Printf(TEXT("%d"), FMath::CeilToInt(score));
+	m_pHUD->m_pCharacterOverlay->ScoreAmount->SetText(FText::FromString(scoreText));
 }

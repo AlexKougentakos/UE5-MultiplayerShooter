@@ -55,6 +55,8 @@ void AProjectile::Tick(float DeltaTime)
 void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
                         FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (!OtherActor) return;
+	
 	if (HasAuthority())
 	{
 		UPhysicalMaterial* materialOfHitObject;

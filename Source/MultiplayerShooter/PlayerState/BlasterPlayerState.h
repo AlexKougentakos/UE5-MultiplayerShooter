@@ -16,10 +16,18 @@ class MULTIPLAYERSHOOTER_API ABlasterPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	virtual void OnRep_Score() override;
+	UFUNCTION()
+	virtual void OnRep_Deaths();
+	
 	void AddToSore(float scoreAmount);
+	void AddToDeaths(int deathsAmount = 1);
 private:
 	ABlasterCharacter* m_pBlasterCharacter{};
 	ABlasterPlayerController* m_pBlasterPlayerController{};
-	
+
+	UPROPERTY(ReplicatedUsing = OnRep_Deaths)
+	int m_Deaths{};	
 };

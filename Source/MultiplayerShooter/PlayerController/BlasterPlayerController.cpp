@@ -38,8 +38,6 @@ void ABlasterPlayerController::SetHudHealth(const float health, const float maxH
 	// Set health text
 	const FString healthString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(health), FMath::CeilToInt(maxHealth));
 	m_pHUD->m_pCharacterOverlay->HealthText->SetText(FText::FromString(healthString));
-
-	
 }
 
 void ABlasterPlayerController::SetHudScore(const float score)
@@ -52,4 +50,16 @@ void ABlasterPlayerController::SetHudScore(const float score)
 
 	const FString scoreText = FString::Printf(TEXT("%d"), FMath::CeilToInt(score));
 	m_pHUD->m_pCharacterOverlay->ScoreAmount->SetText(FText::FromString(scoreText));
+}
+
+void ABlasterPlayerController::SetHudDeaths(const float deaths)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	
+	if (!m_pHUD ||
+	!m_pHUD->m_pCharacterOverlay ||
+	!m_pHUD->m_pCharacterOverlay->DeathsAmount) return;
+
+	const FString deathsAmount = FString::Printf(TEXT("%d"), FMath::CeilToInt(deaths));
+	m_pHUD->m_pCharacterOverlay->DeathsAmount->SetText(FText::FromString(deathsAmount));	
 }

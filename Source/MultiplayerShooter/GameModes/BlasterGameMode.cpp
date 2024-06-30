@@ -19,6 +19,7 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* pEliminatedPlayer,
 	{
 		pAttackingPlayerState->AddToSore(1.0f);
 	}
+	pEliminatedPlayerState->AddToDeaths();
 		
 	//No need to check for authority here, we are in the game mode which only exists on the server
 	pEliminatedPlayer->Eliminated();

@@ -79,6 +79,7 @@ void ABlasterCharacter::PollInitialize(float deltaTime)
 		if (m_pBlasterPlayerState)
 		{
 			m_pBlasterPlayerState->AddToSore(0);
+			m_pBlasterPlayerState->AddToDeaths(0);
 		}
 		return;
 	}

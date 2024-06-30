@@ -20,6 +20,8 @@ public:
 		
 	void SetHudHealth(const float health, const float maxHealth);
 	void SetHudScore(const float score);
+	void SetHudDeaths(const float deaths);
+	
 private:
 	ABlasterHUD* m_pHUD{};
 };

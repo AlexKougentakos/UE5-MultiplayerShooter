@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/MultiplayerShooter.h"
+#include "MultiplayerShooter/GameModes/BlasterGameMode.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
@@ -41,6 +42,7 @@ ABlasterCharacter::ABlasterCharacter()
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	
 	m_CurrentHealth = m_MaxHealth;
+	m_IsAlive = true;
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -125,6 +127,23 @@ void ABlasterCharacter::Jump()
 	else Super::Jump();
 }
 
+void ABlasterCharacter::Eliminated()
+{
+	MulticastEliminated();
+	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);
+}
+
+void ABlasterCharacter::MulticastEliminated_Implementation()
+{
+	m_IsAlive = false;
+	PlayEliminationMontage();	
+}
+
+void ABlasterCharacter::EliminationTimerFinished()
+{
+	GetWorld()->GetAuthGameMode<ABlasterGameMode>()->RequestRespawn(this, m_pPlayerController);
+}
+
 void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
 {
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
@@ -153,6 +172,15 @@ void ABlasterCharacter::PlayHitReactMontage() const
 	pAnimInstance->Montage_Play(m_pHitReactMontage, 1.f);
 	const FName sectionName = "FromFront";
 	pAnimInstance->Montage_JumpToSection(sectionName); 
+}
+
+void ABlasterCharacter::PlayEliminationMontage() const
+{	
+	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
+	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
+	checkf(m_pEliminationMontage, TEXT("Hit React Montage is nullptr"));
+
+	pAnimInstance->Montage_Play(m_pEliminationMontage, 1.f);
 }
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()
@@ -357,6 +385,18 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
 	
 	PlayHitReactMontage();
+
+	const auto pBlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+
+	if (m_CurrentHealth <= 0.f && pBlasterGameMode)
+	{
+		m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
+		
+		checkf(m_pPlayerController, TEXT("Player controller is nullptr"));
+		checkf(instigatedBy, TEXT("InstigatedBy is nullptr"));
+		
+		pBlasterGameMode->PlayerEliminated(this, m_pPlayerController, Cast<ABlasterPlayerController>(instigatedBy));
+	}
 }
 
 void ABlasterCharacter::HideCameraWhenPlayerIsClose()

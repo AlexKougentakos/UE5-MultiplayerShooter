@@ -53,6 +53,7 @@ void UCharacterAnimationInstance::UpdateVariables()
 	m_IsAiming = m_pBlasterCharacter->IsAiming();
 	m_TurningInPlace = m_pBlasterCharacter->GetTurningInPlace();
 	m_RotateRootBone = m_pBlasterCharacter->RotateRootBone();
+	m_IsAlive = m_pBlasterCharacter->IsAlive();
 }
 
 void UCharacterAnimationInstance::HandleLeaning(float deltaTime)

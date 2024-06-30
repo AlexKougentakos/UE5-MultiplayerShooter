@@ -31,14 +31,19 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Jump() override;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEliminated();
+	void Eliminated();
+
 	void PlayFireMontage(const bool isAiming) const;
 	void PlayHitReactMontage() const;
+	void PlayEliminationMontage() const;
 	
 	UFUNCTION(NetMulticast, Unreliable) //Unreliable because it's a cosmetic effect that will mostly go unnoticed with so many hits
 	void MulticastHit();
 
 	virtual void OnRep_ReplicatedMovement() override;
-	
+
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* m_pCameraBoom{};
@@ -75,6 +80,9 @@ private: // Variables
 	UPROPERTY(EditAnywhere, DisplayName = "Hit React Montage", Category = "Animation")
 	UAnimMontage* m_pHitReactMontage{};
 
+	UPROPERTY(EditAnywhere, DisplayName = "EliminationReact Montage", Category = "Animation")
+	UAnimMontage* m_pEliminationMontage{};
+
 	void HideCameraWhenPlayerIsClose();
 	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
 	float m_PlayerHideDistance{200.f}; // The minimum distance there needs to be between the player and the camera for the camera to remain active
@@ -102,6 +110,15 @@ private: // Variables
 	void OnRep_Health();
 
 	ABlasterPlayerController* m_pPlayerController{};
+	bool m_IsAlive{};
+
+	// Eliminations
+	FTimerHandle m_EliminationTimer{};
+	void EliminationTimerFinished();
+
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Respawn Time", Category = "Player Stats")
+	float m_RespawnTimer{5.f};
+	
 	
 private: // Functions
 	UFUNCTION()
@@ -143,5 +160,5 @@ public: // Getters & Setters
 	FVector GetHitTarget() const;
 
 	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
-	
+	bool IsAlive() const { return m_IsAlive; }
 };

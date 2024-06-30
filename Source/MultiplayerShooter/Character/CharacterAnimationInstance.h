@@ -33,6 +33,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "IsInAir")
 	bool m_IsInAir{};
 
+	UPROPERTY(BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"), DisplayName = "Is Alive")
+	bool m_IsAlive{};
+
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "IsAccelerating")
 	bool m_IsAccelerating{};
 

@@ -28,8 +28,14 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(ThisClass, m_pEquippedWeapon);
 	DOREPLIFETIME(ThisClass, m_IsAiming);
+	DOREPLIFETIME_CONDITION(ThisClass, m_CarriedAmmo, COND_OwnerOnly);
 }
 
+
+void UCombatComponent::Reload()
+{
+	
+}
 
 void UCombatComponent::BeginPlay()
 {
@@ -41,6 +47,9 @@ void UCombatComponent::BeginPlay()
 	const auto pPlayerCamera = m_pCharacter->GetFollowCamera();
 	checkf(pPlayerCamera, TEXT("Player camera is nullptr"));
 
+	if (m_pCharacter->HasAuthority())
+		InitializeCarriedAmmo();
+	
 	m_DefaultFOV = pPlayerCamera->FieldOfView;
 	m_CurrentFOV = m_DefaultFOV;
 }
@@ -122,7 +131,7 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 
 void UCombatComponent::Fire()
 {
-	if (!m_CanFire) return;
+	if (!CanFire()) return;
 
 	m_CanFire = false;
 	ServerFire(m_HitTarget);
@@ -152,6 +161,20 @@ void UCombatComponent::FireTimerFinished()
 	{
 		Fire();
 	}
+}
+
+void UCombatComponent::OnRep_CarriedAmmo()
+{
+	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
+	if (m_pPlayerController)
+	{
+		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
+	}
+}
+
+void UCombatComponent::InitializeCarriedAmmo()
+{
+	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_Rifle, 30);
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)
@@ -184,10 +207,16 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 	
 	m_pEquippedWeapon = pWeapon;
 	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-
+	
+	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
+		m_CarriedAmmo = m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()];
+		
 	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
 	if (m_pPlayerController)
+	{
+		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
 		m_pPlayerController->ShowAmmo(true);
+	}
 
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
@@ -222,7 +251,9 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
 	if (m_pPlayerController)
+	{
 		m_pPlayerController->ShowAmmo(true);
+	}
 }
 
 void UCombatComponent::SetHudCrosshairs(float deltaTime)
@@ -281,6 +312,12 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 	
 	m_pHud->SetHudPackage(m_HudPackage);
 	
+}
+
+bool UCombatComponent::CanFire() const
+{
+	if (!HasWeapon()) return false;
+	return m_CanFire && m_IsFireButtonPressed && m_pEquippedWeapon->HasAmmoInMagazine();
 }
 
 void UCombatComponent::InterpolateFOV(const float deltaTime)

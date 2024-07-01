@@ -140,7 +140,7 @@ void AWeapon::OnRep_Ammo()
 
 void AWeapon::SpendAmmoRound()
 {
-	--m_CurrentAmmo;
+	m_CurrentAmmo = FMath::Clamp(m_CurrentAmmo - 1, 0, m_MaxAmmo);
 	
 	UpdateHudAmmo();
 }

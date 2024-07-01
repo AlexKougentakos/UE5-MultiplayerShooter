@@ -184,6 +184,7 @@ private: // Functions
 	void TurnInPlace(float deltaTime);
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void ReloadButtonPressed();
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatedBy, AActor* damageCauser);

@@ -22,6 +22,7 @@ public:
 	void SetHudScore(const float score);
 	void SetHudDeaths(const float deaths);
 	void SetHudAmmo(const int ammo);
+	void SetHudCarriedAmmo(const int carriedAmmo);
 	void ShowAmmo(const bool showAmmo);
 	
 private:

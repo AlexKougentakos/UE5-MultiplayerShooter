@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponTypes.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
@@ -104,6 +105,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon State")
 	EWeaponState m_WeaponState{ EWeaponState::EWS_Initial };
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Type")
+	EWeaponType m_WeaponType{EWeaponType::EWT_Rifle};
+	
 	/*
 	 * AMMO
 	 */
@@ -139,4 +143,6 @@ public:
 
 	float GetFireDelay() const { return m_FireDelay; }
 	bool HasAutomaticFire() const { return m_CurrentWeaponHasAutomaticFire; }
+	bool HasAmmoInMagazine() const { return m_CurrentAmmo > 0; }
+	EWeaponType GetWeaponType() const { return m_WeaponType; }
 };

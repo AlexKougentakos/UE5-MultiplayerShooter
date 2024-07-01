@@ -79,6 +79,18 @@ void ABlasterPlayerController::SetHudAmmo(const int ammo)
 	
 }
 
+void ABlasterPlayerController::SetHudCarriedAmmo(const int carriedAmmo)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	
+	if (!m_pHUD ||
+	!m_pHUD->m_pCharacterOverlay ||
+	!m_pHUD->m_pCharacterOverlay->CarriedAmmoCount) return;
+
+	const FString ammoCount = FString::Printf(TEXT("%d"), carriedAmmo);
+	m_pHUD->m_pCharacterOverlay->CarriedAmmoCount->SetText(FText::FromString(ammoCount));
+}
+
 void ABlasterPlayerController::ShowAmmo(const bool showAmmo)
 {
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());

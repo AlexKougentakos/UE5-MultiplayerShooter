@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "MultiplayerShooter/HUD/BlasterHUD.h"
+#include "MultiplayerShooter/Weapon/WeaponTypes.h"
 #include "CombatComponent.generated.h"
 
 
@@ -26,6 +27,7 @@ public:
 
 	void EquipWeapon(AWeapon* const pWeapon);
 	bool HasWeapon() const { return m_pEquippedWeapon != nullptr; }
+	void Reload();
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
@@ -47,6 +49,8 @@ protected:
 	void MulticastFire(const FVector_NetQuantize& traceHitLocation);
 
 	void SetHudCrosshairs(float deltaTime);
+
+	bool CanFire() const;
 
 private:
 	ABlasterCharacter* m_pCharacter{};
@@ -95,4 +99,14 @@ private:
 	
 	void StartFireTimer();
 	void FireTimerFinished();
+
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+	int m_CarriedAmmo{};
+
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	TMap<EWeaponType, int> m_CarriedAmmoMap{};
+	void InitializeCarriedAmmo();
+	
 };

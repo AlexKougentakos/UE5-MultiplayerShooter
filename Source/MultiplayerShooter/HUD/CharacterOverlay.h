@@ -33,5 +33,8 @@ public:
 	UTextBlock* AmmoCount{};
 
 	UPROPERTY(meta = (BindWidget))
+	UTextBlock* CarriedAmmoCount{};
+	
+	UPROPERTY(meta = (BindWidget))
 	UHorizontalBox* AmmoContainer{};
 };

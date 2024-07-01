@@ -140,6 +140,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABlasterCharacter::AimButtonReleased);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ABlasterCharacter::ReloadButtonPressed);
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -462,8 +463,14 @@ void ABlasterCharacter::FireButtonReleased()
 	m_pCombat->FireButtonPressed(false);
 }
 
+void ABlasterCharacter::ReloadButtonPressed()
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	m_pCombat->Reload();
+}
+
 void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType,
-	AController* instigatedBy, AActor* damageCauser)
+                                      AController* instigatedBy, AActor* damageCauser)
 {
 	m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
 	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());

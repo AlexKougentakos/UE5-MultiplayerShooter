@@ -179,8 +179,15 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 {
 	if (!m_pCharacter || !pWeapon) return;
 
+	if (HasWeapon())
+		m_pEquippedWeapon->Drop();
+	
 	m_pEquippedWeapon = pWeapon;
 	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
+	if (m_pPlayerController)
+		m_pPlayerController->ShowAmmo(true);
 
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
@@ -188,6 +195,7 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 		weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
 	
 	m_pEquippedWeapon->SetOwner(m_pCharacter);
+	m_pEquippedWeapon->UpdateHudAmmo();
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
 
@@ -211,6 +219,10 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
+
+	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
+	if (m_pPlayerController)
+		m_pPlayerController->ShowAmmo(true);
 }
 
 void UCombatComponent::SetHudCrosshairs(float deltaTime)

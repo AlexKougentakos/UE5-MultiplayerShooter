@@ -1,4 +1,6 @@
 ﻿#include "BlasterPlayerController.h"
+
+#include "Components/HorizontalBox.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
@@ -62,4 +64,28 @@ void ABlasterPlayerController::SetHudDeaths(const float deaths)
 
 	const FString deathsAmount = FString::Printf(TEXT("%d"), FMath::CeilToInt(deaths));
 	m_pHUD->m_pCharacterOverlay->DeathsAmount->SetText(FText::FromString(deathsAmount));	
+}
+
+void ABlasterPlayerController::SetHudAmmo(const int ammo)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	
+	if (!m_pHUD ||
+	!m_pHUD->m_pCharacterOverlay ||
+	!m_pHUD->m_pCharacterOverlay->AmmoCount) return;
+
+	const FString ammoCount = FString::Printf(TEXT("%d"), ammo);
+	m_pHUD->m_pCharacterOverlay->AmmoCount->SetText(FText::FromString(ammoCount));
+	
+}
+
+void ABlasterPlayerController::ShowAmmo(const bool showAmmo)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	
+	if (!m_pHUD ||
+	!m_pHUD->m_pCharacterOverlay ||
+	!m_pHUD->m_pCharacterOverlay->AmmoContainer) return;
+
+	m_pHUD->m_pCharacterOverlay->AmmoContainer->SetVisibility(showAmmo ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterOverlay.generated.h"
 
+class UHorizontalBox;
 class UTextBlock;
 class UProgressBar;
 /**
@@ -27,4 +28,10 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* DeathsAmount{};
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* AmmoCount{};
+
+	UPROPERTY(meta = (BindWidget))
+	UHorizontalBox* AmmoContainer{};
 };

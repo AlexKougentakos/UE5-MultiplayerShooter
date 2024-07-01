@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class ABlasterPlayerController;
+class ABlasterCharacter;
 class ABulletShell;
 class UWidgetComponent;
 class USphereComponent;
@@ -34,7 +36,10 @@ public:
 	void ShowPickupWidget(bool show) const;
 
 	virtual void Fire(const FVector& hitTarget);
-	void Dropped();
+	void Drop();
+
+	void OnRep_Owner() override;
+	void UpdateHudAmmo();
 
 	/*
 	 * Textures for the weapon crosshairs
@@ -99,6 +104,18 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon State")
 	EWeaponState m_WeaponState{ EWeaponState::EWS_Initial };
 
+	/*
+	 * AMMO
+	 */
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Ammo")
+	int m_MaxAmmo{30};
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
+	int m_CurrentAmmo{};
+	UFUNCTION()
+	void OnRep_Ammo();
+	void SpendAmmoRound();
+	
+	
 	UFUNCTION()
 	void OnRep_WeaponState() const;
 
@@ -110,6 +127,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon FX", DisplayName = "Bullet Shell Class")
 	TSubclassOf<ABulletShell> m_pBulletShellClass{};
+
+	ABlasterCharacter* m_pWeaponHolder{};
+	ABlasterPlayerController* m_pWeaponHolderController{};
 
 public:
 	void SetWeaponState(const EWeaponState state);

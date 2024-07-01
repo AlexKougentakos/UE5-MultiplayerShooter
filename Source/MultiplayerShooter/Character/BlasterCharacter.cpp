@@ -63,7 +63,10 @@ void ABlasterCharacter::BeginPlay()
 
 	
 	if (m_pPlayerController)
+	{
+		m_pPlayerController->ShowAmmo(false);
 		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+	}
 
 	if (HasAuthority())
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
@@ -177,7 +180,7 @@ void ABlasterCharacter::Eliminated()
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 
 	if (m_pCombat->HasWeapon())
-		m_pCombat->m_pEquippedWeapon->Dropped();
+		m_pCombat->m_pEquippedWeapon->Drop();
 	
 	MulticastEliminated();
 	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);
@@ -185,6 +188,8 @@ void ABlasterCharacter::Eliminated()
 
 void ABlasterCharacter::MulticastEliminated_Implementation()
 {
+	if (m_pPlayerController) m_pPlayerController->ShowAmmo(false);
+	
 	m_IsAlive = false;
 	PlayEliminationMontage();
 

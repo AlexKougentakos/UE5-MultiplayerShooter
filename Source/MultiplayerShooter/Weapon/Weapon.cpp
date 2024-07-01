@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 AWeapon::AWeapon()
@@ -31,7 +32,9 @@ AWeapon::AWeapon()
 	m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	m_pPickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pick Up Widget"));
-	m_pPickUpWidget->SetupAttachment(RootComponent);	
+	m_pPickUpWidget->SetupAttachment(RootComponent);
+
+	m_CurrentAmmo = m_MaxAmmo;
 }
 
 void AWeapon::BeginPlay()
@@ -64,6 +67,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, m_WeaponState);
+	DOREPLIFETIME(AWeapon, m_CurrentAmmo);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -117,6 +121,43 @@ void AWeapon::SetWeaponState(const EWeaponState state)
 
 }
 
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	//this will also be called when the owner becomes null so we need to handle that
+	if (!Owner)
+	{
+		m_pWeaponHolder = nullptr;
+		m_pWeaponHolderController = nullptr;
+	}
+	else UpdateHudAmmo();	
+}
+
+void AWeapon::OnRep_Ammo()
+{
+	UpdateHudAmmo();
+}
+
+void AWeapon::SpendAmmoRound()
+{
+	--m_CurrentAmmo;
+	
+	UpdateHudAmmo();
+}
+
+void AWeapon::UpdateHudAmmo()
+{
+	m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(GetOwner());
+	if (m_pWeaponHolder)
+	{
+		m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(m_pWeaponHolder->GetController());
+		if (m_pWeaponHolderController)
+		{
+			m_pWeaponHolderController->SetHudAmmo(m_CurrentAmmo);
+		}
+	}
+}
+
 void AWeapon::OnRep_WeaponState() const
 {
 	switch (m_WeaponState)
@@ -165,14 +206,17 @@ void AWeapon::Fire(const FVector& hitTarget)
 	socketTransform.GetLocation(),
 	socketTransform.GetRotation().Rotator(),
 	FActorSpawnParameters());
+
+	SpendAmmoRound();
 }
 
-void AWeapon::Dropped()
+void AWeapon::Drop()
 {
-		
 	SetWeaponState(EWeaponState::EWS_Dropped);
 	const FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld, true);
 	m_pWeaponMesh->DetachFromComponent(detachRules);
 
 	SetOwner(nullptr);
+	m_pWeaponHolder = nullptr;
+	m_pWeaponHolderController = nullptr; // If you don't do this the casts above will not update and you will keep a ref to the previous controller
 }

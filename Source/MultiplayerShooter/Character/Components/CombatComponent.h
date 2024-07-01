@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "MultiplayerShooter/HUD/BlasterHUD.h"
+#include "MultiplayerShooter/Types/CombatState.h"
 #include "MultiplayerShooter/Weapon/WeaponTypes.h"
 #include "CombatComponent.generated.h"
 
@@ -44,6 +45,8 @@ protected:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& traceHitLocation);
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire(const FVector_NetQuantize& traceHitLocation);
@@ -51,6 +54,9 @@ protected:
 	void SetHudCrosshairs(float deltaTime);
 
 	bool CanFire() const;
+
+	UFUNCTION(BlueprintCallable)
+	void FinishedReloading();
 
 private:
 	ABlasterCharacter* m_pCharacter{};
@@ -108,5 +114,14 @@ private:
 
 	TMap<EWeaponType, int> m_CarriedAmmoMap{};
 	void InitializeCarriedAmmo();
+
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState m_CombatState{ECombatState::ECS_Unoccupied};
+
+	UFUNCTION()
+	void OnRep_CombatState();
+
+	// A function to hold common logic for reloading on both the server and client
+	void HandleReloadingForBothServerAndClient();
 	
 };

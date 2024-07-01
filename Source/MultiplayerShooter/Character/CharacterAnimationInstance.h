@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "TurningInPlace.h"
+#include "MultiplayerShooter/Types/TurningInPlace.h"
 #include "CharacterAnimationInstance.generated.h"
 
 class AWeapon;
@@ -77,4 +77,8 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), DisplayName = "Rotate Root Bone")
 	bool m_RotateRootBone{};
+
+	
+	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"), DisplayName = "Use FABRIK")
+	bool m_UseFABRIK{};
 };

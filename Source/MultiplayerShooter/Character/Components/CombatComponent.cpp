@@ -28,13 +28,8 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(ThisClass, m_pEquippedWeapon);
 	DOREPLIFETIME(ThisClass, m_IsAiming);
+	DOREPLIFETIME(ThisClass, m_CombatState);
 	DOREPLIFETIME_CONDITION(ThisClass, m_CarriedAmmo, COND_OwnerOnly);
-}
-
-
-void UCombatComponent::Reload()
-{
-	
 }
 
 void UCombatComponent::BeginPlay()
@@ -109,6 +104,41 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 	}
 	 
 }
+
+void UCombatComponent::Reload()
+{
+	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading) return;
+
+	ServerReload();
+}
+
+void UCombatComponent::ServerReload_Implementation()
+{
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+
+	m_CombatState = ECombatState::ECS_Reloading;
+	HandleReloadingForBothServerAndClient();
+}
+
+void UCombatComponent::HandleReloadingForBothServerAndClient()
+{
+	m_pCharacter->PlayRifleReloadMontage();
+}
+
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (m_CombatState)
+	{
+	case ECombatState::ECS_Unoccupied:
+		break;
+	case ECombatState::ECS_Reloading:
+		HandleReloadingForBothServerAndClient();
+		break;
+	case ECombatState::ECS_MAX:
+		break;
+	}
+}
+
 
 void UCombatComponent::SetAiming(const bool isAiming)
 {
@@ -318,6 +348,14 @@ bool UCombatComponent::CanFire() const
 {
 	if (!HasWeapon()) return false;
 	return m_CanFire && m_IsFireButtonPressed && m_pEquippedWeapon->HasAmmoInMagazine();
+}
+
+void UCombatComponent::FinishedReloading()
+{
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	
+	if (m_pCharacter->HasAuthority())
+		m_CombatState = ECombatState::ECS_Unoccupied;	
 }
 
 void UCombatComponent::InterpolateFOV(const float deltaTime)

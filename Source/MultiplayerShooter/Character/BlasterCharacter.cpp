@@ -14,6 +14,7 @@
 #include "MultiplayerShooter/GameModes/BlasterGameMode.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
+#include "MultiplayerShooter/Types/TurningInPlace.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -267,6 +268,35 @@ void ABlasterCharacter::PlayEliminationMontage() const
 	checkf(m_pEliminationMontage, TEXT("Hit React Montage is nullptr"));
 
 	pAnimInstance->Montage_Play(m_pEliminationMontage, 1.f);
+}
+
+void ABlasterCharacter::PlayRifleReloadMontage() const
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+
+	if (!m_pCombat->HasWeapon()) return;
+
+	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
+	
+	checkf (pAnimInstance, TEXT("AnimInstance is nullptr"));
+	checkf(m_pReloadMontage, TEXT("Fire Weapon Montage is nullptr"));
+
+	// Play the montage and then decide which section to play depending on if we are using iron sights or hip fire
+	pAnimInstance->Montage_Play(m_pReloadMontage, 1.f);
+	FName sectionName{};
+	switch(m_pCombat->m_pEquippedWeapon->GetWeaponType())
+	{
+	case EWeaponType::EWT_Rifle:
+		sectionName = "Rifle";
+		break;
+	case EWeaponType::EWT_Pistol:
+		break;
+	case EWeaponType::EWT_Shotgun:
+		break;
+	case EWeaponType::EWT_MAX:
+		break;
+	}
+	pAnimInstance->Montage_JumpToSection(sectionName);
 }
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()
@@ -588,5 +618,11 @@ FVector ABlasterCharacter::GetHitTarget() const
 {
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	return m_pCombat->m_HitTarget;
+}
+
+ECombatState ABlasterCharacter::GetCombatState() const
+{
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	return m_pCombat->m_CombatState;
 }
 

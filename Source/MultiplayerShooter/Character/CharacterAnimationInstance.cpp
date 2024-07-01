@@ -54,6 +54,19 @@ void UCharacterAnimationInstance::UpdateVariables()
 	m_TurningInPlace = m_pBlasterCharacter->GetTurningInPlace();
 	m_RotateRootBone = m_pBlasterCharacter->RotateRootBone();
 	m_IsAlive = m_pBlasterCharacter->IsAlive();
+
+	switch (m_pBlasterCharacter->GetCombatState())
+	{
+	case ECombatState::ECS_Unoccupied:
+		m_UseFABRIK = true;
+		break;
+	case ECombatState::ECS_Reloading:
+		m_UseFABRIK = false;
+		break;
+	case ECombatState::ECS_MAX:
+		m_UseFABRIK = true;
+		break;
+	}
 }
 
 void UCharacterAnimationInstance::HandleLeaning(float deltaTime)
@@ -96,4 +109,6 @@ void UCharacterAnimationInstance::ApplyInverseKinematicsToHand(const float delta
 	const FTransform rightHandTransform = m_pBlasterCharacter->GetMesh()->GetSocketTransform(FName("hand_r"), RTS_World);
 	const FRotator lookAtRotation = UKismetMathLibrary::FindLookAtRotation(FVector3d(), rightHandTransform.GetLocation() - m_pBlasterCharacter->GetHitTarget());
 	m_RightHandRotation = FMath::RInterpTo(m_RightHandRotation, lookAtRotation, deltaTime, 30.f);
+
+	m_UseFABRIK = m_pBlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 }

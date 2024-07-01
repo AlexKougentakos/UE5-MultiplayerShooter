@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "TurningInPlace.h"
+#include "MultiplayerShooter/Types/TurningInPlace.h"
 #include "Components/CombatComponent.h"
 #include "Components/TimelineComponent.h"
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+//Forward declarations
 class ABlasterPlayerState;
 class USoundCue;
 class UCombatComponent;
 class AWeapon;
 class UWidgetComponent;
-//Forward declarations
 class UCameraComponent;
 class USpringArmComponent;
 
@@ -42,6 +42,7 @@ public:
 	void PlayFireMontage(const bool isAiming) const;
 	void PlayHitReactMontage() const;
 	void PlayEliminationMontage() const;
+	void PlayRifleReloadMontage() const;
 	
 	UFUNCTION(NetMulticast, Unreliable) //Unreliable because it's a cosmetic effect that will mostly go unnoticed with so many hits
 	void MulticastHit();
@@ -58,7 +59,7 @@ private: // Variables
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), DisplayName = "Overhead Widget")
 	UWidgetComponent* m_pOverheadWidget{};
 
-	UPROPERTY(VisibleAnywhere, DisplayName = "Combat Component")
+	UPROPERTY(VisibleAnywhere, DisplayName = "Combat Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* m_pCombat{};
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
@@ -92,6 +93,9 @@ private: // Variables
 
 	UPROPERTY(EditAnywhere, DisplayName = "EliminationReact Montage", Category = "Animation")
 	UAnimMontage* m_pEliminationMontage{};
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Rifle Reload Montage", Category = "Animation")
+	UAnimMontage* m_pReloadMontage{};
 
 	void HideCameraWhenPlayerIsClose();
 	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
@@ -207,4 +211,6 @@ public: // Getters & Setters
 
 	float GetMaxHealth() const { return m_MaxHealth; }
 	float GetCurrentHealth() const { return m_CurrentHealth; }
+
+	ECombatState GetCombatState() const;
 };

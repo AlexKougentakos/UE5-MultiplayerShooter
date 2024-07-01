@@ -130,6 +130,7 @@ void UCombatComponent::OnRep_CombatState()
 	switch (m_CombatState)
 	{
 	case ECombatState::ECS_Unoccupied:
+		if (m_IsFireButtonPressed) Fire();
 		break;
 	case ECombatState::ECS_Reloading:
 		HandleReloadingForBothServerAndClient();
@@ -216,7 +217,7 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& t
 {
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 
-    if (!m_pEquippedWeapon) return;
+    if (!m_pEquippedWeapon || m_CombatState != ECombatState::ECS_Unoccupied) return;
     
     m_pCharacter->PlayFireMontage(m_IsAiming);
     m_pEquippedWeapon->Fire(traceHitLocation);
@@ -347,7 +348,7 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 bool UCombatComponent::CanFire() const
 {
 	if (!HasWeapon()) return false;
-	return m_CanFire && m_IsFireButtonPressed && m_pEquippedWeapon->HasAmmoInMagazine();
+	return m_CanFire && m_IsFireButtonPressed && m_pEquippedWeapon->HasAmmoInMagazine() && m_CombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::FinishedReloading()
@@ -355,7 +356,10 @@ void UCombatComponent::FinishedReloading()
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 	
 	if (m_pCharacter->HasAuthority())
-		m_CombatState = ECombatState::ECS_Unoccupied;	
+		m_CombatState = ECombatState::ECS_Unoccupied;
+
+	if (m_IsFireButtonPressed) Fire();
+		
 }
 
 void UCombatComponent::InterpolateFOV(const float deltaTime)

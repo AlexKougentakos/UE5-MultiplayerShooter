@@ -108,8 +108,19 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 void UCombatComponent::Reload()
 {
 	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading) return;
-
+	
 	ServerReload();
+}
+
+void UCombatComponent::UpdateAmmoValues()
+{
+	if (!HasWeapon()) return;
+	checkf(m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()), TEXT("Carried ammo map does not contain the weapon type"));
+
+	m_CarriedAmmo -= m_pEquippedWeapon->Reload(m_CarriedAmmo);
+	
+	if (m_pCharacter->HasAuthority())
+		OnRep_CarriedAmmo(); //This is just to update the HUD for the server, you can refactor it but I'm lazy
 }
 
 void UCombatComponent::ServerReload_Implementation()
@@ -117,6 +128,7 @@ void UCombatComponent::ServerReload_Implementation()
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 
 	m_CombatState = ECombatState::ECS_Reloading;
+		
 	HandleReloadingForBothServerAndClient();
 }
 
@@ -356,7 +368,10 @@ void UCombatComponent::FinishedReloading()
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 	
 	if (m_pCharacter->HasAuthority())
+	{
 		m_CombatState = ECombatState::ECS_Unoccupied;
+		UpdateAmmoValues();
+	}
 
 	if (m_IsFireButtonPressed) Fire();
 		

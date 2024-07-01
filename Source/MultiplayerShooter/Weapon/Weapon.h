@@ -17,26 +17,32 @@ class USphereComponent;
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
-	EWS_Initial 	UMETA(DisplayName = "InitialState"),
-	EWS_Equipped 	UMETA(DisplayName = "EquippedState"),
-	EWS_Dropped 	UMETA(DisplayName = "DroppedState"),
+	EWS_Initial UMETA(DisplayName = "InitialState"),
+	EWS_Equipped UMETA(DisplayName = "EquippedState"),
+	EWS_Dropped UMETA(DisplayName = "DroppedState"),
 
-	EWS_MAX 		UMETA(DisplayName = "DefaultMAX")
+	EWS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
 UCLASS()
 class MULTIPLAYERSHOOTER_API AWeapon : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AWeapon();
-	
+
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void ShowPickupWidget(bool show) const;
-
 	virtual void Fire(const FVector& hitTarget);
+
+	/**
+	 * 
+	 * @param availableAmmo the available ammo that you can offer for a reload
+	 * @return the amount of ammo used for the reload
+	 */
+	virtual int Reload(const int availableAmmo);
 	void Drop();
 
 	void OnRep_Owner() override;
@@ -80,10 +86,10 @@ protected:
 		, UPrimitiveComponent* OtherComp
 		, int32 OtherBodyIndex);
 
-		
+
 	// Zooming
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Zooming", DisplayName = "Zoomed FOV")
-	float m_ZoomedFOV {30.f};
+	float m_ZoomedFOV{30.f};
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Zooming", DisplayName = "Zoom Interpolation Speed")
 	float m_ZoomInterpolationSpeed{20.f};
@@ -94,7 +100,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Has Automatic Fire")
 	bool m_CurrentWeaponHasAutomaticFire{true};
-	
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")
 	USkeletalMeshComponent* m_pWeaponMesh{};
@@ -102,12 +108,13 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Pickup Area Sphere")
 	USphereComponent* m_pAreaSphere{};
 
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon State")
-	EWeaponState m_WeaponState{ EWeaponState::EWS_Initial };
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties",
+		DisplayName = "Weapon State")
+	EWeaponState m_WeaponState{EWeaponState::EWS_Initial};
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Type")
 	EWeaponType m_WeaponType{EWeaponType::EWT_Rifle};
-	
+
 	/*
 	 * AMMO
 	 */
@@ -118,8 +125,8 @@ private:
 	UFUNCTION()
 	void OnRep_Ammo();
 	void SpendAmmoRound();
-	
-	
+
+
 	UFUNCTION()
 	void OnRep_WeaponState() const;
 

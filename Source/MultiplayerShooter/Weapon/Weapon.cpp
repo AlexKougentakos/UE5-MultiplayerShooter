@@ -210,6 +210,16 @@ void AWeapon::Fire(const FVector& hitTarget)
 	SpendAmmoRound();
 }
 
+int AWeapon::Reload(const int availableAmmo)
+{
+	const int missingAmmo = m_MaxAmmo - m_CurrentAmmo;
+	const int ammoToReload = FMath::Min(availableAmmo, missingAmmo);
+	m_CurrentAmmo += ammoToReload;
+
+	UpdateHudAmmo();
+	return ammoToReload;
+}
+
 void AWeapon::Drop()
 {
 	SetWeaponState(EWeaponState::EWS_Dropped);

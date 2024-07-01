@@ -29,6 +29,7 @@ public:
 	void EquipWeapon(AWeapon* const pWeapon);
 	bool HasWeapon() const { return m_pEquippedWeapon != nullptr; }
 	void Reload();
+
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
@@ -123,5 +124,6 @@ private:
 
 	// A function to hold common logic for reloading on both the server and client
 	void HandleReloadingForBothServerAndClient();
+	void UpdateAmmoValues();
 	
 };

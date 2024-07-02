@@ -12,6 +12,7 @@
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
+#include "Sound/SoundCue.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -107,7 +108,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 
 void UCombatComponent::Reload()
 {
-	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading) return;
+	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull()) return;
 	
 	ServerReload();
 }
@@ -204,6 +205,12 @@ void UCombatComponent::FireTimerFinished()
 	{
 		Fire();
 	}
+
+	if (!m_pEquippedWeapon->HasAmmoInMagazine())
+	{
+		Reload();
+	}
+	
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()
@@ -265,13 +272,20 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 
 	if (weaponSocket)
 		weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
+
+	
+	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+
+	if (!m_pEquippedWeapon->HasAmmoInMagazine())
+	{
+		Reload();
+	}
 	
 	m_pEquippedWeapon->SetOwner(m_pCharacter);
 	m_pEquippedWeapon->UpdateHudAmmo();
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
-
-	
 }
 
 
@@ -297,6 +311,9 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	{
 		m_pPlayerController->ShowAmmo(true);
 	}
+
+	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
 }
 
 void UCombatComponent::SetHudCrosshairs(float deltaTime)

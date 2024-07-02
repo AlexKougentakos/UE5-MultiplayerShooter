@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class USoundCue;
 class ABlasterPlayerController;
 class ABlasterCharacter;
 class ABulletShell;
@@ -100,6 +101,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Has Automatic Fire")
 	bool m_CurrentWeaponHasAutomaticFire{true};
+	
+	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
+	USoundCue* m_pPickupSound{};
+
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")
@@ -151,5 +156,7 @@ public:
 	float GetFireDelay() const { return m_FireDelay; }
 	bool HasAutomaticFire() const { return m_CurrentWeaponHasAutomaticFire; }
 	bool HasAmmoInMagazine() const { return m_CurrentAmmo > 0; }
+	bool IsMagazineFull() const { return m_CurrentAmmo == m_MaxAmmo; }
 	EWeaponType GetWeaponType() const { return m_WeaponType; }
+	USoundCue* GetPickupSound() const { return m_pPickupSound; }
 };

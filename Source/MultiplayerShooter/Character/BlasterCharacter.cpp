@@ -281,7 +281,7 @@ void ABlasterCharacter::PlayRifleReloadMontage() const
 	checkf (pAnimInstance, TEXT("AnimInstance is nullptr"));
 	checkf(m_pReloadMontage, TEXT("Fire Weapon Montage is nullptr"));
 
-	// Play the montage and then decide which section to play depending on if we are using iron sights or hip fire
+	// Play the montage and then decide which section to play depending on the weapon
 	pAnimInstance->Montage_Play(m_pReloadMontage, 1.f);
 	FName sectionName{};
 	switch(m_pCombat->m_pEquippedWeapon->GetWeaponType())

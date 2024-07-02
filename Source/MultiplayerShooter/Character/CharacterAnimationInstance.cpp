@@ -111,4 +111,6 @@ void UCharacterAnimationInstance::ApplyInverseKinematicsToHand(const float delta
 	m_RightHandRotation = FMath::RInterpTo(m_RightHandRotation, lookAtRotation, deltaTime, 30.f);
 
 	m_UseFABRIK = m_pBlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	m_UseAimOffsets = m_pBlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
+	m_TransformRightHand = m_pBlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
 }

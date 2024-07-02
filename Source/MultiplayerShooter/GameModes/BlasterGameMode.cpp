@@ -8,6 +8,34 @@
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
 
+ABlasterGameMode::ABlasterGameMode()
+{
+	bDelayedStart = true;	
+}
+
+void ABlasterGameMode::BeginPlay()
+{ 
+	Super::BeginPlay();
+
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), m_PlayerStarts);
+
+	m_LevelStartingTime = GetWorld()->GetTimeSeconds();
+}
+
+void ABlasterGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		m_CountdownTime = m_StartDelay - GetWorld()->GetTimeSeconds() + m_LevelStartingTime;
+		if (m_CountdownTime <= 0.f)
+		{
+			StartMatch();
+		}
+	}
+}
+
 void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* pEliminatedPlayer,
                                         ABlasterPlayerController* pEliminatedPlayerController, ABlasterPlayerController* pAttackingPlayerController)
 {
@@ -36,11 +64,4 @@ void ABlasterGameMode::RequestRespawn(ABlasterCharacter* pCharacterToRespawn,
 
 	const int32 selection = FMath::RandRange(0, m_PlayerStarts.Num() - 1);
 	RestartPlayerAtPlayerStart(pPlayerController, m_PlayerStarts[selection]);
-}
-
-void ABlasterGameMode::BeginPlay()
-{ 
-	Super::BeginPlay();
-
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), m_PlayerStarts);
 }

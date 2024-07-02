@@ -37,7 +37,7 @@ void ABlasterGameMode::OnMatchStateSet()
 		ABlasterPlayerController* pPlayerController = Cast<ABlasterPlayerController>(*it);
 		if (!pPlayerController) continue;
 
-		pPlayerController->OnMatchNameSet(MatchState);
+		pPlayerController->OnMatchStateNameSet(MatchState);
 	}
 }
 

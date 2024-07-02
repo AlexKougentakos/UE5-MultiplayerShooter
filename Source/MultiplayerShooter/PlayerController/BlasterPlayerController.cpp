@@ -5,6 +5,7 @@
 #include "Components/TextBlock.h"
 #include "GameFramework/GameMode.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/HUD/Announcement.h"
 #include "MultiplayerShooter/HUD/BlasterHUD.h"
 #include "MultiplayerShooter/HUD/CharacterOverlay.h"
 #include "Net/UnrealNetwork.h"
@@ -29,6 +30,7 @@ void ABlasterPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	m_pHUD = Cast<ABlasterHUD>(GetHUD());
+		if (m_pHUD) m_pHUD->AddAnnouncement();
 }
 
 void ABlasterPlayerController::OnPossess(APawn* InPawn)
@@ -222,15 +224,30 @@ void ABlasterPlayerController::ClientReportServerTime_Implementation(float timeO
 }
 
 
-void ABlasterPlayerController::OnMatchNameSet(const FName state)
+void ABlasterPlayerController::HandleMatchStarted()
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+
+	if (m_pHUD)
+	{
+		m_pHUD->AddCharacterOverlay();
+		if (m_pHUD->m_pWarmupAnnouncement)
+			m_pHUD->m_pWarmupAnnouncement->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void ABlasterPlayerController::OnMatchStateNameSet(const FName state)
 {
 	m_MatchState = state;
 
+	if(m_MatchState == MatchState::WaitingToStart)
+	{
+		
+	}
+	
 	if (m_MatchState == MatchState::InProgress)
 	{
-		m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-
-		if (m_pHUD) m_pHUD->AddCharacterOverlay();
+		HandleMatchStarted();
 	}
 }
 
@@ -238,8 +255,6 @@ void ABlasterPlayerController::OnRep_MatchState()
 {
 	if (m_MatchState == MatchState::InProgress)
 	{
-		m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-
-		if (m_pHUD) m_pHUD->AddCharacterOverlay();
+		HandleMatchStarted();
 	}
 }

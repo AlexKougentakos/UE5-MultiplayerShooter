@@ -32,7 +32,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	
 	float GetServerTime() const; // Synced with server world time
-	void OnMatchNameSet(const FName state);
+	void OnMatchStateNameSet(const FName state);
 private:
 	ABlasterHUD* m_pHUD{};
 	void SetHudTime();
@@ -68,6 +68,7 @@ private:
 
 	UFUNCTION()
 	void OnRep_MatchState();
+	void HandleMatchStarted();
 
 	UCharacterOverlay* m_pCharacterOverlay{};
 	bool m_InitializedCharacterOverlay{true};

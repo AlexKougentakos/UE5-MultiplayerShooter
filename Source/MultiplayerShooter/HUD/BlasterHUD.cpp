@@ -73,3 +73,13 @@ void ABlasterHUD::AddCharacterOverlay()
 	m_pCharacterOverlay = CreateWidget<UCharacterOverlay>(pPlayerController, m_pCharacterOverlayClass);
 	m_pCharacterOverlay->AddToViewport();
 }
+
+void ABlasterHUD::AddAnnouncement()
+{
+	const auto pPlayerController = GetOwningPlayerController();
+	checkf(pPlayerController, TEXT("Player controller is null"));
+	checkf(m_pAnnouncementClass, TEXT("Announcement class is null"));
+
+	m_pAnnouncement = CreateWidget<UAnnouncement>(pPlayerController, m_pAnnouncementClass);
+	m_pAnnouncement->AddToViewport();
+}

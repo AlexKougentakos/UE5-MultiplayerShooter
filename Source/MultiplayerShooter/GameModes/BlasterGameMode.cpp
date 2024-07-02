@@ -18,22 +18,14 @@ void ABlasterGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), m_PlayerStarts);
-
-	m_LevelStartingTime = GetWorld()->GetTimeSeconds();
 }
 
-void ABlasterGameMode::Tick(float DeltaSeconds)
+void ABlasterGameMode::HandleMatchIsWaitingToStart()
 {
-	Super::Tick(DeltaSeconds);
+	Super::HandleMatchIsWaitingToStart();
 
-	if (MatchState == MatchState::WaitingToStart)
-	{
-		m_CountdownTime = m_StartDelay - GetWorld()->GetTimeSeconds() + m_LevelStartingTime;
-		if (m_CountdownTime <= 0.f)
-		{
-			StartMatch();
-		}
-	}
+	FTimerHandle warmupTimer{};
+	GetWorldTimerManager().SetTimer(warmupTimer, this, &ABlasterGameMode::StartMatch, m_StartDelay, false);
 }
 
 void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* pEliminatedPlayer,

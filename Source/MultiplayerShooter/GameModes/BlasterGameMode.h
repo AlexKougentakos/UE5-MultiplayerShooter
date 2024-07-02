@@ -25,12 +25,21 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void OnMatchStateSet() override;
 private:
 	TArray<AActor*> m_PlayerStarts{};
 
-	UPROPERTY(EditAnywhere, Category = "GameMode", DisplayName = "Start Delay")
-	float m_StartDelay{10.f};
+	UPROPERTY(EditAnywhere, Category = "GameMode", DisplayName = "Warm Up Duration")
+	float m_WarmUpDuration{10.f};
+	UPROPERTY(EditAnywhere, Category = "GameMode", DisplayName = "Game Duration")
+	float m_GameDuration{120.f};
+	
 	float m_CountdownTime{0.f};
 
 	float m_LevelStartingTime{0.f}; // The time at which we loaded into the map
+
+public:
+	float GetGameDuration() const {return m_GameDuration; }
+	float GetWarmUpDuration() const {return m_WarmUpDuration; }
+	float GetLevelStartingTime() const {return m_LevelStartingTime; }
 };

@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "BlasterHUD.generated.h"
 
+class UAnnouncement;
 class UCharacterOverlay;
 
 USTRUCT(BlueprintType)
@@ -31,14 +32,20 @@ class MULTIPLAYERSHOOTER_API ABlasterHUD : public AHUD
 {
 	GENERATED_BODY()
 public:
+	virtual void BeginPlay() override;
 	virtual void DrawHUD() override;
 
-	UPROPERTY(EditAnywhere, Category = "Player Stats", DisplayName = "Character Overlay Class")
+	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Character Overlay Class")
 	TSubclassOf<UUserWidget> m_pCharacterOverlayClass{};
+
+	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Announcement Class")
+	TSubclassOf<UUserWidget> m_pAnnouncementClass{};
 	
 	UCharacterOverlay* m_pCharacterOverlay{};
+	UAnnouncement* m_pAnnouncement{};
 	
-	virtual void BeginPlay() override;
+	void AddCharacterOverlay();
+	void AddAnnouncement();
 private:
 	FHUDPackage m_HUDPackage{};
 
@@ -46,7 +53,6 @@ private:
 	float m_CrosshairSpreadMax{8.f};
 
 	void DrawCrosshair(UTexture2D* crosshair, const FVector2D& viewportCenter, const FVector2D& spread, const FLinearColor& color);
-	void AddCharacterOverlay();
 public: // Getters & Setters
 	void SetHudPackage(const FHUDPackage& hudPackage) { m_HUDPackage = hudPackage; }
 

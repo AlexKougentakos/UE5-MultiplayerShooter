@@ -28,10 +28,25 @@ void ABlasterGameMode::Tick(float DeltaSeconds)
 
 	if (MatchState == MatchState::WaitingToStart)
 	{
-		m_CountdownTime = m_StartDelay - GetWorld()->GetTimeSeconds() + m_LevelStartingTime;
+		m_CountdownTime = m_WarmUpDuration - GetWorld()->GetTimeSeconds() + m_LevelStartingTime;
 		if (m_CountdownTime <= 0.f)
 		{
 			StartMatch();
+		}
+	}
+}
+
+void ABlasterGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	// Let all the players know the match state has changed
+	for (auto it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
+	{
+		ABlasterPlayerController* pPlayerController = Cast<ABlasterPlayerController>(*it);
+		if (pPlayerController)
+		{
+			pPlayerController->OnMatchStateSet(MatchState);
 		}
 	}
 }

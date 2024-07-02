@@ -3,6 +3,7 @@
 
 #include "BlasterHUD.h"
 
+#include "Announcement.h"
 #include "CharacterOverlay.h"
 #include "Blueprint/UserWidget.h"
 
@@ -30,8 +31,6 @@ void ABlasterHUD::DrawHUD()
 void ABlasterHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	AddCharacterOverlay();
 }
 
 void ABlasterHUD::DrawCrosshair(UTexture2D* crosshair, const FVector2D& viewportCenter, const FVector2D& spread,
@@ -63,4 +62,14 @@ void ABlasterHUD::AddCharacterOverlay()
 
 	m_pCharacterOverlay = CreateWidget<UCharacterOverlay>(pPlayerController, m_pCharacterOverlayClass);
 	m_pCharacterOverlay->AddToViewport();
+}
+
+void ABlasterHUD::AddAnnouncement()
+{
+	const auto pPlayerController = GetOwningPlayerController();
+	checkf(pPlayerController, TEXT("Player controller is null"));
+	checkf(m_pAnnouncementClass, TEXT("Announcement class is null"));
+
+	m_pAnnouncement = CreateWidget<UAnnouncement>(pPlayerController, m_pAnnouncementClass);
+	m_pAnnouncement->AddToViewport();
 }

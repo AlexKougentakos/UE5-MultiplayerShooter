@@ -7,6 +7,14 @@
 #include "MultiplayerShooter/HUD/BlasterHUD.h"
 #include "MultiplayerShooter/HUD/CharacterOverlay.h"
 
+void ABlasterPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+
+	if (IsLocalController()) ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	
+}
+
 void ABlasterPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -22,6 +30,25 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	if (!pCharacter) return;
 
 	SetHudHealth(pCharacter->GetCurrentHealth(), pCharacter->GetMaxHealth());
+}
+
+void ABlasterPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	SetHudTime();
+	
+	HandleTimeSync(DeltaSeconds);
+}
+
+void ABlasterPlayerController::HandleTimeSync(float DeltaSeconds)
+{
+	m_TimeSinceLastSync += DeltaSeconds;
+	if (m_TimeSinceLastSync >= m_TimeSyncFrequency && IsLocalController())
+	{
+		m_TimeSinceLastSync = 0.f;
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
 }
 
 void ABlasterPlayerController::SetHudHealth(const float health, const float maxHealth)
@@ -116,20 +143,35 @@ void ABlasterPlayerController::SetHudMatchCountDown(const float time)
 	m_pHUD->m_pCharacterOverlay->MatchCountDownText->SetText(FText::FromString(timeFormatted));
 }
 
-void ABlasterPlayerController::Tick(float DeltaSeconds)
+float ABlasterPlayerController::GetServerTime() const
 {
-	Super::Tick(DeltaSeconds);
-
-	SetHudTime();
+	if (HasAuthority()) return GetWorld()->GetTimeSeconds(); // If we are on the server we don't have a delay
+	return GetWorld()->GetTimeSeconds() + m_ClientServerTimeDifference;
 }
 
 void ABlasterPlayerController::SetHudTime()
 {
-	const unsigned int secondsLeft = FMath::CeilToInt(m_MatchCountDown - GetWorld()->GetTimeSeconds());
+	const unsigned int secondsLeft = FMath::CeilToInt(m_MatchCountDown - GetServerTime());
 	if (secondsLeft != m_CountDownSeconds) // Only update once a full second has passed
 	{
 		SetHudMatchCountDown(secondsLeft);
 	}
 	
 	m_CountDownSeconds = secondsLeft;
+}
+
+// Called on the client, executed on the server
+void ABlasterPlayerController::ServerRequestServerTime_Implementation(float timeOfClientRequest)
+{
+	const float timeServerReceivedRequest = GetWorld()->GetTimeSeconds();
+	ClientReportServerTime(timeOfClientRequest, timeServerReceivedRequest);
+}
+
+void ABlasterPlayerController::ClientReportServerTime_Implementation(float timeOfClientRequest,
+	float timeServerReceivedRequest)
+{
+	// Calculate the round trip time
+	const float roundTripTime = GetWorld()->GetTimeSeconds() - timeOfClientRequest;
+	const float serverTime = timeServerReceivedRequest + roundTripTime * 0.5f;
+	m_ClientServerTimeDifference = serverTime - GetWorld()->GetTimeSeconds();
 }

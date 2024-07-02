@@ -37,4 +37,7 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	UHorizontalBox* AmmoContainer{};
+	
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* MatchCountDownText{};
 };

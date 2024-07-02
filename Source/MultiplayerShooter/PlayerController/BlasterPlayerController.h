@@ -24,7 +24,14 @@ public:
 	void SetHudAmmo(const int ammo);
 	void SetHudCarriedAmmo(const int carriedAmmo);
 	void ShowAmmo(const bool showAmmo);
-	
+	void SetHudMatchCountDown(const float time);
+
+	virtual void Tick(float DeltaSeconds) override;
 private:
 	ABlasterHUD* m_pHUD{};
+	void SetHudTime();
+	
+	// Temporary: to be moved to the game mode
+	float m_MatchCountDown{120.f};
+	unsigned int m_CountDownSeconds{0};
 };

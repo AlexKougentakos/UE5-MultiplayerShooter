@@ -101,3 +101,35 @@ void ABlasterPlayerController::ShowAmmo(const bool showAmmo)
 
 	m_pHUD->m_pCharacterOverlay->AmmoContainer->SetVisibility(showAmmo ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
+
+void ABlasterPlayerController::SetHudMatchCountDown(const float time)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	
+	if (!m_pHUD ||
+	!m_pHUD->m_pCharacterOverlay ||
+	!m_pHUD->m_pCharacterOverlay->MatchCountDownText) return;
+
+	const int minutes = FMath::FloorToInt(time / 60);
+	const int seconds = FMath::FloorToInt(FMath::Fmod(time, 60));
+	const FString timeFormatted = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
+	m_pHUD->m_pCharacterOverlay->MatchCountDownText->SetText(FText::FromString(timeFormatted));
+}
+
+void ABlasterPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	SetHudTime();
+}
+
+void ABlasterPlayerController::SetHudTime()
+{
+	const unsigned int secondsLeft = FMath::CeilToInt(m_MatchCountDown - GetWorld()->GetTimeSeconds());
+	if (secondsLeft != m_CountDownSeconds) // Only update once a full second has passed
+	{
+		SetHudMatchCountDown(secondsLeft);
+	}
+	
+	m_CountDownSeconds = secondsLeft;
+}

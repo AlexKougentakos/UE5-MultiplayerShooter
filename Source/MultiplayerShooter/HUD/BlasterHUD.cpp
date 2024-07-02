@@ -30,8 +30,6 @@ void ABlasterHUD::DrawHUD()
 void ABlasterHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	AddCharacterOverlay();
 }
 
 void ABlasterHUD::DrawCrosshair(UTexture2D* crosshair, const FVector2D& viewportCenter, const FVector2D& spread,

@@ -24,8 +24,9 @@ public:
 	virtual void RequestRespawn(ABlasterCharacter* pCharacterToRespawn, ABlasterPlayerController* pPlayerController);
 
 	virtual void BeginPlay() override;
+protected:
 	virtual void HandleMatchIsWaitingToStart() override;
-	
+	virtual void OnMatchStateSet() override;
 private:
 	TArray<AActor*> m_PlayerStarts{};
 

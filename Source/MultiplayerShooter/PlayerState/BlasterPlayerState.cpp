@@ -21,7 +21,7 @@ void ABlasterPlayerState::AddToSore(float scoreAmount)
 		m_pBlasterPlayerController = m_pBlasterPlayerController ? m_pBlasterPlayerController : Cast<ABlasterPlayerController>(m_pBlasterCharacter->GetController());
 		if (m_pBlasterPlayerController)
 		{
-			m_pBlasterPlayerController->SetHudScore(GetScore());
+			m_pBlasterPlayerController->SetHudKills(GetScore());
 		}
 	}
 }
@@ -36,7 +36,7 @@ void ABlasterPlayerState::OnRep_Score()
 		m_pBlasterPlayerController = m_pBlasterPlayerController ? m_pBlasterPlayerController : Cast<ABlasterPlayerController>(m_pBlasterCharacter->GetController());
 		if (m_pBlasterPlayerController)
 		{
-			m_pBlasterPlayerController->SetHudScore(GetScore());
+			m_pBlasterPlayerController->SetHudKills(GetScore());
 		}
 	}
 		

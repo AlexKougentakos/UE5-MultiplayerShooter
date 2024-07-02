@@ -28,6 +28,19 @@ void ABlasterGameMode::HandleMatchIsWaitingToStart()
 	GetWorldTimerManager().SetTimer(warmupTimer, this, &ABlasterGameMode::StartMatch, m_StartDelay, false);
 }
 
+void ABlasterGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	for (auto it = GetWorld()->GetControllerIterator(); it; ++it)
+	{
+		ABlasterPlayerController* pPlayerController = Cast<ABlasterPlayerController>(*it);
+		if (!pPlayerController) continue;
+
+		pPlayerController->OnMatchNameSet(MatchState);
+	}
+}
+
 void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* pEliminatedPlayer,
                                         ABlasterPlayerController* pEliminatedPlayerController, ABlasterPlayerController* pAttackingPlayerController)
 {

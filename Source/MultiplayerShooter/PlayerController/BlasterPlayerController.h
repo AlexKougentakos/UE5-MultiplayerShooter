@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
 
+class ABlasterGameMode;
 class UCharacterOverlay;
 class ABlasterHUD;
 /**
@@ -39,6 +40,9 @@ public:
 
 private:
 	ABlasterHUD* m_pHUD{};
+	ABlasterGameMode* m_pGameMode{};
+
+	
 	void SetHudTime();
 	void PollInitialize();
 
@@ -49,6 +53,7 @@ private:
 	
 	float m_MatchDuration{0.f};
 	float m_WarmUpDuration{0.f};
+	float m_CooldownDuration{0.f};
 	float m_LevelStartingTime{0.f};
 	
 	unsigned int m_CountDownSeconds{0};
@@ -84,7 +89,7 @@ private:
 	void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
-	void ClientJoinedMidGame(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime);
+	void ClientJoinedMidGame(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime, float cooldownDuration);
 	
 	UCharacterOverlay* m_pCharacterOverlay{};
 	bool m_InitializeCharacterOverlay{false};

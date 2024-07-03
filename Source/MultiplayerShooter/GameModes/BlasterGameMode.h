@@ -49,4 +49,6 @@ public:
 	float GetGameDuration() const {return m_GameDuration; }
 	float GetWarmUpDuration() const {return m_WarmUpDuration; }
 	float GetLevelStartingTime() const {return m_LevelStartingTime; }
+	float GetCooldownDuration() const {return m_CooldownDuration; }
+	float GetCountdownTime() const {return m_CountdownTime; }
 };

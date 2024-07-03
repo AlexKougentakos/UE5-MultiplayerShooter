@@ -185,6 +185,12 @@ void ABlasterPlayerController::SetHudMatchCountDown(const float time)
 	!m_pHUD->m_pCharacterOverlay ||
 	!m_pHUD->m_pCharacterOverlay->MatchCountDownText) return;
 
+	if (time < 0.f)
+	{
+		m_pHUD->m_pAnnouncement->AnnouncementTimer->SetText(FText::FromString("00:00"));
+		return;
+	}
+	
 	const int minutes = FMath::FloorToInt(time / 60);
 	const int seconds = FMath::FloorToInt(FMath::Fmod(time, 60));
 	const FString timeFormatted = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
@@ -198,6 +204,12 @@ void ABlasterPlayerController::SetHudAnnouncementCountDown(const float time)
 	if (!m_pHUD ||
 	!m_pHUD->m_pAnnouncement ||
 	!m_pHUD->m_pAnnouncement->AnnouncementTimer) return;
+
+	if (time < 0.f)
+	{
+		m_pHUD->m_pAnnouncement->AnnouncementTimer->SetText(FText::FromString("00:00"));
+		return;
+	}
 
 	const int minutes = FMath::FloorToInt(time / 60);
 	const int seconds = FMath::FloorToInt(FMath::Fmod(time, 60));
@@ -241,26 +253,28 @@ void ABlasterPlayerController::OnRep_MatchState()
 
 void ABlasterPlayerController::ServerCheckMatchState_Implementation()
 {
-	ABlasterGameMode* gameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	const ABlasterGameMode* gameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
 	if (gameMode)
 	{
 		m_WarmUpDuration = gameMode->GetWarmUpDuration();
 		m_MatchDuration = gameMode->GetGameDuration();
 		m_LevelStartingTime = gameMode->GetLevelStartingTime();
+		m_CooldownDuration = gameMode->GetCooldownDuration();
 		m_MatchState = gameMode->GetMatchState();
 
-		ClientJoinedMidGame(m_MatchState, m_WarmUpDuration, m_MatchDuration, m_LevelStartingTime);
+		ClientJoinedMidGame(m_MatchState, m_WarmUpDuration, m_MatchDuration, m_LevelStartingTime, m_CooldownDuration);
 
 		if (m_pHUD && m_MatchState == MatchState::WaitingToStart) m_pHUD->AddAnnouncement();
 	}
 }
 
-void ABlasterPlayerController::ClientJoinedMidGame_Implementation(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime)
+void ABlasterPlayerController::ClientJoinedMidGame_Implementation(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime, float cooldownDuration)
 {
 	if (HasAuthority()) return; // This shouldn't be needed but it gets executed on the server for some reason.
 	m_MatchState = matchState;
 	m_WarmUpDuration = warmUpDuration;
 	m_MatchDuration = gameDuration;
+	m_CooldownDuration = cooldownDuration;
 	m_LevelStartingTime = levelStartingTime;
 	OnMatchStateSet(m_MatchState);
 	
@@ -283,7 +297,14 @@ void ABlasterPlayerController::HandleCooldown()
 	if (m_pHUD)
 	{
 		m_pHUD->m_pCharacterOverlay->RemoveFromParent();
-		if (m_pHUD->m_pAnnouncement) m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Visible);
+		if (m_pHUD->m_pAnnouncement)
+		{
+			m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Visible);
+
+			const FString announcementTitle{"New Match Starts In: "};
+			m_pHUD->m_pAnnouncement->AnnouncementTitle->SetText(FText::FromString(announcementTitle));
+			m_pHUD->m_pAnnouncement->AnnouncementDescription->SetText(FText::FromString("Everyone Wins! (I haven't added winners yet)"));
+		}
 	}
 }
 
@@ -292,11 +313,20 @@ void ABlasterPlayerController::SetHudTime()
 	float timeLeft = 0.f;
 	if (m_MatchState == MatchState::WaitingToStart) timeLeft = m_WarmUpDuration - GetServerTime() + m_LevelStartingTime;
 	else if (m_MatchState == MatchState::InProgress) timeLeft = m_WarmUpDuration + m_MatchDuration - GetServerTime() + m_LevelStartingTime;
+	else if (m_MatchState == MatchState::Cooldown) timeLeft = m_CooldownDuration + m_WarmUpDuration + m_MatchDuration - GetServerTime() + m_LevelStartingTime;
+	unsigned int secondsLeft = FMath::CeilToInt(timeLeft);
 	
-	const unsigned int secondsLeft = FMath::CeilToInt(timeLeft);
+	if (HasAuthority())
+	{
+		m_pGameMode = m_pGameMode ? m_pGameMode : Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+
+		checkf(m_pGameMode, TEXT("Game mode is null"));
+		secondsLeft = FMath::CeilToInt(m_pGameMode->GetCountdownTime());
+	}
+	
 	if (secondsLeft != m_CountDownSeconds) // Only update once a full second has passed
 	{
-		if (m_MatchState == MatchState::WaitingToStart) SetHudAnnouncementCountDown(timeLeft);
+		if (m_MatchState == MatchState::WaitingToStart || m_MatchState == MatchState::Cooldown) SetHudAnnouncementCountDown(timeLeft);
 		else if (m_MatchState == MatchState::InProgress) SetHudMatchCountDown(timeLeft);
 	}
 	

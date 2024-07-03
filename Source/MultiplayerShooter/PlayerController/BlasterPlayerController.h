@@ -41,7 +41,11 @@ private:
 	ABlasterHUD* m_pHUD{};
 	void SetHudTime();
 	void PollInitialize();
+
+	//I am following the same convention as the GameMode to handle the match states, defining a handle function for each one
+	//Handle Game State Functions
 	void HandleMatchHasStarted();
+	void HandleCooldown();
 	
 	float m_MatchDuration{0.f};
 	float m_WarmUpDuration{0.f};

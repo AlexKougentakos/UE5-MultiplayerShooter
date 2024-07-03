@@ -215,10 +215,14 @@ float ABlasterPlayerController::GetServerTime() const
 void ABlasterPlayerController::OnMatchStateSet(const FName state)
 {
 	m_MatchState = state;
-	
+
 	if (m_MatchState == MatchState::InProgress)
 	{
 		HandleMatchHasStarted();
+	}
+	if (m_MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
 	}
 }
 
@@ -228,6 +232,10 @@ void ABlasterPlayerController::OnRep_MatchState()
 	if (m_MatchState == MatchState::InProgress)
 	{
 		HandleMatchHasStarted();
+	}
+	if (m_MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
 	}
 }
 
@@ -266,6 +274,16 @@ void ABlasterPlayerController::HandleMatchHasStarted()
 	{
 		m_pHUD->AddCharacterOverlay();
 		if (m_pHUD->m_pAnnouncement) m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void ABlasterPlayerController::HandleCooldown()
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	if (m_pHUD)
+	{
+		m_pHUD->m_pCharacterOverlay->RemoveFromParent();
+		if (m_pHUD->m_pAnnouncement) m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 

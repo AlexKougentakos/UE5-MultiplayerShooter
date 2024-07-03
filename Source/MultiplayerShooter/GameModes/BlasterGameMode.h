@@ -7,6 +7,11 @@
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "BlasterGameMode.generated.h"
 
+namespace MatchState
+{
+	extern MULTIPLAYERSHOOTER_API const FName Cooldown; // Match has been finished, display winner and begin countdown timer
+}
+
 class ABlasterPlayerController;
 class ABlasterCharacter;
 /**
@@ -33,6 +38,8 @@ private:
 	float m_WarmUpDuration{10.f};
 	UPROPERTY(EditAnywhere, Category = "GameMode", DisplayName = "Game Duration")
 	float m_GameDuration{120.f};
+	UPROPERTY(EditAnywhere, Category = "GameMode", DisplayName = "Cooldown Duration")
+	float m_CooldownDuration{10.f};
 	
 	float m_CountdownTime{0.f};
 

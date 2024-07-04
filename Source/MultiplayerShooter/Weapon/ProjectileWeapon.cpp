@@ -30,7 +30,7 @@ bool AProjectileWeapon::SpawnParticleEffect(const FVector& hitTarget)
 	const FVector vectorFromSocketToTarget = hitTarget - socketTransform.GetLocation();
 	const FRotator rotationFromSocketToTarget = vectorFromSocketToTarget.Rotation(); // A vector's .Rotation() function gives us the rotation that the vector is pointing at
 
-	
-	GetWorld()->SpawnActor<AProjectile>(m_pProjectileClass, socketTransform.GetLocation(), rotationFromSocketToTarget, spawnParameters);
+	if(m_pProjectileClass)
+		GetWorld()->SpawnActor<AProjectile>(m_pProjectileClass, socketTransform.GetLocation(), rotationFromSocketToTarget, spawnParameters);
 	return true;
 }

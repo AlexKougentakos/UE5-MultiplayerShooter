@@ -33,13 +33,13 @@ AWeapon::AWeapon()
 
 	m_pPickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pick Up Widget"));
 	m_pPickUpWidget->SetupAttachment(RootComponent);
-
-	m_CurrentAmmo = m_MaxAmmo;
 }
 
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+
+	m_CurrentAmmo = m_MaxAmmo;
 	
 	if (HasAuthority())
 	{
@@ -154,6 +154,7 @@ void AWeapon::UpdateHudAmmo()
 		if (m_pWeaponHolderController)
 		{
 			m_pWeaponHolderController->SetHudAmmo(m_CurrentAmmo);
+			UE_LOG(LogTemp, Warning, TEXT("Ammo: %d"), m_CurrentAmmo);
 		}
 	}
 }
@@ -190,22 +191,25 @@ void AWeapon::ShowPickupWidget(bool show) const
 void AWeapon::Fire(const FVector& hitTarget)
 {
 	checkf(m_pFireAnimation, TEXT("Fire animation is nullptr"));
-	checkf(m_pBulletShellClass, TEXT("Bullet shell class is nullptr"));
 	
 	m_pWeaponMesh->PlayAnimation(m_pFireAnimation, false);
-	
-	const auto pAmmoEjectSocket = m_pWeaponMesh->GetSocketByName(FName("AmmoEject"));
 
-	//Various checks for points that should never be null
-	checkf(pAmmoEjectSocket, TEXT("MuzzleFlash socket is nullptr"));
+
+	if (m_pBulletShellClass)
+	{
+		const auto pAmmoEjectSocket = m_pWeaponMesh->GetSocketByName(FName("AmmoEject"));
+
+		//Various checks for points that should never be null
+		checkf(pAmmoEjectSocket, TEXT("MuzzleFlash socket is nullptr"));
 	
-	const FTransform socketTransform = pAmmoEjectSocket->GetSocketTransform(m_pWeaponMesh);
+		const FTransform socketTransform = pAmmoEjectSocket->GetSocketTransform(m_pWeaponMesh);
 	
-	const auto pBulletShell = GetWorld()->SpawnActor<ABulletShell>(
-	m_pBulletShellClass,
-	socketTransform.GetLocation(),
-	socketTransform.GetRotation().Rotator(),
-	FActorSpawnParameters());
+		GetWorld()->SpawnActor<ABulletShell>(
+		m_pBulletShellClass,
+		socketTransform.GetLocation(),
+		socketTransform.GetRotation().Rotator(),
+		FActorSpawnParameters());
+	}
 
 	SpendAmmoRound();
 }

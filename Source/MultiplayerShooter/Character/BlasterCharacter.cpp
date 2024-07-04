@@ -292,10 +292,6 @@ void ABlasterCharacter::PlayRifleReloadMontage() const
 	case EWeaponType::EWT_Rifle:
 		sectionName = "Rifle";
 		break;
-	case EWeaponType::EWT_Pistol:
-		break;
-	case EWeaponType::EWT_Shotgun:
-		break;
 	case EWeaponType::EWT_MAX:
 		break;
 	}

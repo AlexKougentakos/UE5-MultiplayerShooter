@@ -32,16 +32,18 @@ void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	checkf(m_pTracerEffect, TEXT("Tracer effect is nullptr"));
-
-	m_pParticleSystemComponent = UGameplayStatics::SpawnEmitterAttached(
-		m_pTracerEffect,
-		m_pCollisionBox,
-		FName(),
-		GetActorLocation(),
-		GetActorRotation(),
-		EAttachLocation::KeepWorldPosition);
-
+	
+	if (m_pTracerEffect)
+	{
+		m_pParticleSystemComponent = UGameplayStatics::SpawnEmitterAttached(
+			m_pTracerEffect,
+			m_pCollisionBox,
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition);
+	}
+	
 	if (!HasAuthority()) return;
 	m_pCollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
 }
@@ -59,14 +61,26 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 	
 	if (HasAuthority())
 	{
-		UPhysicalMaterial* materialOfHitObject;
-		ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+		const UPhysicalMaterial* materialOfHitObject{};
+		const ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 		if (pBlasterCharacter)
 		{
 			//BlasterCharacter->MulticastHit();
 			materialOfHitObject = m_pPlayerPhysicalMaterial;
 		}
-		else materialOfHitObject = OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->GetSimplePhysicalMaterial();
+		else
+		{
+			bool validMaterial = false;
+
+			if (const auto pMesh = OtherActor->FindComponentByClass<UStaticMeshComponent>())
+				if (const auto pBodyInstance = pMesh->GetBodyInstance())
+					if (pBodyInstance->GetSimplePhysicalMaterial())
+						validMaterial = true;
+
+			if (!validMaterial) 
+				materialOfHitObject = m_pMetalPhysicalMaterial;
+			else materialOfHitObject = OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->GetSimplePhysicalMaterial();	
+		}
 
 		MulticastOnHit(materialOfHitObject);
 	}

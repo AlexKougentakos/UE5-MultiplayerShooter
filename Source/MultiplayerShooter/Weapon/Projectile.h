@@ -49,8 +49,6 @@ private:
 	
 	UPROPERTY(EditAnywhere, DisplayName = "Metal Impact Effect", Category = "Effects|Impact Particles")
 	UParticleSystem* m_pMetalImpactEffect{};
-
-
 	
 
 	UPROPERTY(EditAnywhere, DisplayName = "Grass Physical Material", Category = "Effects|Physical Materials")

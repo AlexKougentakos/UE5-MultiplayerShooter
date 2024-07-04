@@ -224,7 +224,8 @@ void UCombatComponent::OnRep_CarriedAmmo()
 
 void UCombatComponent::InitializeCarriedAmmo()
 {
-	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_Rifle, 30);
+	//m_CarriedAmmoMap.Emplace(EWeaponType::EWT_Rifle, 30);
+	//m_CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, 0);
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)
@@ -259,7 +260,10 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	
 	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
+	{
 		m_CarriedAmmo = m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()];
+		UE_LOG(LogTemp, Warning, TEXT("Carried ammo: %d"), m_CarriedAmmo);
+	}
 		
 	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
 	if (m_pPlayerController)

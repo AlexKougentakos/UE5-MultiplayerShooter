@@ -160,6 +160,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, m_pOverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, m_CurrentHealth);
+	DOREPLIFETIME(ABlasterCharacter, m_DisabledGameplay);
 }
 
 void ABlasterCharacter::Jump()
@@ -341,8 +342,8 @@ void ABlasterCharacter::LookUp(const float value)
 }
 
 void ABlasterCharacter::EquipButtonPressed()
-{	
-	if (!m_pCombat) return;
+{
+	if (!m_pCombat || m_DisabledGameplay) return;
 	
 	if (HasAuthority()) //Server 
 		m_pCombat->EquipWeapon(m_pOverlappingWeapon);
@@ -481,6 +482,7 @@ void ABlasterCharacter::TurnInPlace(float deltaTime)
 
 void ABlasterCharacter::FireButtonPressed()
 {
+	if (m_DisabledGameplay) return;
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	
 	m_pCombat->FireButtonPressed(true);
@@ -488,6 +490,7 @@ void ABlasterCharacter::FireButtonPressed()
 
 void ABlasterCharacter::FireButtonReleased()
 {
+	if (m_DisabledGameplay) return;
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	
 	m_pCombat->FireButtonPressed(false);
@@ -495,6 +498,7 @@ void ABlasterCharacter::FireButtonReleased()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
+	if (m_DisabledGameplay) return;
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	m_pCombat->Reload();
 }

@@ -30,11 +30,11 @@ public:
 	bool HasWeapon() const { return m_pEquippedWeapon != nullptr; }
 	void Reload();
 
+	void FireButtonPressed(const bool isPressed);
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
 	void Fire();
-	void FireButtonPressed(const bool isPressed);
 
 	void TraceUnderCrosshairs(FHitResult& hitResult);
 	

@@ -306,6 +306,13 @@ void ABlasterPlayerController::HandleCooldown()
 			m_pHUD->m_pAnnouncement->AnnouncementDescription->SetText(FText::FromString("Everyone Wins! (I haven't added winners yet)"));
 		}
 	}
+
+	const auto pCharacter = Cast<ABlasterCharacter>(GetPawn());
+	if (pCharacter)
+	{
+		pCharacter->SetDisabledGameplay(true);
+		pCharacter->GetCombatComponent()->FireButtonPressed(false); //Release the fire button when the game gets cut off
+	}
 }
 
 void ABlasterPlayerController::SetHudTime()

@@ -162,7 +162,8 @@ private: // Variables
 	
 	UParticleSystemComponent* m_pEliminationBotEffectComponent{};
 
-	
+	UPROPERTY(Replicated)
+	bool m_DisabledGameplay{false};
 	
 private: // Functions
 	UFUNCTION()
@@ -201,16 +202,20 @@ public: // Getters & Setters
 	
 	float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
 	float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
-	AWeapon* GetEquippedWeapon() const;
 	ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
 
 	FVector GetHitTarget() const;
 
+	AWeapon* GetEquippedWeapon() const;
 	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
+	UCombatComponent* GetCombatComponent() const { return m_pCombat; }
+	
 	bool IsAlive() const { return m_IsAlive; }
 
 	float GetMaxHealth() const { return m_MaxHealth; }
 	float GetCurrentHealth() const { return m_CurrentHealth; }
 
 	ECombatState GetCombatState() const;
+
+	void SetDisabledGameplay(const bool disabled) { m_DisabledGameplay = disabled; }
 };

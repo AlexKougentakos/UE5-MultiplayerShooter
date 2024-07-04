@@ -213,6 +213,8 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	if(m_pPlayerController)
 		DisableInput(m_pPlayerController);
 
+	m_pCombat->FireButtonPressed(false);
+
 	//Disable Collisions
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

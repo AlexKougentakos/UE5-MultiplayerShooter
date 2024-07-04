@@ -5,6 +5,7 @@
 
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "MultiplayerShooter/GameState/BlasterGameState.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
 
@@ -79,9 +80,13 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* pEliminatedPlayer,
 	ABlasterPlayerState* pEliminatedPlayerState = pEliminatedPlayerController ? pEliminatedPlayerController->GetPlayerState<ABlasterPlayerState>() : nullptr;
 	ABlasterPlayerState* pAttackingPlayerState = pAttackingPlayerController ? pAttackingPlayerController->GetPlayerState<ABlasterPlayerState>() : nullptr;
 
+	const auto pGameState = GetGameState<ABlasterGameState>();
+	checkf(pGameState, TEXT("PlayerEliminated: pGameState is nullptr"));
+	
 	if (pAttackingPlayerState && pAttackingPlayerState != pEliminatedPlayerState)
 	{
 		pAttackingPlayerState->AddToSore(1.0f);
+		pGameState->UpdateTopScore(pAttackingPlayerState);
 	}
 	pEliminatedPlayerState->AddToDeaths();
 		

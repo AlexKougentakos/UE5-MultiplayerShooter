@@ -7,9 +7,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "MultiplayerShooter/GameModes/BlasterGameMode.h"
+#include "MultiplayerShooter/GameState/BlasterGameState.h"
 #include "MultiplayerShooter/HUD/Announcement.h"
 #include "MultiplayerShooter/HUD/BlasterHUD.h"
 #include "MultiplayerShooter/HUD/CharacterOverlay.h"
+#include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 void ABlasterPlayerController::ReceivedPlayer()
@@ -303,7 +305,29 @@ void ABlasterPlayerController::HandleCooldown()
 
 			const FString announcementTitle{"New Match Starts In: "};
 			m_pHUD->m_pAnnouncement->AnnouncementTitle->SetText(FText::FromString(announcementTitle));
-			m_pHUD->m_pAnnouncement->AnnouncementDescription->SetText(FText::FromString("Everyone Wins! (I haven't added winners yet)"));
+	
+			const auto pGameState = Cast<ABlasterGameState>(GetWorld()->GetGameState());
+			checkf(pGameState, TEXT("GameState is null"));
+
+			const auto pPlayerState = GetPlayerState<ABlasterPlayerState>();
+			checkf(pPlayerState, TEXT("PlayerState is null"));
+
+			const TArray<ABlasterPlayerState*> topPlayers = pGameState->GetTopScoringPlayers();
+			FString announcementDescription{};
+			if (topPlayers.IsEmpty()) announcementDescription = "Nobody got a kill? Really?";
+			else if (topPlayers.Num() == 1)
+			{
+				if (topPlayers[0] == pPlayerState) announcementDescription = "You are the top player!"; // For the local player
+				else announcementDescription = FString::Printf(TEXT("%s is the top player!"), *topPlayers[0]->GetPlayerName());
+			}
+			else
+			{
+				announcementDescription = FString("Top Scoring Players: \n");
+				for (const auto pTopPlayer : topPlayers)
+					announcementDescription += FString::Printf(TEXT("%s\n"), *pTopPlayer->GetPlayerName());
+			}
+
+			m_pHUD->m_pAnnouncement->AnnouncementDescription->SetText(FText::FromString(announcementDescription));
 		}
 	}
 

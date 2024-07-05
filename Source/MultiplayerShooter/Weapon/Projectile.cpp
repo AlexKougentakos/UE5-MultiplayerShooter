@@ -1,7 +1,6 @@
 #include "Projectile.h"
 
 #include "Components/BoxComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/MultiplayerShooter.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
@@ -22,10 +21,6 @@ AProjectile::AProjectile()
 	m_pCollisionBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	m_pCollisionBox->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	m_pCollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECR_Block);
-
-	//Set up movement component
-	m_pProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-	m_pProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
 void AProjectile::BeginPlay()

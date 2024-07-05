@@ -2,6 +2,7 @@
 
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "RocketMovementComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,6 +13,10 @@ AProjectileRocket::AProjectileRocket()
 	m_pRocketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Rocket Mesh"));
 	m_pRocketMesh->SetupAttachment(RootComponent);
 	m_pRocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_pRocketMovementComponent = CreateDefaultSubobject<URocketMovementComponent>(TEXT("RocketMovementComponent"));
+	m_pRocketMovementComponent->bRotationFollowsVelocity = true;
+	m_pRocketMovementComponent->SetIsReplicated(true);
 }
 
 
@@ -64,6 +69,8 @@ void AProjectileRocket::DestroyTimerFinished()
 void AProjectileRocket::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
                               UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (OtherActor == GetOwner()) return;
+	
 	//This is set in the ProjectileWeapon.cpp when firing the projectile
 	const APawn* pFiringPawn = GetInstigator();
 	if(pFiringPawn && HasAuthority()) //Only apply damage on the server

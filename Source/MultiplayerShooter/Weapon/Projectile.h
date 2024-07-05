@@ -20,10 +20,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	
-	UPROPERTY(EditAnywhere, DisplayName = "Projectile Movement Component", Category = "Components")
-	UProjectileMovementComponent* m_pProjectileMovementComponent{};
-
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Tracer Effect", Category = "Effects")
 	UParticleSystem* m_pTracerEffect{};
 	
@@ -46,6 +42,12 @@ private:
 	UPhysicalMaterial* m_pRockPhysicalMaterial{};
 
 protected:
+
+	//This must be constructed on each class, in case you need to use a custom movement component
+	UPROPERTY(EditAnywhere, DisplayName = "Projectile Movement Component", Category = "Components")
+	UProjectileMovementComponent* m_pProjectileMovementComponent{};
+
+	
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -53,6 +55,8 @@ protected:
 	void MulticastOnHit(const UPhysicalMaterial* physicalMaterial);
 	
 	virtual UParticleSystem* GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const;
+
+	const UPhysicalMaterial* GetMaterialOfActor(AActor* OtherActor) const;
 
 	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Projectile")
 	float m_Damage{ 20.0f };
@@ -78,5 +82,5 @@ protected:
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Impact Sound", Category = "Effects")
 	USoundCue* m_pImpactSound{};
 
-	const UPhysicalMaterial* GetMaterialOfActor(AActor* OtherActor) const;
+
 };

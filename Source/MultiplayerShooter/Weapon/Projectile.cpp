@@ -45,7 +45,7 @@ void AProjectile::BeginPlay()
 	}
 	
 	if (!HasAuthority()) return;
-	m_pCollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
+		m_pCollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
 }
 
 void AProjectile::Tick(float DeltaTime)
@@ -53,7 +53,6 @@ void AProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
 void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
                         FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -61,30 +60,11 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 	
 	if (HasAuthority())
 	{
-		const UPhysicalMaterial* materialOfHitObject{};
-		const ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-		if (pBlasterCharacter)
-		{
-			//BlasterCharacter->MulticastHit();
-			materialOfHitObject = m_pPlayerPhysicalMaterial;
-		}
-		else
-		{
-			bool validMaterial = false;
-
-			if (const auto pMesh = OtherActor->FindComponentByClass<UStaticMeshComponent>())
-				if (const auto pBodyInstance = pMesh->GetBodyInstance())
-					if (pBodyInstance->GetSimplePhysicalMaterial())
-						validMaterial = true;
-
-			if (!validMaterial) 
-				materialOfHitObject = m_pMetalPhysicalMaterial;
-			else materialOfHitObject = OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->GetSimplePhysicalMaterial();	
-		}
-
-		MulticastOnHit(materialOfHitObject);
+		MulticastOnHit(GetMaterialOfActor(OtherActor));
 	}
 }
+
+
 
 void AProjectile::MulticastOnHit_Implementation(const UPhysicalMaterial* physicalMaterial)
 {
@@ -99,6 +79,33 @@ void AProjectile::MulticastOnHit_Implementation(const UPhysicalMaterial* physica
 
 	Destroy();
 }
+
+const UPhysicalMaterial* AProjectile::GetMaterialOfActor(AActor* OtherActor) const
+{
+	const UPhysicalMaterial* materialOfHitObject = {};
+	const ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	if (pBlasterCharacter)
+	{
+		//BlasterCharacter->MulticastHit();
+		materialOfHitObject = m_pPlayerPhysicalMaterial;
+	}
+	else
+	{
+		bool validMaterial = false;
+
+		if (const auto pMesh = OtherActor->FindComponentByClass<UStaticMeshComponent>())
+			if (const auto pBodyInstance = pMesh->GetBodyInstance())
+				if (pBodyInstance->GetSimplePhysicalMaterial())
+					validMaterial = true;
+
+		if (!validMaterial) 
+			materialOfHitObject = m_pMetalPhysicalMaterial;
+		else materialOfHitObject = OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->GetSimplePhysicalMaterial();	
+	}
+
+	return materialOfHitObject;
+}
+
 
 UParticleSystem* AProjectile::GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const
 {

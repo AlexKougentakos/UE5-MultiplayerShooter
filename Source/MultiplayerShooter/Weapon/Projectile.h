@@ -20,36 +20,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-
-	UPROPERTY(EditAnywhere, DisplayName = "Projectile Collider", Category = "Components")
-	UBoxComponent* m_pCollisionBox{};
-
+	
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Movement Component", Category = "Components")
 	UProjectileMovementComponent* m_pProjectileMovementComponent{};
 
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Tracer Effect", Category = "Effects")
 	UParticleSystem* m_pTracerEffect{};
-
-	UPROPERTY(EditAnywhere, DisplayName = "Projectile Impact Sound", Category = "Effects")
-	USoundCue* m_pImpactSound{};
+	
 
 	UParticleSystemComponent* m_pParticleSystemComponent{};
-
-	UPROPERTY(EditAnywhere, DisplayName = "Grass Impact Effect", Category = "Effects|Impact Particles")
-	UParticleSystem* m_pGrassImpactEffect{};
-	
-	UPROPERTY(EditAnywhere, DisplayName = "Wood Impact Effect", Category = "Effects|Impact Particles")
-	UParticleSystem* m_pWoodImpactEffect{};
-
-	UPROPERTY(EditAnywhere, DisplayName = "Player Impact Effect", Category = "Effects|Impact Particles")
-	UParticleSystem* m_pPlayerImpactEffect{};
-	
-	UPROPERTY(EditAnywhere, DisplayName = "Rock Impact Effect", Category = "Effects|Impact Particles")
-	UParticleSystem* m_pRockImpactEffect{};
-	
-	UPROPERTY(EditAnywhere, DisplayName = "Metal Impact Effect", Category = "Effects|Impact Particles")
-	UParticleSystem* m_pMetalImpactEffect{};
-	
 
 	UPROPERTY(EditAnywhere, DisplayName = "Grass Physical Material", Category = "Effects|Physical Materials")
     UPhysicalMaterial* m_pGrassPhysicalMaterial{};
@@ -78,4 +57,26 @@ protected:
 	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Projectile")
 	float m_Damage{ 20.0f };
 
+	UPROPERTY(EditAnywhere, DisplayName = "Projectile Collider", Category = "Components")
+	UBoxComponent* m_pCollisionBox{};
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Grass Impact Effect", Category = "Effects|Impact Particles")
+	UParticleSystem* m_pGrassImpactEffect{};
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Wood Impact Effect", Category = "Effects|Impact Particles")
+	UParticleSystem* m_pWoodImpactEffect{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Player Impact Effect", Category = "Effects|Impact Particles")
+	UParticleSystem* m_pPlayerImpactEffect{};
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Rock Impact Effect", Category = "Effects|Impact Particles")
+	UParticleSystem* m_pRockImpactEffect{};
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Metal Impact Effect", Category = "Effects|Impact Particles")
+	UParticleSystem* m_pMetalImpactEffect{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Projectile Impact Sound", Category = "Effects")
+	USoundCue* m_pImpactSound{};
+
+	const UPhysicalMaterial* GetMaterialOfActor(AActor* OtherActor) const;
 };

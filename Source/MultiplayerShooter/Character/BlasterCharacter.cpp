@@ -292,8 +292,10 @@ void ABlasterCharacter::PlayRifleReloadMontage() const
 	case EWeaponType::EWT_Rifle:
 		sectionName = "Rifle";
 		break;
-	case EWeaponType::EWT_MAX:
+	case EWeaponType::EWT_RocketLauncher:
+		sectionName = "Rifle";
 		break;
+	default: ;
 	}
 	pAnimInstance->Montage_JumpToSection(sectionName);
 }

@@ -298,6 +298,9 @@ void ABlasterCharacter::PlayRifleReloadMontage() const
 	case EWeaponType::EWT_Pistol:
 		sectionName = "Rifle";
 		break;
+	case EWeaponType::EWT_SubmachineGun:
+		sectionName = "Rifle";
+		break;
 	default: ;
 	}
 	pAnimInstance->Montage_JumpToSection(sectionName);

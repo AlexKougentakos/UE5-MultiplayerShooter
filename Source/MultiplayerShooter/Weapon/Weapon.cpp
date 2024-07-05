@@ -109,6 +109,14 @@ void AWeapon::SetWeaponState(const EWeaponState state)
 		m_pWeaponMesh->SetSimulatePhysics(false);
 		m_pWeaponMesh->SetEnableGravity(false);
 		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Enable physics & collision to simulate the strap movement
+		if (m_WeaponType == EWeaponType::EWT_SubmachineGun)
+		{
+			m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			m_pWeaponMesh->SetEnableGravity(true);
+			m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+		}
 		break;
 	case EWeaponState::EWS_Dropped:
 		if (HasAuthority())
@@ -116,6 +124,9 @@ void AWeapon::SetWeaponState(const EWeaponState state)
 		m_pWeaponMesh->SetSimulatePhysics(true);
 		m_pWeaponMesh->SetEnableGravity(true);
 		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		
+		m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
+		m_pWeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		break;
 	case EWeaponState::EWS_MAX:
 		break;
@@ -172,11 +183,22 @@ void AWeapon::OnRep_WeaponState() const
 		m_pWeaponMesh->SetSimulatePhysics(false);
 		m_pWeaponMesh->SetEnableGravity(false);
 		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Enable physics & collision to simulate the strap movement
+		if (m_WeaponType == EWeaponType::EWT_SubmachineGun)
+		{
+			m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			m_pWeaponMesh->SetEnableGravity(true);
+			m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+		}
 		break;
 	case EWeaponState::EWS_Dropped:
 		m_pWeaponMesh->SetSimulatePhysics(true);
 		m_pWeaponMesh->SetEnableGravity(true);
 		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
+        m_pWeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		break;
 	case EWeaponState::EWS_MAX:
 		break;
@@ -192,11 +214,9 @@ void AWeapon::ShowPickupWidget(bool show) const
 
 void AWeapon::Fire(const FVector& hitTarget)
 {
-	checkf(m_pFireAnimation, TEXT("Fire animation is nullptr"));
+	if (m_pFireAnimation)
+		m_pWeaponMesh->PlayAnimation(m_pFireAnimation, false);
 	
-	m_pWeaponMesh->PlayAnimation(m_pFireAnimation, false);
-
-
 	if (m_pBulletShellClass)
 	{
 		const auto pAmmoEjectSocket = m_pWeaponMesh->GetSocketByName(FName("AmmoEject"));

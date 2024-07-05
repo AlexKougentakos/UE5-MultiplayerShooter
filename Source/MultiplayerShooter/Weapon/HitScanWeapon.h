@@ -17,9 +17,12 @@ public:
 	virtual void Fire(const FVector& hitTarget) override;
 
 private:
-	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Weapon")
+	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Weapon Stats")
 	float m_Damage{20.f};
 
 	UPROPERTY(EditAnywhere, DisplayName = "Impact Particles", Category = "Effects")
 	UParticleSystem* m_pImpactParticles{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Beam Particles", Category = "Effects")
+	UParticleSystem* m_pBeamParticles{};
 };

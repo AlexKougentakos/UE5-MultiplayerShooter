@@ -138,10 +138,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Pick Up Widget")
 	UWidgetComponent* m_pPickUpWidget{};
 
-	UPROPERTY(EditAnywhere, Category = "Weapon FX", DisplayName = "Fire Animation")
+	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Fire Animation")
 	UAnimationAsset* m_pFireAnimation;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon FX", DisplayName = "Bullet Shell Class")
+	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Bullet Shell Class")
 	TSubclassOf<ABulletShell> m_pBulletShellClass{};
 
 	ABlasterCharacter* m_pWeaponHolder{};

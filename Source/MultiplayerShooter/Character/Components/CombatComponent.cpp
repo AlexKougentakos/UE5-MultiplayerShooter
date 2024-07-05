@@ -42,9 +42,6 @@ void UCombatComponent::BeginPlay()
 	
 	const auto pPlayerCamera = m_pCharacter->GetFollowCamera();
 	checkf(pPlayerCamera, TEXT("Player camera is nullptr"));
-
-	if (m_pCharacter->HasAuthority())
-		InitializeCarriedAmmo();
 	
 	m_DefaultFOV = pPlayerCamera->FieldOfView;
 	m_CurrentFOV = m_DefaultFOV;
@@ -220,12 +217,6 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	{
 		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
 	}
-}
-
-void UCombatComponent::InitializeCarriedAmmo()
-{
-	//m_CarriedAmmoMap.Emplace(EWeaponType::EWT_Rifle, 30);
-	//m_CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, 0);
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)

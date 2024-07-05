@@ -115,7 +115,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat", DisplayName = "Carried Ammo Map")
 	TMap<EWeaponType, int> m_CarriedAmmoMap{};
-	void InitializeCarriedAmmo();
 
 	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
 	ECombatState m_CombatState{ECombatState::ECS_Unoccupied};

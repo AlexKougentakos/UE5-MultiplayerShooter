@@ -2,6 +2,7 @@
 
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "Particles/ParticleSystemComponent.h"
 
@@ -53,4 +54,19 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 		}
 	}
 	
+}
+
+FVector AHitScanWeapon::GetVectorWithSpread(const FVector& hitStart, const FVector& hitTarget) const
+{
+	const FVector vectorToTargetNormalized = (hitTarget - hitStart).GetSafeNormal();
+	const FVector sphereCenter = hitStart + vectorToTargetNormalized * m_DistanceToSpreadSphere;
+	const FVector randomVector = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, m_SphereRadius);
+	const FVector end = sphereCenter + randomVector;
+	const FVector toEndLocation = end - hitStart;
+
+	DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius, 12, FColor::Red, true, 1.f);
+	DrawDebugSphere(GetWorld(), end, 5.f, 12, FColor::Green, true, 1.f);
+	DrawDebugLine(GetWorld(), hitStart, hitStart + toEndLocation * BULLET_TRACE_LENGTH, FColor::Green, true, 1.f);
+
+	return {hitStart + toEndLocation * BULLET_TRACE_LENGTH / toEndLocation.Size()}; //Dividing to avoid overflow
 }

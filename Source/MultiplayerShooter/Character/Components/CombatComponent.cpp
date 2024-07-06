@@ -86,7 +86,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 	start += crosshairWorldDirection * (distanceToCharacter + 100.f);
 	
 	
-	const FVector end = start + crosshairWorldDirection * 100000.0f;
+	const FVector end = start + crosshairWorldDirection * BULLET_TRACE_LENGTH;
 	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
 
 	// Detect when you are aiming at a player

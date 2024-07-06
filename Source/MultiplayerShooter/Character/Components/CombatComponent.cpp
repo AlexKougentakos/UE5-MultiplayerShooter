@@ -109,12 +109,6 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 	 
 }
 
-void UCombatComponent::Reload()
-{
-	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull()) return;
-	
-	ServerReload();
-}
 
 void UCombatComponent::UpdateAmmoValues()
 {
@@ -125,6 +119,36 @@ void UCombatComponent::UpdateAmmoValues()
 	
 	if (m_pCharacter->HasAuthority())
 		OnRep_CarriedAmmo(); //This is just to update the HUD for the server, you can refactor it but I'm lazy
+}
+
+void UCombatComponent::UpdateShotgunAmmoValues()
+{
+	if (!HasWeapon()) return;
+	checkf(m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()), TEXT("Carried ammo map does not contain the weapon type"));
+
+	const int reloadedAmount = m_pEquippedWeapon->Reload(1);
+	m_CarriedAmmo -= reloadedAmount;
+
+	m_CanFire = true;
+	
+	if (m_pEquippedWeapon->IsMagazineFull() || m_CarriedAmmo <= 0)
+	{
+		JumpToShotgunReloadAnimationEnd();
+	}
+}
+
+void UCombatComponent::JumpToShotgunReloadAnimationEnd() const
+{
+	const auto pAnimInstance = Cast<ABlasterCharacter>(m_pCharacter)->GetMesh()->GetAnimInstance();
+	if (pAnimInstance)
+		pAnimInstance->Montage_JumpToSection("ShotgunEND");
+}
+
+void UCombatComponent::Reload()
+{
+	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull()) return;
+	
+	ServerReload();
 }
 
 void UCombatComponent::ServerReload_Implementation()
@@ -179,6 +203,12 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 	}
 }
 
+void UCombatComponent::ShotgunShellReload()
+{
+	if (m_pCharacter && m_pCharacter->HasAuthority())
+		UpdateShotgunAmmoValues();
+}
+
 void UCombatComponent::Fire()
 {
 	if (!CanFire()) return;
@@ -226,6 +256,13 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	{
 		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
 	}
+
+	const bool jumpToShotgunReloadAnimationEnd = HasWeapon() &&
+		m_CombatState == ECombatState::ECS_Reloading &&
+			m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun
+	&& m_CarriedAmmo <= 0;
+
+	if (jumpToShotgunReloadAnimationEnd) JumpToShotgunReloadAnimationEnd();
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)
@@ -237,10 +274,18 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& t
 {
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 
+	if (m_pEquippedWeapon && m_CombatState == ECombatState::ECS_Reloading && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)
+	{
+		m_pCharacter->PlayFireMontage(m_IsAiming);
+		m_pEquippedWeapon->Fire(traceHitLocation);
+		m_CombatState = ECombatState::ECS_Unoccupied;
+		return;
+	}
+	
     if (!m_pEquippedWeapon || m_CombatState != ECombatState::ECS_Unoccupied) return;
     
-    m_pCharacter->PlayFireMontage(m_IsAiming);
-    m_pEquippedWeapon->Fire(traceHitLocation);
+	m_pCharacter->PlayFireMontage(m_IsAiming);
+	m_pEquippedWeapon->Fire(traceHitLocation);
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
@@ -381,7 +426,11 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 bool UCombatComponent::CanFire() const
 {
 	if (!HasWeapon()) return false;
-	return m_CanFire && m_IsFireButtonPressed && m_pEquippedWeapon->HasAmmoInMagazine() && m_CombatState == ECombatState::ECS_Unoccupied;
+	return m_CanFire &&
+		m_IsFireButtonPressed &&
+			m_pEquippedWeapon->HasAmmoInMagazine()
+	//Special exception where you can fire the shotgun if you are reloading
+	&& (m_CombatState == ECombatState::ECS_Unoccupied || (m_CombatState == ECombatState::ECS_Reloading && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun));
 }
 
 void UCombatComponent::FinishedReloading()

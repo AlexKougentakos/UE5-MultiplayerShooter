@@ -148,13 +148,17 @@ void AWeapon::OnRep_Owner()
 
 void AWeapon::OnRep_Ammo()
 {
+	//m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(GetOwner());
+	if (m_pWeaponHolder && IsMagazineFull())
+	{
+		m_pWeaponHolder->GetCombatComponent()->JumpToShotgunReloadAnimationEnd();
+	}
 	UpdateHudAmmo();
 }
 
 void AWeapon::SpendAmmoRound()
 {
 	m_CurrentAmmo = FMath::Clamp(m_CurrentAmmo - 1, 0, m_MaxAmmo);
-	
 	UpdateHudAmmo();
 }
 

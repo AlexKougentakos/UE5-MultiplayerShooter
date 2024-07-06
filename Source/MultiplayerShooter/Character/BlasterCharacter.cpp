@@ -298,13 +298,22 @@ void ABlasterCharacter::PlayRifleReloadMontage() const
 		sectionName = "Rifle";
 		break;
 	case EWeaponType::EWT_RocketLauncher:
-		sectionName = "Rifle";
+		sectionName = "Rocket";
 		break;
 	case EWeaponType::EWT_Pistol:
-		sectionName = "Rifle";
+		sectionName = "Pistol";
 		break;
 	case EWeaponType::EWT_SubmachineGun:
-		sectionName = "Rifle";
+		sectionName = "Pistol";
+		break;
+	case EWeaponType::EWT_Sniper:
+		sectionName = "Sniper";
+		break;
+	case EWeaponType::EWT_Shotgun:
+		sectionName = "Shotgun";
+		break;
+	case EWeaponType::EWT_GrenadeLauncher:
+		sectionName = "Grenade";
 		break;
 	default: ;
 	}

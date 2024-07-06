@@ -37,4 +37,5 @@ protected:
 	UParticleSystem* m_pBeamParticles{};
 
 	FVector GetVectorWithSpread(const FVector& hitStart, const FVector& hitTarget) const;
+	void WeaponTraceHit(const FVector& traceStart, const FVector& hitTarget, FHitResult& outHitResult) const;
 };

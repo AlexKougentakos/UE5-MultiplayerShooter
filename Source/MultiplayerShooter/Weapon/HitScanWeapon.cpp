@@ -22,15 +22,8 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 	{
 		const FTransform muzzleTransform = muzzleSocket->GetSocketTransform(GetWeaponMesh());
 		const FVector start = muzzleTransform.GetLocation();
-		const FVector end = start + (hitTarget - start) * 1.2f;
-
 		FHitResult hitResult{};
-		UWorld* pWorld = GetWorld();
-
-		checkf(pWorld, TEXT("World is nullptr"));
-		pWorld->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
-
-		const FVector beamEnd = hitResult.bBlockingHit ? hitResult.ImpactPoint : end;
+		WeaponTraceHit(start, hitTarget, hitResult);
 		
 		if (hitResult.bBlockingHit)
 		{
@@ -45,15 +38,27 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pImpactParticles, hitResult.ImpactPoint, hitResult.ImpactNormal.Rotation());
 			}
 		}
-
-		if (m_pBeamParticles)
-		{
-			UParticleSystemComponent* pBeam = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pBeamParticles, muzzleTransform);
-			checkf(pBeam, TEXT("Beam is nullptr"));
-				pBeam->SetVectorParameter("Target", beamEnd);
-		}
 	}
 	
+}
+
+void AHitScanWeapon::WeaponTraceHit(const FVector& traceStart, const FVector& hitTarget, FHitResult& outHitResult) const
+{
+	const FVector end = m_UseScatter ? GetVectorWithSpread(traceStart, hitTarget) : traceStart + (hitTarget - traceStart) * 1.2f;
+	
+	const UWorld* pWorld = GetWorld();
+	checkf(pWorld, TEXT("World is nullptr"));
+	
+	pWorld->LineTraceSingleByChannel(outHitResult, traceStart, end, ECollisionChannel::ECC_Visibility);
+
+	const FVector beamEnd = outHitResult.bBlockingHit ? outHitResult.ImpactPoint : end;
+
+	if (m_pBeamParticles)
+	{
+		UParticleSystemComponent* pBeam = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pBeamParticles, traceStart, FRotator::ZeroRotator, true);
+		checkf(pBeam, TEXT("Beam is nullptr"));
+		pBeam->SetVectorParameter("Target", beamEnd);
+	}
 }
 
 FVector AHitScanWeapon::GetVectorWithSpread(const FVector& hitStart, const FVector& hitTarget) const
@@ -64,9 +69,9 @@ FVector AHitScanWeapon::GetVectorWithSpread(const FVector& hitStart, const FVect
 	const FVector end = sphereCenter + randomVector;
 	const FVector toEndLocation = end - hitStart;
 
-	DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius, 12, FColor::Red, true, 1.f);
-	DrawDebugSphere(GetWorld(), end, 5.f, 12, FColor::Green, true, 1.f);
-	DrawDebugLine(GetWorld(), hitStart, hitStart + toEndLocation * BULLET_TRACE_LENGTH, FColor::Green, true, 1.f);
+	// DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius, 12, FColor::Red, true, 1.f);
+	// DrawDebugSphere(GetWorld(), end, 5.f, 12, FColor::Green, true, 1.f);
+	// DrawDebugLine(GetWorld(), hitStart, hitStart + toEndLocation * BULLET_TRACE_LENGTH, FColor::Green, true, 1.f);
 
 	return {hitStart + toEndLocation * BULLET_TRACE_LENGTH / toEndLocation.Size()}; //Dividing to avoid overflow
 }

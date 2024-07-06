@@ -41,11 +41,39 @@ void AShotgun::Fire(const FVector& hitTarget)
 		const FVector start = muzzleTransform.GetLocation();
 		const FVector end = GetVectorWithSpread(start, hitTarget);
 
+		// Assign a hit values to each character that you hit (can be multiple due to the spread)
+		// and apply damage to them ONCE at the end
+		TMap<ABlasterCharacter*, int> hitMap{};
 		for (int i = 0; i < m_NumberOfPellets; ++i)
 		{
-			GetVectorWithSpread(start, hitTarget);
-		}
+			FHitResult hitResult{};
+			WeaponTraceHit(start, end, hitResult);
 
+			ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
+			if (pCharacter && HasAuthority())
+			{
+				if (hitMap.Contains(pCharacter))
+				{
+					hitMap[pCharacter]++;
+				}
+				else
+				{
+					hitMap.Emplace(pCharacter, 1);
+				}
+			}
+			
+			if (m_pImpactParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pImpactParticles, hitResult.ImpactPoint, hitResult.ImpactNormal.Rotation());
+			}
+		}
+		
+		//Apply damage
+		for (const auto& pair : hitMap)
+		{
+			if (HasAuthority() && pOwnerController)
+				UGameplayStatics::ApplyDamage(pair.Key, m_Damage * pair.Value, pOwnerController, this, UDamageType::StaticClass());
+		}
 	}
 	
 }

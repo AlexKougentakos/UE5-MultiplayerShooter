@@ -102,6 +102,8 @@ void ABlasterCharacter::PollInitialize(float deltaTime)
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	UE_LOG(LogTemp, Warning, TEXT("Combat State: %s"), *UEnum::GetValueAsString(GetCombatState()));
 
 	PollInitialize(DeltaTime);
 	
@@ -519,7 +521,11 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
 	if (m_pPlayerController)
 		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+
 	
+	if (GetCombatState() == ECombatState::ECS_Reloading)
+		m_pCombat->m_CombatState = ECombatState::ECS_Unoccupied;
+
 	PlayHitReactMontage();
 
 	const auto pBlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();

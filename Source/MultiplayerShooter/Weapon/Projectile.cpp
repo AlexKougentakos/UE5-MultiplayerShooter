@@ -1,5 +1,6 @@
 #include "Projectile.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/MultiplayerShooter.h"
@@ -48,6 +49,20 @@ void AProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+
+	if (m_pImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
+	}
+
+	if (m_pGrassImpactEffect)
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pGrassImpactEffect, GetActorTransform());
+}
+
 void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
                         FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -101,6 +116,54 @@ const UPhysicalMaterial* AProjectile::GetMaterialOfActor(AActor* OtherActor) con
 	return materialOfHitObject;
 }
 
+void AProjectile::SpawnTrailSystem()
+{
+		
+	checkf(m_pTrailEffect, TEXT("No trail effect set for rocket"));
+
+	m_pTrailEffectComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(m_pTrailEffect,
+		GetRootComponent(),
+		FName(),
+		GetActorLocation(),
+		GetActorRotation(),
+		EAttachLocation::KeepWorldPosition,
+		false);
+
+}
+
+void AProjectile::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(m_DestructionTimer, this, &AProjectile::DestroyTimerFinished, m_DestroyTime, false);
+}
+
+void AProjectile::DestroyTimerFinished()
+{
+	Destroy();
+}
+
+void AProjectile::DoDamageWithFallOff(const float innerDamageRadius, const float outerDamageRadius, const float damageAmount)
+{
+	//This is set in the ProjectileWeapon.cpp when firing the projectile
+	const APawn* pFiringPawn = GetInstigator();
+	if(pFiringPawn && HasAuthority()) //Only apply damage on the server
+	{
+		AController* pFiringPawnController = pFiringPawn->GetController();
+		if (pFiringPawnController) 
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(GetWorld(),
+			   damageAmount
+			   ,damageAmount * 0.33f
+			   ,GetActorLocation(),
+			   innerDamageRadius,
+			   outerDamageRadius,
+			   1.0f,
+			   UDamageType::StaticClass(),
+			   TArray<AActor*>(),
+			   this,
+			   pFiringPawnController);
+		}
+	}
+}
 
 UParticleSystem* AProjectile::GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const
 {

@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 class USoundCue;
 class UProjectileMovementComponent;
 class UBoxComponent;
@@ -18,12 +20,12 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void Destroyed() override;
 
 private:
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Tracer Effect", Category = "Effects")
 	UParticleSystem* m_pTracerEffect{};
 	
-
 	UParticleSystemComponent* m_pParticleSystemComponent{};
 
 	UPROPERTY(EditAnywhere, DisplayName = "Grass Physical Material", Category = "Effects|Physical Materials")
@@ -41,13 +43,16 @@ private:
 	UPROPERTY(EditAnywhere, DisplayName = "Rock Physical Material", Category = "Effects|Physical Materials")
 	UPhysicalMaterial* m_pRockPhysicalMaterial{};
 
+	FTimerHandle m_DestructionTimer{};
+	UPROPERTY(EditAnywhere, DisplayName = "Destroy Time", Category = "Effects")
+	float m_DestroyTime{3.f};
+
 protected:
 
 	//This must be constructed on each class, in case you need to use a custom movement component
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Movement Component", Category = "Components")
 	UProjectileMovementComponent* m_pProjectileMovementComponent{};
 
-	
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -58,29 +63,48 @@ protected:
 
 	const UPhysicalMaterial* GetMaterialOfActor(AActor* OtherActor) const;
 
-	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Projectile")
+	void SpawnTrailSystem();
+	void StartDestroyTimer();
+	void DestroyTimerFinished();
+	void DoDamageWithFallOff(const float innerDamageRadius, const float outerDamageRadius, const float damageAmount);
+
+	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Projectile Stats")
 	float m_Damage{ 20.0f };
+
+	UPROPERTY(EditAnywhere, DisplayName = "Damage Fall Off Inner Radius", Category = "Projectile Stats")
+	float m_InnerDamageRadius{ 200.0f };
+
+	UPROPERTY(EditAnywhere, DisplayName = "Damage Fall Off Outer Radius", Category = "Projectile Stats")
+	float m_OuterDamageRadius{ 500.0f };
 
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Collider", Category = "Components")
 	UBoxComponent* m_pCollisionBox{};
+
+	UPROPERTY(VisibleAnywhere, DisplayName = "Projectile Mesh", Category = "Components")
+	UStaticMeshComponent* m_pProjectileMesh{};
 	
-	UPROPERTY(EditAnywhere, DisplayName = "Grass Impact Effect", Category = "Effects|Impact Particles")
+	UPROPERTY(EditAnywhere, DisplayName = "Grass Impact Effect", Category = "Effects|Impact")
 	UParticleSystem* m_pGrassImpactEffect{};
 	
-	UPROPERTY(EditAnywhere, DisplayName = "Wood Impact Effect", Category = "Effects|Impact Particles")
+	UPROPERTY(EditAnywhere, DisplayName = "Wood Impact Effect", Category = "Effects|Impact")
 	UParticleSystem* m_pWoodImpactEffect{};
 
-	UPROPERTY(EditAnywhere, DisplayName = "Player Impact Effect", Category = "Effects|Impact Particles")
+	UPROPERTY(EditAnywhere, DisplayName = "Player Impact Effect", Category = "Effects|Impact")
 	UParticleSystem* m_pPlayerImpactEffect{};
 	
-	UPROPERTY(EditAnywhere, DisplayName = "Rock Impact Effect", Category = "Effects|Impact Particles")
+	UPROPERTY(EditAnywhere, DisplayName = "Rock Impact Effect", Category = "Effects|Impact")
 	UParticleSystem* m_pRockImpactEffect{};
 	
-	UPROPERTY(EditAnywhere, DisplayName = "Metal Impact Effect", Category = "Effects|Impact Particles")
+	UPROPERTY(EditAnywhere, DisplayName = "Metal Impact Effect", Category = "Effects|Impact")
 	UParticleSystem* m_pMetalImpactEffect{};
 
-	UPROPERTY(EditAnywhere, DisplayName = "Projectile Impact Sound", Category = "Effects")
+	UPROPERTY(EditAnywhere, DisplayName = "Projectile Impact Sound", Category = "Effects|Impact")
 	USoundCue* m_pImpactSound{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Trail Effect", Category = "Effects")
+	UNiagaraSystem* m_pTrailEffect{};
+	UNiagaraComponent* m_pTrailEffectComponent{};
+	
 
 
 };

@@ -49,6 +49,9 @@ public:
 
 	virtual void OnRep_ReplicatedMovement() override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool showScope);
+
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
 	USpringArmComponent* m_pCameraBoom{};

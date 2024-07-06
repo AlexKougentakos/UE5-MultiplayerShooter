@@ -227,6 +227,9 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 
 	checkf(m_pEliminationSound, TEXT("Elimination sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEliminationSound, GetActorLocation());
+
+	// Hide the sniper scope widget
+	if (IsLocallyControlled() && m_pCombat->HasWeapon() && m_pCombat->m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper) ShowSniperScopeWidget(false);
 }
 
 void ABlasterCharacter::EliminationTimerFinished()

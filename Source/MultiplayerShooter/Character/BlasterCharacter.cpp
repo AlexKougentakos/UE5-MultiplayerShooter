@@ -102,8 +102,6 @@ void ABlasterCharacter::PollInitialize(float deltaTime)
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	UE_LOG(LogTemp, Warning, TEXT("Combat State: %s"), *UEnum::GetValueAsString(GetCombatState()));
 
 	PollInitialize(DeltaTime);
 	
@@ -144,6 +142,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ABlasterCharacter::ReloadButtonPressed);
+	PlayerInputComponent->BindAction("GrenadeThrow", IE_Pressed, this, &ABlasterCharacter::GrenadeThrowButtonPressed);
+	
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -231,7 +231,10 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEliminationSound, GetActorLocation());
 
 	// Hide the sniper scope widget
-	if (IsLocallyControlled() && m_pCombat->HasWeapon() && m_pCombat->m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper) ShowSniperScopeWidget(false);
+	if (IsLocallyControlled() &&
+		m_pCombat->HasWeapon() &&
+		m_pCombat->m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper
+		&& m_pCombat->m_IsAiming) ShowSniperScopeWidget(false);
 }
 
 void ABlasterCharacter::EliminationTimerFinished()
@@ -273,9 +276,18 @@ void ABlasterCharacter::PlayEliminationMontage() const
 {	
 	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
 	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
-	checkf(m_pEliminationMontage, TEXT("Hit React Montage is nullptr"));
+	checkf(m_pEliminationMontage, TEXT("Elimination Montage is nullptr"));
 
 	pAnimInstance->Montage_Play(m_pEliminationMontage, 1.f);
+}
+
+void ABlasterCharacter::PlayThrowGrenadeMontage() const
+{
+	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
+	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
+	checkf(m_pGrenadeThrowMontage, TEXT("Grenade Throw Montage is nullptr"));
+
+	pAnimInstance->Montage_Play(m_pGrenadeThrowMontage, 1.f);
 }
 
 void ABlasterCharacter::PlayRifleReloadMontage() const
@@ -319,6 +331,7 @@ void ABlasterCharacter::PlayRifleReloadMontage() const
 	}
 	pAnimInstance->Montage_JumpToSection(sectionName);
 }
+
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()
 {
@@ -391,6 +404,13 @@ void ABlasterCharacter::AimButtonReleased()
 	if (!m_pCombat) return;
 
 	m_pCombat->SetAiming(false);
+}
+
+void ABlasterCharacter::GrenadeThrowButtonPressed()
+{
+	if (!m_pCombat || m_DisabledGameplay) return;
+
+	m_pCombat->ThrowGrenade();
 }
 
 void ABlasterCharacter::CalculateAimOffsetPitch()
@@ -483,7 +503,6 @@ void ABlasterCharacter::TurnInPlace(float deltaTime)
 	if (m_AimOffsetYaw > m_StandingPlayerRotationAngle)
 	{
 		m_TurningInPlace = ETurningInPlace::ETIP_Right;
-		UE_LOG(LogTemp, Warning, TEXT("Turning Right"));
 	}
 	else if (m_AimOffsetYaw < -m_StandingPlayerRotationAngle)
 		m_TurningInPlace = ETurningInPlace::ETIP_Left;

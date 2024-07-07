@@ -43,7 +43,6 @@ public:
 	void PlayHitReactMontage() const;
 	void PlayEliminationMontage() const;
 	void PlayRifleReloadMontage() const;
-	void PlayThrowGrenadeMontage() const;
 	
 	UFUNCTION(NetMulticast, Unreliable) //Unreliable because it's a cosmetic effect that will mostly go unnoticed with so many hits
 	void MulticastHit();
@@ -101,10 +100,6 @@ private: // Variables
 	UPROPERTY(EditAnywhere, DisplayName = "Rifle Reload Montage", Category = "Animation")
 	UAnimMontage* m_pReloadMontage{};
 
-	UPROPERTY(EditAnywhere, DisplayName = "Grenade Throw Montage", Category = "Animation")
-	UAnimMontage* m_pGrenadeThrowMontage{};
-
-	
 	void HideCameraWhenPlayerIsClose();
 	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
 	float m_PlayerHideDistance{200.f}; // The minimum distance there needs to be between the player and the camera for the camera to remain active
@@ -191,7 +186,6 @@ private: // Functions
 	void CrouchButtonPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
-	void GrenadeThrowButtonPressed();
 	void CalculateAimOffsetPitch();
 	void CalculateAimOffset(float deltaTime);
 	void SimulateProxiesTurn();

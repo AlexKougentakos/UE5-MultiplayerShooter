@@ -144,11 +144,6 @@ void UCombatComponent::JumpToShotgunReloadAnimationEnd() const
 		pAnimInstance->Montage_JumpToSection("ShotgunEND");
 }
 
-void UCombatComponent::ThrowGrenadeFinished()
-{
-	m_CombatState = ECombatState::ECS_Unoccupied;
-}
-
 void UCombatComponent::Reload()
 {
 	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull()) return;
@@ -179,14 +174,6 @@ void UCombatComponent::OnRep_CombatState()
 		break;
 	case ECombatState::ECS_Reloading:
 		HandleReloadingForBothServerAndClient();
-		break;
-	case ECombatState::ECS_ThrowingGrenade:
-		// The reason for the NOT is locally controlled is because the montage will have already been played on the local client
-		// So we don't want to play it again
-		if (m_pCharacter && !m_pCharacter->IsLocallyControlled())
-		{
-			m_pCharacter->PlayThrowGrenadeMontage();
-		}
 		break;
 	case ECombatState::ECS_MAX:
 		break;
@@ -310,7 +297,7 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
 void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 {
 	if (!m_pCharacter || !pWeapon) return;
-	if (m_CombatState != ECombatState::ECS_Unoccupied) return;
+
 	if (HasWeapon())
 		m_pEquippedWeapon->Drop();
 	
@@ -320,6 +307,7 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
 	{
 		m_CarriedAmmo = m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()];
+		UE_LOG(LogTemp, Warning, TEXT("Carried ammo: %d"), m_CarriedAmmo);
 	}
 		
 	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
@@ -457,27 +445,6 @@ void UCombatComponent::FinishedReloading()
 
 	if (m_IsFireButtonPressed) Fire();
 		
-}
-
-void UCombatComponent::ThrowGrenade()
-{
-	if (m_CombatState != ECombatState::ECS_Unoccupied) return;
-	
-	m_CombatState = ECombatState::ECS_ThrowingGrenade;
-
-	checkf (m_pCharacter, TEXT("Character is nullptr"));
-	m_pCharacter->PlayThrowGrenadeMontage();
-
-	if (!m_pCharacter->HasAuthority())
-		ServerThrowGranade();
-}
-
-void UCombatComponent::ServerThrowGranade_Implementation()
-{
-	m_CombatState = ECombatState::ECS_ThrowingGrenade;
-
-	checkf (m_pCharacter, TEXT("Character is nullptr"));
-	m_pCharacter->PlayThrowGrenadeMontage();
 }
 
 void UCombatComponent::InterpolateFOV(const float deltaTime)

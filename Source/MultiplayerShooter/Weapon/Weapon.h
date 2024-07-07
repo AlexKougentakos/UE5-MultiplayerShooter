@@ -105,8 +105,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
 	USoundCue* m_pPickupSound{};
 
-	void EnableCustomDepth(bool enable) const;
-
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")

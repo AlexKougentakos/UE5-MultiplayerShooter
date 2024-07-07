@@ -25,6 +25,9 @@ AWeapon::AWeapon()
 	m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
 	m_pWeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	m_pWeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
+	m_pWeaponMesh->MarkRenderStateDirty();
+	EnableCustomDepth(true);
 
 	m_pAreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Area Sphere"));
 	m_pAreaSphere->SetupAttachment(RootComponent);
@@ -56,6 +59,10 @@ void AWeapon::BeginPlay()
 	{
 		m_pPickUpWidget->SetVisibility(false);
 	}
+
+	m_pWeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
+	m_pWeaponMesh->MarkRenderStateDirty();
+	EnableCustomDepth(true);
 }
 
 void AWeapon::Tick(float DeltaTime)
@@ -94,6 +101,11 @@ void AWeapon::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActo
 	}	
 }
 
+void AWeapon::EnableCustomDepth(bool enable) const
+{
+	m_pWeaponMesh->SetRenderCustomDepth(enable);
+}
+
 void AWeapon::SetWeaponState(const EWeaponState state)
 {
 	//We change the state here to call the OnRep_WeaponState function
@@ -117,6 +129,8 @@ void AWeapon::SetWeaponState(const EWeaponState state)
 			m_pWeaponMesh->SetEnableGravity(true);
 			m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 		}
+
+		EnableCustomDepth(false);
 		break;
 	case EWeaponState::EWS_Dropped:
 		if (HasAuthority())
@@ -127,11 +141,51 @@ void AWeapon::SetWeaponState(const EWeaponState state)
 		
 		m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
 		m_pWeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		
+		EnableCustomDepth(true);
 		break;
 	case EWeaponState::EWS_MAX:
 		break;
 	}
 
+}
+
+
+void AWeapon::OnRep_WeaponState() const
+{
+	switch (m_WeaponState)
+	{
+	case EWeaponState::EWS_Initial:
+		break;
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		m_pWeaponMesh->SetSimulatePhysics(false);
+		m_pWeaponMesh->SetEnableGravity(false);
+		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Enable physics & collision to simulate the strap movement
+		if (m_WeaponType == EWeaponType::EWT_SubmachineGun)
+		{
+			m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			m_pWeaponMesh->SetEnableGravity(true);
+			m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+		}
+
+		EnableCustomDepth(false);
+		break;
+	case EWeaponState::EWS_Dropped:
+		m_pWeaponMesh->SetSimulatePhysics(true);
+		m_pWeaponMesh->SetEnableGravity(true);
+		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
+		m_pWeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+
+		EnableCustomDepth(true);
+		break;
+	case EWeaponState::EWS_MAX:
+		break;
+	}
 }
 
 void AWeapon::OnRep_Owner()
@@ -171,43 +225,10 @@ void AWeapon::UpdateHudAmmo()
 		if (m_pWeaponHolderController)
 		{
 			m_pWeaponHolderController->SetHudAmmo(m_CurrentAmmo);
-			UE_LOG(LogTemp, Warning, TEXT("Ammo: %d"), m_CurrentAmmo);
 		}
 	}
 }
 
-void AWeapon::OnRep_WeaponState() const
-{
-	switch (m_WeaponState)
-	{
-	case EWeaponState::EWS_Initial:
-		break;
-	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		m_pWeaponMesh->SetSimulatePhysics(false);
-		m_pWeaponMesh->SetEnableGravity(false);
-		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		//Enable physics & collision to simulate the strap movement
-		if (m_WeaponType == EWeaponType::EWT_SubmachineGun)
-		{
-			m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			m_pWeaponMesh->SetEnableGravity(true);
-			m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-		}
-		break;
-	case EWeaponState::EWS_Dropped:
-		m_pWeaponMesh->SetSimulatePhysics(true);
-		m_pWeaponMesh->SetEnableGravity(true);
-		m_pWeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-		m_pWeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
-        m_pWeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-		break;
-	case EWeaponState::EWS_MAX:
-		break;
-	}
-}
 
 void AWeapon::ShowPickupWidget(bool show) const
 {

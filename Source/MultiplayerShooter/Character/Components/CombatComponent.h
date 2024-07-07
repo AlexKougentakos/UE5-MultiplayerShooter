@@ -34,9 +34,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ShotgunShellReload();
 	void JumpToShotgunReloadAnimationEnd() const;
-
-	UFUNCTION(BlueprintCallable)
-	void ThrowGrenadeFinished();
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
@@ -64,11 +61,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishedReloading();
-
-	void ThrowGrenade();
-
-	UFUNCTION(Server, Reliable)
-	void ServerThrowGranade();
 
 private:
 	ABlasterCharacter* m_pCharacter{};

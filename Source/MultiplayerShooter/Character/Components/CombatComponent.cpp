@@ -116,6 +116,8 @@ void UCombatComponent::UpdateAmmoValues()
 	checkf(m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()), TEXT("Carried ammo map does not contain the weapon type"));
 
 	m_CarriedAmmo -= m_pEquippedWeapon->Reload(m_CarriedAmmo);
+	//Update the values on the map as well
+	m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()] = m_CarriedAmmo;
 	
 	if (m_pCharacter->HasAuthority())
 		OnRep_CarriedAmmo(); //This is just to update the HUD for the server, you can refactor it but I'm lazy

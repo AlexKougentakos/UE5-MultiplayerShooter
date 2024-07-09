@@ -21,16 +21,13 @@ public:
 protected:
 	UFUNCTION()
 	virtual void OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult);
-	
+
+	UPROPERTY(EditAnywhere, Category = "Components", DisplayName = "Pickup Mesh")
+	UStaticMeshComponent* m_pPickupMesh{};
 private:
 	UPROPERTY(EditAnywhere, Category = "Components", DisplayName = "Overlap Sphere")
 	USphereComponent* m_pSphereComponent{};
 
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
 	USoundCue* m_pPickupSound{};
-
-	UPROPERTY(EditAnywhere, Category = "Components", DisplayName = "Pickup Mesh")
-	UStaticMeshComponent* m_pPickupMesh{};
-public:	
-	
 };

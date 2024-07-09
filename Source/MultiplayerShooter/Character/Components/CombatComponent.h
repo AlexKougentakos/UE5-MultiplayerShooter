@@ -37,6 +37,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ThrowGrenadeFinished();
+
+	void PickupAmmo(const EWeaponType weaponType, const int ammoAmount);
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
@@ -135,7 +137,7 @@ private:
 
 	// A function to hold common logic for reloading on both the server and client
 	void HandleReloadingForBothServerAndClient();
-	void UpdateAmmoValues();
+	void UpdateAmmoValues(bool refreshHud);
 	void UpdateShotgunAmmoValues();
 	
 };

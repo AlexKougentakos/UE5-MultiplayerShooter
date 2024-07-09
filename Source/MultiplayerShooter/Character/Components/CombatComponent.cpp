@@ -110,7 +110,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 }
 
 
-void UCombatComponent::UpdateAmmoValues()
+void UCombatComponent::UpdateAmmoValues(bool refreshHud)
 {
 	if (!HasWeapon()) return;
 	checkf(m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()), TEXT("Carried ammo map does not contain the weapon type"));
@@ -119,7 +119,7 @@ void UCombatComponent::UpdateAmmoValues()
 	//Update the values on the map as well
 	m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()] = m_CarriedAmmo;
 	
-	if (m_pCharacter->HasAuthority())
+	if (m_pCharacter->HasAuthority() && refreshHud)
 		OnRep_CarriedAmmo(); //This is just to update the HUD for the server, you can refactor it but I'm lazy
 }
 
@@ -149,6 +149,25 @@ void UCombatComponent::JumpToShotgunReloadAnimationEnd() const
 void UCombatComponent::ThrowGrenadeFinished()
 {
 	m_CombatState = ECombatState::ECS_Unoccupied;
+}
+
+void UCombatComponent::PickupAmmo(const EWeaponType weaponType, const int ammoAmount)
+{
+	checkf(m_CarriedAmmoMap.Contains(weaponType), TEXT("Carried ammo map does not contain the weapon type"));
+
+	m_CarriedAmmoMap[weaponType] += ammoAmount;
+	m_CarriedAmmo = m_CarriedAmmoMap[weaponType];
+
+	//Update the hud only when the equipped weapon is the same as the weapon type of the ammo you picked up
+	UpdateAmmoValues(m_pEquippedWeapon->GetWeaponType() == weaponType);
+
+	if (HasWeapon() &&
+		m_pEquippedWeapon->GetWeaponType() == weaponType &&
+		!m_pEquippedWeapon->HasAmmoInMagazine() &&
+		m_CombatState == ECombatState::ECS_Unoccupied)
+	{
+		Reload();
+	}
 }
 
 void UCombatComponent::Reload()
@@ -454,7 +473,7 @@ void UCombatComponent::FinishedReloading()
 	if (m_pCharacter->HasAuthority())
 	{
 		m_CombatState = ECombatState::ECS_Unoccupied;
-		UpdateAmmoValues();
+		UpdateAmmoValues(true);
 	}
 
 	if (m_IsFireButtonPressed) Fire();

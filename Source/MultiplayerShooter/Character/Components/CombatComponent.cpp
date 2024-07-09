@@ -159,7 +159,7 @@ void UCombatComponent::PickupAmmo(const EWeaponType weaponType, const int ammoAm
 	m_CarriedAmmo = m_CarriedAmmoMap[weaponType];
 
 	//Update the hud only when the equipped weapon is the same as the weapon type of the ammo you picked up
-	UpdateAmmoValues(m_pEquippedWeapon->GetWeaponType() == weaponType);
+	UpdateAmmoValues(HasWeapon() && m_pEquippedWeapon->GetWeaponType() == weaponType);
 
 	if (HasWeapon() &&
 		m_pEquippedWeapon->GetWeaponType() == weaponType &&

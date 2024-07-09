@@ -10,6 +10,7 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class UBuffComponent;
 //Forward declarations
 class ABlasterPlayerState;
 class USoundCue;
@@ -64,7 +65,10 @@ private: // Variables
 	UWidgetComponent* m_pOverheadWidget{};
 
 	UPROPERTY(VisibleAnywhere, DisplayName = "Combat Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UCombatComponent* m_pCombat{};
+	UCombatComponent* m_pCombatComponent{};
+
+	UPROPERTY(VisibleAnywhere, DisplayName = "Buff Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UBuffComponent* m_pBuffComponent{};
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* m_pOverlappingWeapon{};
@@ -217,7 +221,8 @@ public: // Getters & Setters
 
 	AWeapon* GetEquippedWeapon() const;
 	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
-	UCombatComponent* GetCombatComponent() const { return m_pCombat; }
+	UCombatComponent* GetCombatComponent() const { return m_pCombatComponent; }
+	UBuffComponent* GetBuffComponent() const { return m_pBuffComponent; }
 	
 	bool IsAlive() const { return m_IsAlive; }
 

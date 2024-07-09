@@ -70,7 +70,7 @@ void ABlasterCharacter::BeginPlay()
 	if (m_pPlayerController)
 	{
 		m_pPlayerController->ShowAmmo(false);
-		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+		UpdateHudHealth();
 	}
 
 	if (HasAuthority())
@@ -347,6 +347,13 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	m_TimeSinceLastMovementReplication = 0.f;
 }
 
+void ABlasterCharacter::UpdateHudHealth()
+{
+	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
+	if (m_pPlayerController)
+		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+}
+
 void ABlasterCharacter::MulticastHit_Implementation()
 {
 	PlayHitReactMontage();
@@ -552,9 +559,8 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
                                       AController* instigatedBy, AActor* damageCauser)
 {
 	m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
-	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
-	if (m_pPlayerController)
-		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+
+	UpdateHudHealth();
 
 	
 	if (GetCombatState() == ECombatState::ECS_Reloading)
@@ -597,12 +603,11 @@ void ABlasterCharacter::HideCameraWhenPlayerIsClose()
 	}
 }
 
-void ABlasterCharacter::OnRep_Health()
+void ABlasterCharacter::OnRep_Health(float oldHealth)
 {
-	PlayHitReactMontage();
-	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
-	if (m_pPlayerController)
-		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+	if (m_CurrentHealth < oldHealth) //Meaning we took damage
+		PlayHitReactMontage();
+	UpdateHudHealth();
 }
 
 void ABlasterCharacter::UpdateDissolveMaterial(const float dissolveValue)

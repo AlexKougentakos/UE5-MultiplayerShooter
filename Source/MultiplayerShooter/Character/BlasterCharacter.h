@@ -54,6 +54,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool showScope);
 
+	void UpdateHudHealth();
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
 	USpringArmComponent* m_pCameraBoom{};
@@ -133,7 +134,7 @@ private: // Variables
 	float m_CurrentHealth{};
 
 	UFUNCTION()
-	void OnRep_Health();
+	void OnRep_Health(float lastHealth);
 
 	ABlasterPlayerController* m_pPlayerController{};
 	bool m_IsAlive{};
@@ -228,6 +229,7 @@ public: // Getters & Setters
 
 	float GetMaxHealth() const { return m_MaxHealth; }
 	float GetCurrentHealth() const { return m_CurrentHealth; }
+	void AddHealth(const float amount) {m_CurrentHealth = FMath::Clamp(m_CurrentHealth + amount, 0.f, m_MaxHealth);}
 
 	ECombatState GetCombatState() const;
 

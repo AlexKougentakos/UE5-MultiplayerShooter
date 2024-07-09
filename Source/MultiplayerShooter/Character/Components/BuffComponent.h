@@ -20,6 +20,14 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void Heal(const float amount, const float time);
 private:
 	ABlasterCharacter* m_pCharacter{};
+
+	bool m_IsHealing{ false };
+	float m_AmountToHeal{ 0.f };
+	float m_HealingRate{ 0.f };
+	
+	void UpdateHealing(float DeltaTime);
 };

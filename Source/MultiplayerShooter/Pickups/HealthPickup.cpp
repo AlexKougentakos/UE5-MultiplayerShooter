@@ -3,6 +3,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/Character/Components/BuffComponent.h"
 
 
 AHealthPickup::AHealthPickup()
@@ -47,8 +48,9 @@ void AHealthPickup::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AA
 
 	UBuffComponent* pBuffComponent = pPlayer->GetBuffComponent();
 	if (!pBuffComponent) return;
-
-	//pBuffComponent->Heal();
+	
+	pBuffComponent->Heal(m_HealAmount, m_HealingTime);
+	
 
 	Destroy();
 }

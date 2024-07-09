@@ -23,6 +23,7 @@ public:
 
 	void Heal(const float amount, const float time);
 	void BuffSpeed(const float baseSpeed, const float crouchedSpeed, const float time);
+	void BuffJump(const float jumpVelocity, const float time);
 private:
 	ABlasterCharacter* m_pCharacter{};
 
@@ -47,4 +48,15 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastSpeedBuff(float baseSpeed, float crouchSpeed);
+
+	/*
+	 * JUMP BUFF
+	 */
+
+	FTimerHandle m_JumpBuffTimerHandle{};
+	void ResetJump();
+
+	float m_InitialJumpVelocity{};
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastJumpBuff(float jumpVelocity);
 };

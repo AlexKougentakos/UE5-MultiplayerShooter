@@ -66,7 +66,7 @@ private: // Variables
 	UWidgetComponent* m_pOverheadWidget{};
 
 	UPROPERTY(VisibleAnywhere, DisplayName = "Combat Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UCombatComponent* m_pCombatComponent{};
+	UCombatComponent* m_pCombat{};
 
 	UPROPERTY(VisibleAnywhere, DisplayName = "Buff Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UBuffComponent* m_pBuffComponent{};
@@ -222,7 +222,7 @@ public: // Getters & Setters
 
 	AWeapon* GetEquippedWeapon() const;
 	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
-	UCombatComponent* GetCombatComponent() const { return m_pCombatComponent; }
+	UCombatComponent* GetCombatComponent() const { return m_pCombat; }
 	UBuffComponent* GetBuffComponent() const { return m_pBuffComponent; }
 	
 	bool IsAlive() const { return m_IsAlive; }

@@ -31,8 +31,7 @@ void ASpeedPickup::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AAc
 
 	UBuffComponent* pBuffComponent = pPlayer->GetBuffComponent();
 	if (!pBuffComponent) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("Speed buff time: %f"), m_SpeedBuffTime);
+	
 	pBuffComponent->BuffSpeed(m_BaseSpeedBuff, m_CrouchedSpeedBuff, m_SpeedBuffTime);
 
 	Destroy();

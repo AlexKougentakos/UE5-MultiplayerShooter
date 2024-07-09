@@ -40,8 +40,8 @@ ABlasterCharacter::ABlasterCharacter()
 	m_pOverheadWidget->SetupAttachment(RootComponent);
 
 	//Set up components
-	m_pCombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
-	m_pCombatComponent->SetIsReplicated(true);
+	m_pCombat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	m_pCombat->SetIsReplicated(true);
 
 	m_pBuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 	m_pBuffComponent->SetIsReplicated(true);
@@ -158,11 +158,12 @@ void ABlasterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	
-	m_pCombatComponent->m_pCharacter = this;
+	m_pCombat->m_pCharacter = this;
 	m_pBuffComponent->m_pCharacter = this;
 	
 	m_pBuffComponent->m_InitialBaseSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	m_pBuffComponent->m_InitialCrouchedSpeed = GetCharacterMovement()->MaxWalkSpeedCrouched;
+	m_pBuffComponent->m_InitialJumpVelocity = GetCharacterMovement()->JumpZVelocity;
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -191,10 +192,10 @@ void ABlasterCharacter::Destroyed()
 
 void ABlasterCharacter::Eliminated()
 {
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 
-	if (m_pCombatComponent->HasWeapon())
-		m_pCombatComponent->m_pEquippedWeapon->Drop();
+	if (m_pCombat->HasWeapon())
+		m_pCombat->m_pEquippedWeapon->Drop();
 	
 	MulticastEliminated();
 	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);
@@ -224,7 +225,7 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	if(m_pPlayerController)
 		DisableInput(m_pPlayerController);
 
-	m_pCombatComponent->FireButtonPressed(false);
+	m_pCombat->FireButtonPressed(false);
 
 	//Disable Collisions
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -241,9 +242,9 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 
 	// Hide the sniper scope widget
 	if (IsLocallyControlled() &&
-		m_pCombatComponent->HasWeapon() &&
-		m_pCombatComponent->m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper
-		&& m_pCombatComponent->m_IsAiming) ShowSniperScopeWidget(false);
+		m_pCombat->HasWeapon() &&
+		m_pCombat->m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper
+		&& m_pCombat->m_IsAiming) ShowSniperScopeWidget(false);
 }
 
 void ABlasterCharacter::EliminationTimerFinished()
@@ -253,9 +254,9 @@ void ABlasterCharacter::EliminationTimerFinished()
 
 void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
 {
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 
-	if (!m_pCombatComponent->HasWeapon()) return;
+	if (!m_pCombat->HasWeapon()) return;
 
 	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
 	
@@ -270,7 +271,7 @@ void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
 
 void ABlasterCharacter::PlayHitReactMontage() const
 {	
-	if (!m_pCombatComponent->HasWeapon()) return;
+	if (!m_pCombat->HasWeapon()) return;
 		
 	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
 	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
@@ -301,9 +302,9 @@ void ABlasterCharacter::PlayThrowGrenadeMontage() const
 
 void ABlasterCharacter::PlayRifleReloadMontage() const
 {
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 
-	if (!m_pCombatComponent->HasWeapon()) return;
+	if (!m_pCombat->HasWeapon()) return;
 
 	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
 	
@@ -313,7 +314,7 @@ void ABlasterCharacter::PlayRifleReloadMontage() const
 	// Play the montage and then decide which section to play depending on the weapon
 	pAnimInstance->Montage_Play(m_pReloadMontage, 1.f);
 	FName sectionName{};
-	switch(m_pCombatComponent->m_pEquippedWeapon->GetWeaponType())
+	switch(m_pCombat->m_pEquippedWeapon->GetWeaponType())
 	{
 	case EWeaponType::EWT_Rifle:
 		sectionName = "Rifle";
@@ -392,10 +393,10 @@ void ABlasterCharacter::LookUp(const float value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
-	if (!m_pCombatComponent || m_DisabledGameplay) return;
+	if (!m_pCombat || m_DisabledGameplay) return;
 	
 	if (HasAuthority()) //Server 
-		m_pCombatComponent->EquipWeapon(m_pOverlappingWeapon);
+		m_pCombat->EquipWeapon(m_pOverlappingWeapon);
 	else //Client
 		ServerEquipButtonPressed();
 }
@@ -410,23 +411,23 @@ void ABlasterCharacter::CrouchButtonPressed()
 
 void ABlasterCharacter::AimButtonPressed()
 {
-	if (!m_pCombatComponent) return;
+	if (!m_pCombat) return;
 	
-	m_pCombatComponent->SetAiming(true);
+	m_pCombat->SetAiming(true);
 }
 
 void ABlasterCharacter::AimButtonReleased()
 {
-	if (!m_pCombatComponent) return;
+	if (!m_pCombat) return;
 
-	m_pCombatComponent->SetAiming(false);
+	m_pCombat->SetAiming(false);
 }
 
 void ABlasterCharacter::GrenadeThrowButtonPressed()
 {
-	if (!m_pCombatComponent || m_DisabledGameplay) return;
+	if (!m_pCombat || m_DisabledGameplay) return;
 
-	m_pCombatComponent->ThrowGrenade();
+	m_pCombat->ThrowGrenade();
 }
 
 void ABlasterCharacter::CalculateAimOffsetPitch()
@@ -448,7 +449,7 @@ void ABlasterCharacter::CalculateAimOffsetPitch()
 
 void ABlasterCharacter::CalculateAimOffset(float deltaTime)
 {
-	if (!m_pCombatComponent->HasWeapon()) return;
+	if (!m_pCombat->HasWeapon()) return;
 	
 	const FVector velocity = GetVelocity();
 	const FVector lateralVelocity = FVector{velocity.X, velocity.Y, 0.f};
@@ -480,8 +481,8 @@ void ABlasterCharacter::CalculateAimOffset(float deltaTime)
 
 void ABlasterCharacter::SimulateProxiesTurn()
 {
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
-	if (!m_pCombatComponent->HasWeapon()) return;
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	if (!m_pCombat->HasWeapon()) return;
 
 	m_RotateRootBone = false;
 	
@@ -538,24 +539,24 @@ void ABlasterCharacter::TurnInPlace(float deltaTime)
 void ABlasterCharacter::FireButtonPressed()
 {
 	if (m_DisabledGameplay) return;
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	
-	m_pCombatComponent->FireButtonPressed(true);
+	m_pCombat->FireButtonPressed(true);
 }
 
 void ABlasterCharacter::FireButtonReleased()
 {
 	if (m_DisabledGameplay) return;
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	
-	m_pCombatComponent->FireButtonPressed(false);
+	m_pCombat->FireButtonPressed(false);
 }
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
 	if (m_DisabledGameplay) return;
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
-	m_pCombatComponent->Reload();
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	m_pCombat->Reload();
 }
 
 void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType,
@@ -567,7 +568,7 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 
 	
 	if (GetCombatState() == ECombatState::ECS_Reloading)
-		m_pCombatComponent->m_CombatState = ECombatState::ECS_Unoccupied;
+		m_pCombat->m_CombatState = ECombatState::ECS_Unoccupied;
 
 	PlayHitReactMontage();
 
@@ -591,17 +592,17 @@ void ABlasterCharacter::HideCameraWhenPlayerIsClose()
 	if (FVector::Dist(m_pFollowCamera->GetComponentLocation(), GetActorLocation()) < m_PlayerHideDistance)
 	{
 		GetMesh()->SetVisibility(false);
-		if (m_pCombatComponent->HasWeapon())
+		if (m_pCombat->HasWeapon())
 		{
-			m_pCombatComponent->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+			m_pCombat->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
 		}
 	}
 	else
 	{
 		GetMesh()->SetVisibility(true);
-		if (m_pCombatComponent->HasWeapon())
+		if (m_pCombat->HasWeapon())
 		{
-			m_pCombatComponent->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+			m_pCombat->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
 }
@@ -639,9 +640,9 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon)
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
-	if (!m_pCombatComponent) return;
+	if (!m_pCombat) return;
 
-	m_pCombatComponent->EquipWeapon(m_pOverlappingWeapon);
+	m_pCombat->EquipWeapon(m_pOverlappingWeapon);
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* const pWeapon)
@@ -662,28 +663,28 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* const pWeapon)
 
 bool ABlasterCharacter::IsWeaponEquipped() const
 {
-	return (m_pCombatComponent && m_pCombatComponent->m_pEquippedWeapon);
+	return (m_pCombat && m_pCombat->m_pEquippedWeapon);
 }
 
 bool ABlasterCharacter::IsAiming() const
 {
-	return (m_pCombatComponent && m_pCombatComponent->m_IsAiming);
+	return (m_pCombat && m_pCombat->m_IsAiming);
 }
 
 AWeapon* ABlasterCharacter::GetEquippedWeapon() const
 {
-	return m_pCombatComponent->m_pEquippedWeapon;
+	return m_pCombat->m_pEquippedWeapon;
 }
 
 FVector ABlasterCharacter::GetHitTarget() const
 {
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
-	return m_pCombatComponent->m_HitTarget;
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	return m_pCombat->m_HitTarget;
 }
 
 ECombatState ABlasterCharacter::GetCombatState() const
 {
-	checkf(m_pCombatComponent, TEXT("Combat component is nullptr"));
-	return m_pCombatComponent->m_CombatState;
+	checkf(m_pCombat, TEXT("Combat component is nullptr"));
+	return m_pCombat->m_CombatState;
 }
 

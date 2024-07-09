@@ -1,30 +1,28 @@
-﻿#include "HealthPickup.h"
+﻿#include "SpeedPickup.h"
 
-#include "NiagaraFunctionLibrary.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "MultiplayerShooter/Character/Components/BuffComponent.h"
 
-
-AHealthPickup::AHealthPickup()
+ASpeedPickup::ASpeedPickup()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	bReplicates = true;
 }
 
-void AHealthPickup::BeginPlay()
+void ASpeedPickup::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void AHealthPickup::Tick(float DeltaTime)
+void ASpeedPickup::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	
 }
 
-void AHealthPickup::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor,
-                                    UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
+void ASpeedPickup::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor,
+	UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
 {
 	Super::OnSphereOverlap(overlappedComponent, otherActor, otherComponent, otherBodyIndex, bFromSweep, sweepResult);
 
@@ -33,9 +31,9 @@ void AHealthPickup::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AA
 
 	UBuffComponent* pBuffComponent = pPlayer->GetBuffComponent();
 	if (!pBuffComponent) return;
-	
-	pBuffComponent->Heal(m_HealAmount, m_HealingTime);
-	
+
+	UE_LOG(LogTemp, Warning, TEXT("Speed buff time: %f"), m_SpeedBuffTime);
+	pBuffComponent->BuffSpeed(m_BaseSpeedBuff, m_CrouchedSpeedBuff, m_SpeedBuffTime);
 
 	Destroy();
 }

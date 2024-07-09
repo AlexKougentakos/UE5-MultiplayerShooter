@@ -22,12 +22,29 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void Heal(const float amount, const float time);
+	void BuffSpeed(const float baseSpeed, const float crouchedSpeed, const float time);
 private:
 	ABlasterCharacter* m_pCharacter{};
 
+	/*
+	 * HEALTH BUFF
+	 */
 	bool m_IsHealing{ false };
 	float m_AmountToHeal{ 0.f };
 	float m_HealingRate{ 0.f };
 	
 	void UpdateHealing(float DeltaTime);
+
+	/*
+	 * SPEED BUFF
+	 */
+
+	float m_InitialBaseSpeed{};
+	float m_InitialCrouchedSpeed{};
+	
+	FTimerHandle m_SpeedBuffTimerHandle{};
+	void ResetSpeed();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSpeedBuff(float baseSpeed, float crouchSpeed);
 };

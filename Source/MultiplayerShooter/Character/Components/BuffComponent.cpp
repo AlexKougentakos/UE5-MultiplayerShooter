@@ -1,5 +1,6 @@
 ﻿#include "BuffComponent.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 
 UBuffComponent::UBuffComponent()
@@ -46,5 +47,30 @@ void UBuffComponent::UpdateHealing(float DeltaTime)
 		m_IsHealing = false;
 		m_AmountToHeal = 0;
 	}
+}
+
+void UBuffComponent::BuffSpeed(const float baseSpeed, const float crouchedSpeed, const float time)
+{
+	if (!m_pCharacter) return;
+
+	m_pCharacter->GetWorldTimerManager().SetTimer(m_SpeedBuffTimerHandle, this, &UBuffComponent::ResetSpeed, time, false);
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = baseSpeed;
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeedCrouched = crouchedSpeed;
+
+	MulticastSpeedBuff(baseSpeed, crouchedSpeed);
+}
+
+void UBuffComponent::ResetSpeed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Resetting speed"));
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = m_InitialBaseSpeed;
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeedCrouched = m_InitialCrouchedSpeed;
+	MulticastSpeedBuff(m_InitialBaseSpeed, m_InitialCrouchedSpeed);
+}
+
+void UBuffComponent::MulticastSpeedBuff_Implementation(float baseSpeed, float crouchSpeed)
+{
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = baseSpeed;
+	m_pCharacter->GetCharacterMovement()->MaxWalkSpeedCrouched = crouchSpeed;
 }
 

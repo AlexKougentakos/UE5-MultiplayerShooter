@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "Pickup.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 class USoundCue;
 class USphereComponent;
 
@@ -24,10 +26,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Components", DisplayName = "Pickup Mesh")
 	UStaticMeshComponent* m_pPickupMesh{};
+		
+	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup FX System")
+	UNiagaraSystem* m_pPickupFXSystem{};
+	
+	UPROPERTY(VisibleAnywhere, Category = "Effects", DisplayName = "Pickup FX")
+	UNiagaraComponent* m_pPickupFX{};
 private:
 	UPROPERTY(EditAnywhere, Category = "Components", DisplayName = "Overlap Sphere")
 	USphereComponent* m_pSphereComponent{};
 
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
 	USoundCue* m_pPickupSound{};
+
 };

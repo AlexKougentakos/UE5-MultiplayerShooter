@@ -3,6 +3,8 @@
 
 #include "Pickup.h"
 
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -25,6 +27,9 @@ APickup::APickup()
 	m_pPickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	m_pPickupMesh->SetRenderCustomDepth(true);
 	m_pPickupMesh->SetCustomDepthStencilValue(250);
+
+	m_pPickupFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Pickup FX"));
+	m_pPickupFX->SetupAttachment(RootComponent);
 }	
 
 void APickup::BeginPlay()
@@ -39,8 +44,13 @@ void APickup::Destroyed()
 {
 	Super::Destroyed();
 
-	//checkf(m_pPickupSound, TEXT("Pickup sound is nullptr"));
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pPickupSound, GetActorLocation());
+	if (m_pPickupSound)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pPickupSound, GetActorLocation());
+
+	if(m_pPickupFXSystem)
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), m_pPickupFXSystem, GetActorLocation(), GetActorRotation());
+
+	
 }
 
 void APickup::Tick(float DeltaTime)

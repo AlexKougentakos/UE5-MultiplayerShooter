@@ -160,6 +160,9 @@ void ABlasterCharacter::PostInitializeComponents()
 	
 	m_pCombatComponent->m_pCharacter = this;
 	m_pBuffComponent->m_pCharacter = this;
+	
+	m_pBuffComponent->m_InitialBaseSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	m_pBuffComponent->m_InitialCrouchedSpeed = GetCharacterMovement()->MaxWalkSpeedCrouched;
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

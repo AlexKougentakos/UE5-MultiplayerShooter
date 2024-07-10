@@ -61,7 +61,7 @@ void ABlasterPlayerState::AddToDeaths(int deathsAmount)
 void ABlasterPlayerState::OnRep_Deaths()
 {
 	m_pBlasterCharacter = m_pBlasterCharacter ? m_pBlasterCharacter : Cast<ABlasterCharacter>(GetPawn());
-	if (m_pBlasterCharacter)
+	if (m_pBlasterCharacter && m_pBlasterCharacter->GetController())
 	{
 		m_pBlasterPlayerController = m_pBlasterPlayerController ? m_pBlasterPlayerController : Cast<ABlasterPlayerController>(m_pBlasterCharacter->GetController());
 		if (m_pBlasterPlayerController)

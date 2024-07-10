@@ -42,6 +42,7 @@ public:
 	void PickupAmmo(const EWeaponType weaponType, const int ammoAmount);
 
 	void SwapWeapons();
+	bool ShouldSwapWeapons() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -89,6 +90,8 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
 	AWeapon* m_pSecondaryWeapon{};
+
+	bool m_ShouldSwapWeapons{};
 
 	UPROPERTY(Replicated)
 	bool m_IsAiming{};

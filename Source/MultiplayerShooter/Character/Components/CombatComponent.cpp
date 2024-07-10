@@ -145,6 +145,7 @@ void UCombatComponent::UpdateAmmoHud()
 	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
 	if (m_pPlayerController)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Updating HUD Ammo"));
 		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
 		m_pPlayerController->ShowAmmo(true);
 	}
@@ -339,6 +340,7 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
 	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
 }
 
+
 void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 {
 	if (!m_pCharacter || !pWeapon) return;
@@ -375,10 +377,16 @@ void UCombatComponent::SwapWeapons()
 	m_pEquippedWeapon = m_pSecondaryWeapon;
 	m_pSecondaryWeapon = pTempWeapon;
 
+	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
+	{
+		m_CarriedAmmo = m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()];
+	}
+	
 	/*
 	 *	PRIMARY WEAPON 
 	 */
 	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	
 	UpdateAmmoHud();
 
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
@@ -460,6 +468,7 @@ void UCombatComponent::AttachActorToBackpack(AActor* const pActor)
 void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (!m_pEquippedWeapon) return;
+	UE_LOG(LogTemp, Warning, TEXT("Carried Ammo: %d"), m_CarriedAmmo);
 
 	//I repeat this here because we have two things that are replicated, the weapon state and the attachment of the weapon to the character
 	// Just because I called one before the other doesn't guarantee that it will happen first so there's a chance that the weapon will be attached to the character before the weapon state is set
@@ -482,6 +491,10 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+
+	UpdateAmmoHud();
+	m_pEquippedWeapon->UpdateHudAmmo();
+	UpdateAmmoValues(true);
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon()

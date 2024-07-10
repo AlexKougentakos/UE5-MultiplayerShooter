@@ -76,6 +76,9 @@ void ABlasterCharacter::BeginPlay()
 
 	if (HasAuthority())
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
+
+	SpawnDefaultWeapon();
+	UpdateHudAmmo();
 }
 
 void ABlasterCharacter::PollInitialize(float deltaTime)
@@ -197,7 +200,12 @@ void ABlasterCharacter::Eliminated()
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 
 	if (m_pCombat->HasWeapon())
-		m_pCombat->m_pEquippedWeapon->Drop();
+	{
+		if (m_pCombat->m_pEquippedWeapon->ShouldDestroyWeapon())
+			m_pCombat->m_pEquippedWeapon->Destroy();
+		else
+			m_pCombat->m_pEquippedWeapon->Drop();
+	}
 	
 	MulticastEliminated();
 	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);
@@ -365,6 +373,29 @@ void ABlasterCharacter::UpdateHudShield()
 	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
 	if (m_pPlayerController)
 		m_pPlayerController->SetHudShield(m_CurrentShield, m_MaxShield);
+}
+
+void ABlasterCharacter::UpdateHudAmmo()
+{
+	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
+	if (m_pPlayerController && m_pCombat->HasWeapon())
+	{
+		m_pPlayerController->SetHudAmmo(m_pCombat->m_pEquippedWeapon->GetCurrentAmmo());
+		m_pPlayerController->SetHudCarriedAmmo(m_pCombat->m_CarriedAmmo);
+	}
+	
+}
+
+void ABlasterCharacter::SpawnDefaultWeapon()
+{
+	const ABlasterGameMode* pGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	if (pGameMode)
+	{
+		checkf(m_DefaultWeaponClass, TEXT("Default weapon is nullptr"));
+		AWeapon* pStartingWeapon = GetWorld()->SpawnActor<AWeapon>(m_DefaultWeaponClass);
+		pStartingWeapon->SetShouldDestroyWeapon(true);
+		m_pCombat->EquipWeapon(pStartingWeapon);
+	}
 }
 
 void ABlasterCharacter::MulticastHit_Implementation()

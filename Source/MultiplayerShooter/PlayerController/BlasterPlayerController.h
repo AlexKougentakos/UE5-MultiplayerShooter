@@ -105,5 +105,9 @@ private:
 	float m_Shield{0.f};
 	float m_MaxShield{0.f};
 	bool m_InitializeShield{false};
+	float m_CarriedAmmo{0.f};
+	bool m_InitializeCarriedAmmo{false};
+	int m_WeaponAmmo{0};
+	bool m_InitializeWeaponAmmo{false};
 };
 

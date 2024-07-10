@@ -97,7 +97,21 @@ void ABlasterPlayerController::PollInitialize()
 				SetHudDeaths(m_Deaths);
 				m_InitializeDeaths = false;
 			}
-			ShowAmmo(false);
+			bool showAmmo = false;
+			if (m_InitializeCarriedAmmo)
+			{
+				SetHudCarriedAmmo(m_CarriedAmmo);
+				m_InitializeCarriedAmmo = false;
+				showAmmo = true;
+			}
+			if (m_InitializeWeaponAmmo)
+			{
+				SetHudAmmo(m_WeaponAmmo);
+				m_InitializeWeaponAmmo = false;
+				showAmmo = true;
+			}
+			
+			ShowAmmo(showAmmo);
 		}
 	}
 }
@@ -190,7 +204,12 @@ void ABlasterPlayerController::SetHudAmmo(const int ammo)
 	
 	if (!m_pHUD ||
 	!m_pHUD->m_pCharacterOverlay ||
-	!m_pHUD->m_pCharacterOverlay->AmmoCount) return;
+	!m_pHUD->m_pCharacterOverlay->AmmoCount)
+	{
+		m_InitializeWeaponAmmo = true;
+		m_WeaponAmmo = ammo;
+		return;
+	}
 
 	const FString ammoCount = FString::Printf(TEXT("%d"), ammo);
 	m_pHUD->m_pCharacterOverlay->AmmoCount->SetText(FText::FromString(ammoCount));
@@ -203,7 +222,12 @@ void ABlasterPlayerController::SetHudCarriedAmmo(const int carriedAmmo)
 	
 	if (!m_pHUD ||
 	!m_pHUD->m_pCharacterOverlay ||
-	!m_pHUD->m_pCharacterOverlay->CarriedAmmoCount) return;
+	!m_pHUD->m_pCharacterOverlay->CarriedAmmoCount)
+	{
+		m_InitializeCarriedAmmo = true;
+		m_CarriedAmmo = carriedAmmo;
+		return;
+	}
 
 	const FString ammoCount = FString::Printf(TEXT("%d"), carriedAmmo);
 	m_pHUD->m_pCharacterOverlay->CarriedAmmoCount->SetText(FText::FromString(ammoCount));

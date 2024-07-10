@@ -149,6 +149,7 @@ private:
 	ABlasterCharacter* m_pWeaponHolder{};
 	ABlasterPlayerController* m_pWeaponHolderController{};
 
+	bool m_ShouldDestroyWeapon{false};
 public:
 	void SetWeaponState(const EWeaponState state);
 	USkeletalMeshComponent* GetWeaponMesh() const { return m_pWeaponMesh; }
@@ -158,7 +159,10 @@ public:
 	float GetFireDelay() const { return m_FireDelay; }
 	bool HasAutomaticFire() const { return m_CurrentWeaponHasAutomaticFire; }
 	bool HasAmmoInMagazine() const { return m_CurrentAmmo > 0; }
+	int GetCurrentAmmo() const { return m_CurrentAmmo; }
 	bool IsMagazineFull() const { return m_CurrentAmmo == m_MaxAmmo; }
 	EWeaponType GetWeaponType() const { return m_WeaponType; }
 	USoundCue* GetPickupSound() const { return m_pPickupSound; }
+	bool ShouldDestroyWeapon() const { return m_ShouldDestroyWeapon; }
+	void SetShouldDestroyWeapon(const bool shouldDestroy) { m_ShouldDestroyWeapon = shouldDestroy; }
 };

@@ -56,6 +56,9 @@ public:
 
 	void UpdateHudHealth();
 	void UpdateHudShield();
+	void UpdateHudAmmo();
+
+	void SpawnDefaultWeapon();
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
 	USpringArmComponent* m_pCameraBoom{};
@@ -187,6 +190,9 @@ private: // Variables
 
 	UPROPERTY(Replicated)
 	bool m_DisabledGameplay{false};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Starting Weapon", Category = "Player Stats")
+	TSubclassOf<AWeapon> m_DefaultWeaponClass;
 	
 private: // Functions
 	UFUNCTION()

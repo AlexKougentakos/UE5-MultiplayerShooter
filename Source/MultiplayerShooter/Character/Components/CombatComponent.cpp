@@ -333,7 +333,12 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 	if (!m_pCharacter || !pWeapon) return;
 	if (m_CombatState != ECombatState::ECS_Unoccupied) return;
 	if (HasWeapon())
-		m_pEquippedWeapon->Drop();
+	{
+		if (m_pEquippedWeapon->ShouldDestroyWeapon())
+			m_pEquippedWeapon->Destroy();
+		else
+			m_pEquippedWeapon->Drop();
+	}
 	
 	m_pEquippedWeapon = pWeapon;
 	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);

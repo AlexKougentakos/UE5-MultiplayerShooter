@@ -40,6 +40,9 @@ public:
 	void ThrowGrenadeFinished();
 
 	void PickupAmmo(const EWeaponType weaponType, const int ammoAmount);
+
+	void SwapWeapons();
+
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
@@ -146,9 +149,12 @@ private:
 	void HandleReloadingForBothServerAndClient();
 	void UpdateAmmoValues(bool refreshHud);
 	void UpdateShotgunAmmoValues();
+	void UpdateAmmoHud();
 
 	void EquipPrimaryWeapon(AWeapon* const pWeapon);
 	void EquipSecondaryWeapon(AWeapon* const pWeapon);
 
 	void AttachActorToBackpack(AActor* const pActor);
+
+	
 };

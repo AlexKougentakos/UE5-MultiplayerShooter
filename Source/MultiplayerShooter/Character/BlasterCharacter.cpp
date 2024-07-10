@@ -435,10 +435,11 @@ void ABlasterCharacter::LookUp(const float value)
 void ABlasterCharacter::EquipButtonPressed()
 {
 	if (!m_pCombat || m_DisabledGameplay) return;
-	
-	if (HasAuthority()) //Server 
-		m_pCombat->EquipWeapon(m_pOverlappingWeapon);
-	else //Client
+
+	//If we have two weapons and we are not overlapping any then we use this button to switch weapons
+	if (m_pCombat->HasWeapon() && m_pCombat->HasSecondaryWeapon() && !m_pOverlappingWeapon)
+		m_pCombat->SwapWeapons();
+	else
 		ServerEquipButtonPressed();
 }
 
@@ -638,6 +639,7 @@ void ABlasterCharacter::HideCameraWhenPlayerIsClose()
 		if (m_pCombat->HasWeapon())
 		{
 			m_pCombat->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+			m_pCombat->m_pSecondaryWeapon->GetWeaponMesh()->bOwnerNoSee = true;
 		}
 	}
 	else
@@ -646,6 +648,7 @@ void ABlasterCharacter::HideCameraWhenPlayerIsClose()
 		if (m_pCombat->HasWeapon())
 		{
 			m_pCombat->m_pEquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+			m_pCombat->m_pSecondaryWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
 }

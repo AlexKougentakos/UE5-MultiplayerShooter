@@ -20,6 +20,7 @@ enum class EWeaponState : uint8
 {
 	EWS_Initial UMETA(DisplayName = "InitialState"),
 	EWS_Equipped UMETA(DisplayName = "EquippedState"),
+	EWS_EquippedSecondary UMETA(DisplayName = "EquippedSecondaryState"),
 	EWS_Dropped UMETA(DisplayName = "DroppedState"),
 
 	EWS_MAX UMETA(DisplayName = "DefaultMAX")
@@ -135,7 +136,12 @@ private:
 
 
 	UFUNCTION()
-	void OnRep_WeaponState() const;
+	void OnRep_WeaponState();
+
+	void OnEquipped();
+	void OnEquippedSecondary();
+	void OnDropped();
+	
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Pick Up Widget")
 	UWidgetComponent* m_pPickUpWidget{};

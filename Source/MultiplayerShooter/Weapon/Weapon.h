@@ -67,7 +67,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshairs Left")
 	UTexture2D* m_pCrosshairsLeft{};
-
+	
+	void EnableCustomDepth(bool enable) const;
 protected:
 	virtual void BeginPlay() override;
 
@@ -105,7 +106,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
 	USoundCue* m_pPickupSound{};
 
-	void EnableCustomDepth(bool enable) const;
 
 
 private:

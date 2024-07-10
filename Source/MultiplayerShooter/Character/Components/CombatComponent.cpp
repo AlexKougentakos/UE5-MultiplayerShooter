@@ -385,6 +385,8 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
 	
 	m_pEquippedWeapon->SetOwner(m_pCharacter);
 	m_pEquippedWeapon->UpdateHudAmmo();
+	
+	m_pEquippedWeapon->EnableCustomDepth(false);
 }
 
 void UCombatComponent::EquipSecondaryWeapon(AWeapon* const pWeapon)
@@ -397,6 +399,10 @@ void UCombatComponent::EquipSecondaryWeapon(AWeapon* const pWeapon)
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
 	
 	m_pSecondaryWeapon->SetOwner(m_pCharacter);
+
+	m_pSecondaryWeapon->GetWeaponMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+	m_pSecondaryWeapon->GetWeaponMesh()->MarkRenderStateDirty();
+	m_pSecondaryWeapon->EnableCustomDepth(true);
 }
 
 void UCombatComponent::AttachActorToBackpack(AActor* const pActor)
@@ -435,11 +441,24 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+
+	m_pEquippedWeapon->EnableCustomDepth(false);
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon()
 {
-	
+	if (m_pSecondaryWeapon)
+	{
+		m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		AttachActorToBackpack(m_pSecondaryWeapon);
+		
+		checkf(m_pSecondaryWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+		
+		m_pSecondaryWeapon->GetWeaponMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+		m_pSecondaryWeapon->GetWeaponMesh()->MarkRenderStateDirty();
+		m_pSecondaryWeapon->EnableCustomDepth(true);
+	}
 }
 
 void UCombatComponent::SetHudCrosshairs(float deltaTime)

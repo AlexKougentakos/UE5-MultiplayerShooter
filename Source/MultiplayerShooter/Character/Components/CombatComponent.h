@@ -28,6 +28,7 @@ public:
 
 	void EquipWeapon(AWeapon* const pWeapon);
 	bool HasWeapon() const { return m_pEquippedWeapon != nullptr; }
+	bool HasSecondaryWeapon() const { return m_pSecondaryWeapon != nullptr; }
 	void Reload();
 
 	void FireButtonPressed(const bool isPressed);
@@ -51,6 +52,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+
+	UFUNCTION()
+	void OnRep_SecondaryWeapon();
 	
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& traceHitLocation);
@@ -79,6 +83,9 @@ private:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* m_pEquippedWeapon{};
+
+	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
+	AWeapon* m_pSecondaryWeapon{};
 
 	UPROPERTY(Replicated)
 	bool m_IsAiming{};
@@ -139,5 +146,9 @@ private:
 	void HandleReloadingForBothServerAndClient();
 	void UpdateAmmoValues(bool refreshHud);
 	void UpdateShotgunAmmoValues();
-	
+
+	void EquipPrimaryWeapon(AWeapon* const pWeapon);
+	void EquipSecondaryWeapon(AWeapon* const pWeapon);
+
+	void AttachActorToBackpack(AActor* const pActor);
 };

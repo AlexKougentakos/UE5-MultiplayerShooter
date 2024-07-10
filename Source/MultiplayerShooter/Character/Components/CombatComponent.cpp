@@ -28,6 +28,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, m_pEquippedWeapon);
+	DOREPLIFETIME(ThisClass, m_pSecondaryWeapon);
 	DOREPLIFETIME(ThisClass, m_IsAiming);
 	DOREPLIFETIME(ThisClass, m_CombatState);
 	DOREPLIFETIME_CONDITION(ThisClass, m_CarriedAmmo, COND_OwnerOnly);
@@ -332,14 +333,27 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 {
 	if (!m_pCharacter || !pWeapon) return;
 	if (m_CombatState != ECombatState::ECS_Unoccupied) return;
-	if (HasWeapon())
+	if (HasWeapon() && HasSecondaryWeapon())
 	{
 		if (m_pEquippedWeapon->ShouldDestroyWeapon())
 			m_pEquippedWeapon->Destroy();
 		else
 			m_pEquippedWeapon->Drop();
 	}
+
+	if (HasWeapon() && !HasSecondaryWeapon())
+		EquipSecondaryWeapon(pWeapon);
+	else
+		EquipPrimaryWeapon(pWeapon);
+
 	
+	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	m_pCharacter->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
+{
+		
 	m_pEquippedWeapon = pWeapon;
 	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	
@@ -371,8 +385,28 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 	
 	m_pEquippedWeapon->SetOwner(m_pCharacter);
 	m_pEquippedWeapon->UpdateHudAmmo();
-	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-	m_pCharacter->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::EquipSecondaryWeapon(AWeapon* const pWeapon)
+{
+	m_pSecondaryWeapon = pWeapon;
+	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	AttachActorToBackpack(pWeapon);
+	
+	checkf(m_pSecondaryWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+	
+	m_pSecondaryWeapon->SetOwner(m_pCharacter);
+}
+
+void UCombatComponent::AttachActorToBackpack(AActor* const pActor)
+{
+	if (!m_pCharacter || !pActor || !m_pCharacter->GetMesh()) return;
+
+	const USkeletalMeshSocket* pBackpackSocket = m_pCharacter->GetMesh()->GetSocketByName(FName("BackpackSocket"));
+	if (!pBackpackSocket) return;
+
+	pBackpackSocket->AttachActor(pActor, m_pCharacter->GetMesh());
 }
 
 
@@ -401,6 +435,11 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+}
+
+void UCombatComponent::OnRep_SecondaryWeapon()
+{
+	
 }
 
 void UCombatComponent::SetHudCrosshairs(float deltaTime)

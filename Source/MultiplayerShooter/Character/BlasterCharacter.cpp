@@ -206,6 +206,7 @@ void ABlasterCharacter::Eliminated()
 		else
 			m_pCombat->m_pEquippedWeapon->Drop();
 	}
+	if (m_pCombat->HasSecondaryWeapon()) m_pCombat->m_pSecondaryWeapon->Drop();
 	
 	MulticastEliminated();
 	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);

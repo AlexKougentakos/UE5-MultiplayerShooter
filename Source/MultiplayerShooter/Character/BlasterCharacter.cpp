@@ -71,6 +71,7 @@ void ABlasterCharacter::BeginPlay()
 	{
 		m_pPlayerController->ShowAmmo(false);
 		UpdateHudHealth();
+		UpdateHudShield();
 	}
 
 	if (HasAuthority())
@@ -172,6 +173,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, m_pOverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, m_CurrentHealth);
+	DOREPLIFETIME(ABlasterCharacter, m_CurrentShield);
 	DOREPLIFETIME(ABlasterCharacter, m_DisabledGameplay);
 }
 
@@ -356,6 +358,13 @@ void ABlasterCharacter::UpdateHudHealth()
 	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
 	if (m_pPlayerController)
 		m_pPlayerController->SetHudHealth(m_CurrentHealth, m_MaxHealth);
+}
+
+void ABlasterCharacter::UpdateHudShield()
+{
+	m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
+	if (m_pPlayerController)
+		m_pPlayerController->SetHudShield(m_CurrentShield, m_MaxShield);
 }
 
 void ABlasterCharacter::MulticastHit_Implementation()
@@ -562,9 +571,11 @@ void ABlasterCharacter::ReloadButtonPressed()
 void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType,
                                       AController* instigatedBy, AActor* damageCauser)
 {
-	m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
+	if (m_CurrentShield <= 0 ) m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
+	else m_CurrentShield = FMath::Clamp(m_CurrentShield - damage, 0.f, m_MaxShield);
 
 	UpdateHudHealth();
+	UpdateHudShield();
 
 	
 	if (GetCombatState() == ECombatState::ECS_Reloading)
@@ -612,6 +623,13 @@ void ABlasterCharacter::OnRep_Health(float oldHealth)
 	if (m_CurrentHealth < oldHealth) //Meaning we took damage
 		PlayHitReactMontage();
 	UpdateHudHealth();
+}
+
+void ABlasterCharacter::OnRep_Shield(float lastShieldValue)
+{
+	if (m_CurrentHealth < lastShieldValue) //Meaning we took damage
+		PlayHitReactMontage();
+	UpdateHudShield();
 }
 
 void ABlasterCharacter::UpdateDissolveMaterial(const float dissolveValue)

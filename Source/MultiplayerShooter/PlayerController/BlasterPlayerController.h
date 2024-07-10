@@ -23,6 +23,7 @@ public:
 	virtual void ReceivedPlayer() override; // This is the earliest we can get the time from the player so we can have an accurate time sync
 	
 	void SetHudHealth(const float health, const float maxHealth);
+	void SetHudShield(const float shield, const float maxShield);
 	void SetHudScore(const float score);
 	void SetHudDeaths(const float deaths);
 	void SetHudAmmo(const int ammo);
@@ -92,12 +93,17 @@ private:
 	void ClientJoinedMidGame(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime, float cooldownDuration);
 	
 	UCharacterOverlay* m_pCharacterOverlay{};
-	bool m_InitializeCharacterOverlay{false};
 
 	// Values to cache
 	float m_Health{0.f};
 	float m_MaxHealth{0.f};
+	bool m_InitializeHealth{false};
 	float m_Kills{0.f};
+	bool m_InitializeKills{false};
 	float m_Deaths{0.f};
+	bool m_InitializeDeaths{false};
+	float m_Shield{0.f};
+	float m_MaxShield{0.f};
+	bool m_InitializeShield{false};
 };
 

@@ -77,9 +77,26 @@ void ABlasterPlayerController::PollInitialize()
 			m_pCharacterOverlay = m_pHUD->m_pCharacterOverlay;
 
 			// Initialize the HUD values once the overlay is valid
-			SetHudHealth(m_Health, m_MaxHealth);
-			SetHudScore(m_Kills);
-			SetHudDeaths(m_Deaths);
+			if (m_InitializeHealth)
+			{
+				SetHudHealth(m_Health, m_MaxHealth);
+				m_InitializeHealth = false;
+			}
+			if (m_InitializeShield)
+			{
+				SetHudShield(m_Shield, m_MaxShield);
+				m_InitializeShield = false;
+			}
+			if (m_InitializeKills)
+			{
+				SetHudScore(m_Kills);
+				m_InitializeKills = false;
+			}
+			if (m_InitializeDeaths)
+			{
+				SetHudDeaths(m_Deaths);
+				m_InitializeDeaths = false;
+			}
 			ShowAmmo(false);
 		}
 	}
@@ -94,7 +111,7 @@ void ABlasterPlayerController::SetHudHealth(const float health, const float maxH
 		!m_pHUD->m_pCharacterOverlay->HealthBar ||
 		!m_pHUD->m_pCharacterOverlay->HealthText)
 	{
-		m_InitializeCharacterOverlay = true;
+		m_InitializeHealth = true;
 		m_Health = health;
 		m_MaxHealth = maxHealth;
 		return;
@@ -109,6 +126,30 @@ void ABlasterPlayerController::SetHudHealth(const float health, const float maxH
 	m_pHUD->m_pCharacterOverlay->HealthText->SetText(FText::FromString(healthString));
 }
 
+void ABlasterPlayerController::SetHudShield(const float shield, const float maxShield)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+
+	if (!m_pHUD ||
+		!m_pHUD->m_pCharacterOverlay ||
+		!m_pHUD->m_pCharacterOverlay->ShieldBar ||
+		!m_pHUD->m_pCharacterOverlay->ShieldText)
+	{
+		m_InitializeShield = true;
+		m_Shield = shield;
+		m_MaxShield = maxShield;
+		return;
+	}
+
+	// Set shield bar
+	const float shieldPercentage = shield / maxShield;
+	m_pHUD->m_pCharacterOverlay->ShieldBar->SetPercent(shieldPercentage);
+
+	// Set shield text
+	const FString shieldString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(shield), FMath::CeilToInt(maxShield));
+	m_pHUD->m_pCharacterOverlay->ShieldText->SetText(FText::FromString(shieldString));
+}
+
 void ABlasterPlayerController::SetHudScore(const float score)
 {
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
@@ -117,7 +158,7 @@ void ABlasterPlayerController::SetHudScore(const float score)
 	!m_pHUD->m_pCharacterOverlay ||
 	!m_pHUD->m_pCharacterOverlay->ScoreAmount)
 	{
-		m_InitializeCharacterOverlay = true;
+		m_InitializeKills = true;
 		m_Kills = score;
 		return;
 	}
@@ -134,7 +175,7 @@ void ABlasterPlayerController::SetHudDeaths(const float deaths)
 	!m_pHUD->m_pCharacterOverlay ||
 	!m_pHUD->m_pCharacterOverlay->DeathsAmount)
 	{
-		m_InitializeCharacterOverlay = true;
+		m_InitializeDeaths = true;
 		m_Deaths = deaths;
 		return;
 	}

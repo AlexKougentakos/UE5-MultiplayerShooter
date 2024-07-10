@@ -55,6 +55,7 @@ public:
 	void ShowSniperScopeWidget(bool showScope);
 
 	void UpdateHudHealth();
+	void UpdateHudShield();
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
 	USpringArmComponent* m_pCameraBoom{};
@@ -124,7 +125,7 @@ private: // Variables
 	float m_TimeSinceLastMovementReplication{};
 
 	/*
-	 * Player Health
+	 * Player Health & Shield
 	 */
 
 	UPROPERTY(EditAnywhere, DisplayName = "Max Health", Category = "Player Stats")
@@ -133,8 +134,17 @@ private: // Variables
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, DisplayName = "Current Health", Category = "Player Stats")
 	float m_CurrentHealth{};
 
+	UPROPERTY(EditAnywhere, DisplayName = "Max Shield", Category = "Player Stats")
+	float m_MaxShield{100.f};
+
+	UPROPERTY(ReplicatedUsing = OnRep_Shield, VisibleAnywhere, DisplayName = "Current Shield", Category = "Player Stats")
+	float m_CurrentShield{100.f};
+
 	UFUNCTION()
 	void OnRep_Health(float lastHealth);
+
+	UFUNCTION()
+	void OnRep_Shield(float lastShieldValue);
 
 	ABlasterPlayerController* m_pPlayerController{};
 	bool m_IsAlive{};

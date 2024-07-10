@@ -36,8 +36,9 @@ void APickup::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(HasAuthority())
-		m_pSphereComponent->OnComponentBeginOverlap.AddDynamic(this, &APickup::OnSphereOverlap);
+	//This is because if the player is already overlapping with the pickup when it spawns, then the overlap doesn't have enough time to be bound and the pickup just gets destroyed.
+	if (HasAuthority())
+		GetWorldTimerManager().SetTimer(m_DelayOverlapBindingHandle, this, &APickup::DelayOverlapBinding, 0.25f, false);
 }
 
 void APickup::Destroyed()
@@ -63,5 +64,10 @@ void APickup::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* 
 	UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
 {
 	
+}
+
+void APickup::DelayOverlapBinding()
+{
+	m_pSphereComponent->OnComponentBeginOverlap.AddDynamic(this, &APickup::OnSphereOverlap);
 }
 

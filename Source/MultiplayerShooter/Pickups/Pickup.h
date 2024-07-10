@@ -39,4 +39,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
 	USoundCue* m_pPickupSound{};
 
+	FTimerHandle m_DelayOverlapBindingHandle{};
+	void DelayOverlapBinding();
+
 };

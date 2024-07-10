@@ -41,10 +41,13 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	const ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(InPawn);
+	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(InPawn);
 	if (!pCharacter) return;
 
-	SetHudHealth(pCharacter->GetCurrentHealth(), pCharacter->GetMaxHealth());
+	pCharacter->UpdateHudHealth();
+	pCharacter->UpdateHudShield();
+	pCharacter->UpdateHudAmmo();
+	
 }
 
 void ABlasterPlayerController::Tick(float DeltaSeconds)

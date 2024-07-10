@@ -138,7 +138,7 @@ private: // Variables
 	float m_MaxShield{100.f};
 
 	UPROPERTY(ReplicatedUsing = OnRep_Shield, VisibleAnywhere, DisplayName = "Current Shield", Category = "Player Stats")
-	float m_CurrentShield{100.f};
+	float m_CurrentShield{0.f};
 
 	UFUNCTION()
 	void OnRep_Health(float lastHealth);
@@ -240,6 +240,10 @@ public: // Getters & Setters
 	float GetMaxHealth() const { return m_MaxHealth; }
 	float GetCurrentHealth() const { return m_CurrentHealth; }
 	void AddHealth(const float amount) {m_CurrentHealth = FMath::Clamp(m_CurrentHealth + amount, 0.f, m_MaxHealth);}
+
+	float GetMaxShield() const { return m_MaxShield; }
+	float GetCurrentShield() const { return m_CurrentShield; }
+	void AddShield(const float amount) { m_CurrentShield = FMath::Clamp(m_CurrentShield + amount, 0.f, m_MaxShield); }
 
 	ECombatState GetCombatState() const;
 

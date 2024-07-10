@@ -16,11 +16,12 @@ void UBuffComponent::BeginPlay()
 	
 }
 
-void UBuffComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UBuffComponent::TickComponent(float deltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(deltaTime, TickType, ThisTickFunction);
 
-	UpdateHealing(DeltaTime);
+	UpdateHealing(deltaTime);
+	UpdateShield(deltaTime);
 }
 
 void UBuffComponent::Heal(const float amount, const float time)
@@ -32,11 +33,20 @@ void UBuffComponent::Heal(const float amount, const float time)
 	m_AmountToHeal += amount; //+= because we might pick up another one
 }
 
-void UBuffComponent::UpdateHealing(float DeltaTime)
+void UBuffComponent::AddShield(const float amount, const float time)
+{
+	if (!m_pCharacter) return;
+	m_IsApplyingShield = true;
+
+	m_ShieldRate = amount / time;
+	m_AmountToApplyShield += amount; //+= because we might pick up another one
+}
+
+void UBuffComponent::UpdateHealing(float deltaTime)
 {
 	if (!m_IsHealing || !m_pCharacter->IsAlive()) return;
 
-	const float healAmountThisFrame = m_HealingRate * DeltaTime;
+	const float healAmountThisFrame = m_HealingRate * deltaTime;
 	m_pCharacter->AddHealth(healAmountThisFrame);
 	m_pCharacter->UpdateHudHealth();
 	m_AmountToHeal -= healAmountThisFrame;
@@ -46,6 +56,23 @@ void UBuffComponent::UpdateHealing(float DeltaTime)
 	{
 		m_IsHealing = false;
 		m_AmountToHeal = 0;
+	}
+}
+
+void UBuffComponent::UpdateShield(float deltaTime)
+{
+	if (!m_IsApplyingShield || !m_pCharacter->IsAlive()) return;
+
+	const float amountOfShieldThisFrame = m_ShieldRate * deltaTime;
+	m_pCharacter->AddShield(amountOfShieldThisFrame);
+	m_pCharacter->UpdateHudShield();
+	m_AmountToApplyShield -= amountOfShieldThisFrame;
+
+	if (m_AmountToApplyShield <= 0 ||
+		m_pCharacter->GetCurrentShield() == m_pCharacter->GetMaxShield())
+	{
+		m_IsApplyingShield = false;
+		m_AmountToApplyShield = 0;
 	}
 }
 

@@ -19,23 +19,33 @@ public:
 	friend class ABlasterCharacter;
 
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float deltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void Heal(const float amount, const float time);
+	void AddShield(const float amount, const float time);
 	void BuffSpeed(const float baseSpeed, const float crouchedSpeed, const float time);
 	void BuffJump(const float jumpVelocity, const float time);
 private:
 	ABlasterCharacter* m_pCharacter{};
 
 	/*
-	 * HEALTH BUFF
+	 * HEALTH BUFF 
 	 */
 	bool m_IsHealing{ false };
 	float m_AmountToHeal{ 0.f };
 	float m_HealingRate{ 0.f };
 	
-	void UpdateHealing(float DeltaTime);
+	void UpdateHealing(float deltaTime);
 
+	/*
+	 * SHIELD BUFF 
+	 */
+	bool m_IsApplyingShield{false};
+	float m_AmountToApplyShield{0.f};
+	float m_ShieldRate{0.f};
+
+	void UpdateShield(float deltaTime);
+	
 	/*
 	 * SPEED BUFF
 	 */

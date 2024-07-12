@@ -11,6 +11,7 @@
 /DELAY:UNLOAD
 /DLL
 /PDBALTPATH:%_PDB%
+/d2:-ExtendedWarningInfo
 /OPT:NOREF
 /OPT:NOICF
 /INCREMENTAL:NO
@@ -20,9 +21,9 @@
 /ALTERNATENAME:__imp___std_init_once_complete=__imp_InitOnceComplete
 /DELAYLOAD:"d3d12.dll"
 /DELAYLOAD:"DBGHELP.DLL"
-/LIBPATH:"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.36.32532\lib\x64"
-/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.18362.0\ucrt\x64"
-/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.18362.0\um\x64"
+/LIBPATH:"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.38.33130\lib\x64"
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64"
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\um\x64"
 /NODEFAULTLIB:"LIBCMT"
 /NODEFAULTLIB:"LIBCPMT"
 /NODEFAULTLIB:"LIBCMTD"
@@ -34,9 +35,12 @@
 /NODEFAULTLIB:"LIBCD"
 /NODEFAULTLIB:"LIBCPD"
 /FUNCTIONPADMIN:6
-"D:\UnrealEngine\Projects\MultiplayerShooter\Intermediate\Build\Win64\x64\MultiplayerShooterEditor\Development\Engine\SharedPCH.Engine.Cpp20.h.obj"
-"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Module.MultiplayerSessions.cpp.obj"
-"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Default.rc2.res"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Intermediate\Build\Win64\x64\MultiplayerShooterEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.NoValFmtStr.ValApi.Cpp20.InclOrderUnreal5_3.h.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Module.MultiplayerSessions.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Menu.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\MultiplayerSessions.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\MultiplayerSessionsSubsystem.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Default.rc2.res"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\CoreUObject\UnrealEditor-CoreUObject.lib"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\Engine\UnrealEditor-Engine.lib"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\Slate\UnrealEditor-Slate.lib"
@@ -70,7 +74,7 @@
 "synchronization.lib"
 "dwmapi.lib"
 "imm32.lib"
-/OUT:"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Binaries\Win64\UnrealEditor-MultiplayerSessions.dll"
-/IMPLIB:"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\UnrealEditor-MultiplayerSessions.sup.lib"
-/PDB:"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Binaries\Win64\UnrealEditor-MultiplayerSessions.pdb"
+/OUT:"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Binaries\Win64\UnrealEditor-MultiplayerSessions.dll"
+/IMPLIB:"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\UnrealEditor-MultiplayerSessions.sup.lib"
+/PDB:"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Binaries\Win64\UnrealEditor-MultiplayerSessions.pdb"
 /ignore:4078

@@ -6,7 +6,10 @@
 /NAME:"UnrealEditor-MultiplayerSessions.dll"
 /IGNORE:4221
 /NODEFAULTLIB
-"D:\UnrealEngine\Projects\MultiplayerShooter\Intermediate\Build\Win64\x64\MultiplayerShooterEditor\Development\Engine\SharedPCH.Engine.Cpp20.h.obj"
-"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Module.MultiplayerSessions.cpp.obj"
-"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Default.rc2.res"
-/OUT:"D:\UnrealEngine\Projects\MultiplayerShooter\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\UnrealEditor-MultiplayerSessions.lib"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Intermediate\Build\Win64\x64\MultiplayerShooterEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.NoValFmtStr.ValApi.Cpp20.InclOrderUnreal5_3.h.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Module.MultiplayerSessions.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Menu.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\MultiplayerSessions.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\MultiplayerSessionsSubsystem.cpp.obj"
+"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\Default.rc2.res"
+/OUT:"D:\UnrealEngine\Projects\MultiplayerShooter - Copy\Plugins\MultiplayerSessions\Intermediate\Build\Win64\x64\UnrealEditor\Development\MultiplayerSessions\UnrealEditor-MultiplayerSessions.lib"

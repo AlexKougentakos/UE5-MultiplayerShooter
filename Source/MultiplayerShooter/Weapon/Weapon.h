@@ -26,6 +26,16 @@ enum class EWeaponState : uint8
 	EWS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class EFireType : uint8
+{
+	EFT_HitScan UMETA(DisplayName = "HitScan"),
+	EFT_Projectile UMETA(DisplayName = "Projectile"),
+	EFT_Shotgun UMETA(DisplayName = "Shotgun"),
+	
+	EFT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class MULTIPLAYERSHOOTER_API AWeapon : public AActor
 {
@@ -70,6 +80,8 @@ public:
 	UTexture2D* m_pCrosshairsLeft{};
 	
 	void EnableCustomDepth(bool enable) const;
+
+	FVector GetVectorWithSpread(const FVector& hitTarget) const;
 protected:
 	virtual void BeginPlay() override;
 
@@ -107,7 +119,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
 	USoundCue* m_pPickupSound{};
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Fire Type")
+	EFireType m_FireType{EFireType::EFT_HitScan};
 
+		//Scatter
+		UPROPERTY(EditAnywhere, DisplayName = "Use Scatter", Category = "Weapon Stats|Weapon Scatter", meta = (ToolTip = "If true, the weapon will use a random spread"))
+		bool m_UseScatter{ false };
+		
+		UPROPERTY(EditAnywhere, DisplayName = "Spread Sphere Distance", Category = "Weapon Stats|Weapon Scatter", meta = (ToolTip = "The smaller the value, the bigger the spread"))
+		float m_DistanceToSpreadSphere{ 800.f };
+
+		UPROPERTY(EditAnywhere, DisplayName = "Sphere Radius", Category = "Weapon Stats|Weapon Scatter", meta = (ToolTip = "The bigger the value, the bigger the spread"))
+		float m_SphereRadius{ 75.f };
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")
@@ -168,7 +191,9 @@ public:
 	int GetCurrentAmmo() const { return m_CurrentAmmo; }
 	bool IsMagazineFull() const { return m_CurrentAmmo == m_MaxAmmo; }
 	EWeaponType GetWeaponType() const { return m_WeaponType; }
+	EFireType GetFireType() const { return m_FireType; }
 	USoundCue* GetPickupSound() const { return m_pPickupSound; }
 	bool ShouldDestroyWeapon() const { return m_ShouldDestroyWeapon; }
 	void SetShouldDestroyWeapon(const bool shouldDestroy) { m_ShouldDestroyWeapon = shouldDestroy; }
+	bool UseScatter() const { return m_UseScatter; }
 };

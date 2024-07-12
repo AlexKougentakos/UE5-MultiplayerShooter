@@ -48,6 +48,9 @@ protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);
 	void Fire();
+	void FireProjectileWeapon();
+	void FireHitScanWeapon();
+	void FireShotgun();
 
 	void TraceUnderCrosshairs(FHitResult& hitResult);
 	
@@ -159,6 +162,5 @@ private:
 	void EquipSecondaryWeapon(AWeapon* const pWeapon);
 
 	void AttachActorToBackpack(AActor* const pActor);
-
-	
+	void FireWeaponBasedOnFireType();
 };

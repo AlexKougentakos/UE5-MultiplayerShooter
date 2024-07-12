@@ -39,7 +39,7 @@ void AShotgun::Fire(const FVector& hitTarget)
 	{
 		const FTransform muzzleTransform = muzzleSocket->GetSocketTransform(GetWeaponMesh());
 		const FVector start = muzzleTransform.GetLocation();
-		const FVector end = GetVectorWithSpread(start, hitTarget);
+		const FVector end = GetVectorWithSpread(hitTarget);
 
 		// Assign a hit values to each character that you hit (can be multiple due to the spread)
 		// and apply damage to them ONCE at the end

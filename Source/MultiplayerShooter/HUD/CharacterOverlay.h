@@ -53,4 +53,7 @@ public:
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* PingWarningAnimation{};
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* PingText{};
 };

@@ -260,6 +260,7 @@ void UCombatComponent::Fire()
 	if (!CanFire()) return;
 
 	m_CanFire = false;
+	LocalFire(m_HitTarget);
 	ServerFire(m_HitTarget);
 
 	if (HasWeapon())
@@ -316,9 +317,18 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& trac
 	MulticastFire(traceHitLocation);
 }
 
+
 void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& traceHitLocation)
 {
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	if (m_pCharacter->IsLocallyControlled() && !m_pCharacter->HasAuthority()) return;
+	
+	LocalFire(traceHitLocation);
+}
+
+
+void UCombatComponent::LocalFire(const FVector_NetQuantize& traceHitLocation)
+{
 
 	if (m_pEquippedWeapon && m_CombatState == ECombatState::ECS_Reloading && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)
 	{
@@ -328,7 +338,7 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& t
 		return;
 	}
 	
-    if (!m_pEquippedWeapon || m_CombatState != ECombatState::ECS_Unoccupied) return;
+	if (!m_pEquippedWeapon || m_CombatState != ECombatState::ECS_Unoccupied) return;
     
 	m_pCharacter->PlayFireMontage(m_IsAiming);
 	m_pEquippedWeapon->Fire(traceHitLocation);
@@ -373,6 +383,7 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 
 void UCombatComponent::SwapWeapons()
 {
+	
 	AWeapon* pTempWeapon = m_pEquippedWeapon;
 	m_pEquippedWeapon = m_pSecondaryWeapon;
 	m_pSecondaryWeapon = pTempWeapon;

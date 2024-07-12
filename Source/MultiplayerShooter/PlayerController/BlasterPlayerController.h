@@ -99,13 +99,16 @@ private:
 
 	float m_TimeSinceLastHighPingWarning{0.f};
 	float m_CurrentHighPingAnimationElapsedTime{0.f};
-
+	float m_TimeSinceLastPingUpdate{0.f};
+	
 	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "High Ping Warning Display Time")
 	float m_HighPingWarningDisplayTime{5.f};
 	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "High Ping Check Frequency")
 	float m_HighPingCheckFrequency{20.f};
 	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "High Ping Threshold")
 	float m_HighPingThreshold{100.f};
+	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "Ping Update Frequency")
+	float m_PingUpdateFrequency{1.f};
 
 	// Values to cache
 	float m_Health{0.f};

@@ -57,6 +57,17 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 
 	SetHudTime();
 
+	m_TimeSinceLastPingUpdate += DeltaSeconds;
+	if (m_TimeSinceLastPingUpdate >= m_PingUpdateFrequency)
+	{
+		m_TimeSinceLastPingUpdate = 0.f;
+		m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+		if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingText)
+		{
+			const FString pingString = FString::Printf(TEXT("Ping: %d"), FMath::CeilToInt(PlayerState->GetPingInMilliseconds()));
+			m_pHUD->m_pCharacterOverlay->PingText->SetText(FText::FromString(pingString));
+		}
+	}
 	HandleHighPingWarning(DeltaSeconds);
 	HandleTimeSync(DeltaSeconds);
 	PollInitialize();
@@ -280,7 +291,7 @@ void ABlasterPlayerController::SetHudMatchCountDown(const float time)
 	!m_pHUD->m_pCharacterOverlay ||
 	!m_pHUD->m_pCharacterOverlay->MatchCountDownText) return;
 
-	if (time < 0.f)
+	if (time < 0.f && m_pHUD && m_pHUD->m_pAnnouncement && m_pHUD->m_pAnnouncement->AnnouncementTimer)
 	{
 		m_pHUD->m_pAnnouncement->AnnouncementTimer->SetText(FText::FromString("00:00"));
 		return;
@@ -336,10 +347,11 @@ void ABlasterPlayerController::OnMatchStateSet(const FName state)
 void ABlasterPlayerController::HighPingWarning()
 {
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-	if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingWarning)
+	if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_MatchState == MatchState::InProgress)
 	{
 		UWidgetAnimation* pHighPingAnimation = m_pHUD->m_pCharacterOverlay->PingWarningAnimation;
 		checkf(pHighPingAnimation, TEXT("Ping warning animation is null"));
+		checkf(m_pHUD->m_pCharacterOverlay->PingWarning, TEXT("Ping warning widget is null"));
 		
 		m_pHUD->m_pCharacterOverlay->PingWarning->SetOpacity(1.f);
 		if (m_pHUD->m_pCharacterOverlay->IsAnimationPlaying(pHighPingAnimation))

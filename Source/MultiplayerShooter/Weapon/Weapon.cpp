@@ -260,8 +260,8 @@ void AWeapon::Fire(const FVector& hitTarget)
 		socketTransform.GetRotation().Rotator(),
 		FActorSpawnParameters());
 	}
-
-	SpendAmmoRound();
+	if (HasAuthority())
+		SpendAmmoRound();
 }
 
 int AWeapon::Reload(const int availableAmmo)

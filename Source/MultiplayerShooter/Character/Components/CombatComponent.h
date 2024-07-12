@@ -138,6 +138,7 @@ private:
 
 	UFUNCTION()
 	void OnRep_CarriedAmmo();
+	void LocalFire(const FVector_NetQuantize& traceHitLocation);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat", DisplayName = "Carried Ammo Map")
 	TMap<EWeaponType, int> m_CarriedAmmoMap{};

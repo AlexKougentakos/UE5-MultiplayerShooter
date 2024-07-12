@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterOverlay.generated.h"
 
+class UImage;
 class UHorizontalBox;
 class UTextBlock;
 class UProgressBar;
@@ -46,4 +47,10 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MatchCountDownText{};
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* PingWarning{};
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* PingWarningAnimation{};
 };

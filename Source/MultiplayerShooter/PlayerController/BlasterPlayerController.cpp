@@ -1,6 +1,7 @@
 ﻿#include "BlasterPlayerController.h"
 
 #include "Components/HorizontalBox.h"
+#include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "GameFramework/GameMode.h"
@@ -55,7 +56,8 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	SetHudTime();
-	
+
+	HandleHighPingWarning(DeltaSeconds);
 	HandleTimeSync(DeltaSeconds);
 	PollInitialize();
 }
@@ -118,6 +120,29 @@ void ABlasterPlayerController::PollInitialize()
 		}
 	}
 }
+
+void ABlasterPlayerController::HandleHighPingWarning(float DeltaSeconds)
+{
+	m_TimeSinceLastHighPingWarning += DeltaSeconds;
+	if (m_TimeSinceLastHighPingWarning >= m_HighPingCheckFrequency)
+	{
+		if (PlayerState->GetPingInMilliseconds() > m_HighPingThreshold)
+		{
+			HighPingWarning();
+			m_CurrentHighPingAnimationElapsedTime = 0.f;
+		}
+		m_TimeSinceLastHighPingWarning = 0.f;
+	}
+	if (m_pCharacterOverlay && m_pCharacterOverlay->IsAnimationPlaying(m_pCharacterOverlay->PingWarningAnimation))
+	{
+		m_CurrentHighPingAnimationElapsedTime += DeltaSeconds;
+		if (m_CurrentHighPingAnimationElapsedTime >= m_HighPingWarningDisplayTime)
+		{
+			StopHighPingWarning();
+		}
+	}
+}
+
 
 void ABlasterPlayerController::SetHudHealth(const float health, const float maxHealth)
 {
@@ -308,6 +333,39 @@ void ABlasterPlayerController::OnMatchStateSet(const FName state)
 	}
 }
 
+void ABlasterPlayerController::HighPingWarning()
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingWarning)
+	{
+		UWidgetAnimation* pHighPingAnimation = m_pHUD->m_pCharacterOverlay->PingWarningAnimation;
+		checkf(pHighPingAnimation, TEXT("Ping warning animation is null"));
+		
+		m_pHUD->m_pCharacterOverlay->PingWarning->SetOpacity(1.f);
+		if (m_pHUD->m_pCharacterOverlay->IsAnimationPlaying(pHighPingAnimation))
+		{
+			m_pHUD->m_pCharacterOverlay->StopAnimation(pHighPingAnimation);
+		}
+		m_pHUD->m_pCharacterOverlay->PlayAnimation(pHighPingAnimation, 0.f, 8);
+	}
+}
+
+void ABlasterPlayerController::StopHighPingWarning()
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingWarning)
+	{
+		const UWidgetAnimation* pHighPingAnimation = m_pHUD->m_pCharacterOverlay->PingWarningAnimation;
+		checkf(pHighPingAnimation, TEXT("Ping warning animation is null"));
+		
+		m_pHUD->m_pCharacterOverlay->PingWarning->SetOpacity(0.f);
+		if (m_pHUD->m_pCharacterOverlay->IsAnimationPlaying(pHighPingAnimation))
+		{
+			m_pHUD->m_pCharacterOverlay->StopAnimation(pHighPingAnimation);
+		}
+	}
+}
+
 //Called on client
 void ABlasterPlayerController::OnRep_MatchState()
 {
@@ -447,3 +505,5 @@ void ABlasterPlayerController::ClientReportServerTime_Implementation(float timeO
 	const float serverTime = timeServerReceivedRequest + roundTripTime * 0.5f;
 	m_ClientServerTimeDifference = serverTime - GetWorld()->GetTimeSeconds();
 }
+
+

@@ -20,6 +20,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnPossess(APawn* InPawn) override;
+	void HandleHighPingWarning(float DeltaSeconds);
 	virtual void ReceivedPlayer() override; // This is the earliest we can get the time from the player so we can have an accurate time sync
 	
 	void SetHudHealth(const float health, const float maxHealth);
@@ -38,6 +39,8 @@ public:
 
 	void OnMatchStateSet(const FName state);
 
+	void HighPingWarning();
+	void StopHighPingWarning();
 
 private:
 	ABlasterHUD* m_pHUD{};
@@ -93,6 +96,16 @@ private:
 	void ClientJoinedMidGame(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime, float cooldownDuration);
 	
 	UCharacterOverlay* m_pCharacterOverlay{};
+
+	float m_TimeSinceLastHighPingWarning{0.f};
+	float m_CurrentHighPingAnimationElapsedTime{0.f};
+
+	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "High Ping Warning Display Time")
+	float m_HighPingWarningDisplayTime{5.f};
+	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "High Ping Check Frequency")
+	float m_HighPingCheckFrequency{20.f};
+	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "High Ping Threshold")
+	float m_HighPingThreshold{100.f};
 
 	// Values to cache
 	float m_Health{0.f};

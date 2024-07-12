@@ -67,9 +67,13 @@ protected:
 	void ServerFire(const FVector_NetQuantize& traceHitLocation);
 	UFUNCTION(Server, Reliable)
 	void ServerReload();
+	UFUNCTION(Server, Reliable)
+	void ShotgunServerFire(const TArray<FVector_NetQuantize>& traceHitLocations);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire(const FVector_NetQuantize& traceHitLocation);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFireShotgun(const TArray<FVector_NetQuantize>& traceHitLocations);
 
 	void SetHudCrosshairs(float deltaTime);
 
@@ -142,6 +146,7 @@ private:
 	UFUNCTION()
 	void OnRep_CarriedAmmo();
 	void LocalFire(const FVector_NetQuantize& traceHitLocation);
+	void ShotgunLocalFire(const TArray<FVector_NetQuantize>& traceHitLocations);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat", DisplayName = "Carried Ammo Map")
 	TMap<EWeaponType, int> m_CarriedAmmoMap{};

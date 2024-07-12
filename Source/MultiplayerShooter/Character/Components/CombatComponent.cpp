@@ -10,6 +10,7 @@
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "MultiplayerShooter/HUD/BlasterHUD.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
+#include "MultiplayerShooter/Weapon/Shotgun.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
@@ -281,6 +282,7 @@ void UCombatComponent::FireWeaponBasedOnFireType()
 		FireProjectileWeapon();
 		break;
 	case EFireType::EFT_Shotgun:
+		UE_LOG(LogTemp, Warning, TEXT("Firing shotgun"));
 		FireShotgun();
 		break;;
 	}
@@ -289,19 +291,28 @@ void UCombatComponent::FireWeaponBasedOnFireType()
 
 void UCombatComponent::FireProjectileWeapon()
 {
-	LocalFire(m_HitTarget);
+	m_HitTarget = m_pEquippedWeapon->UseScatter() ? m_pEquippedWeapon->GetVectorWithSpread(m_HitTarget) : m_HitTarget;
+	if(!m_pCharacter->HasAuthority()) LocalFire(m_HitTarget); //We don't want to shoot twice on the server
 	ServerFire(m_HitTarget);
 }
 
 void UCombatComponent::FireHitScanWeapon()
 {
 	m_HitTarget = m_pEquippedWeapon->UseScatter() ? m_pEquippedWeapon->GetVectorWithSpread(m_HitTarget) : m_HitTarget;
-	LocalFire(m_HitTarget);
+	if(!m_pCharacter->HasAuthority()) LocalFire(m_HitTarget); //We don't want to shoot twice on the server
 	ServerFire(m_HitTarget);
 }
 
 void UCombatComponent::FireShotgun()
 {
+	TArray<FVector_NetQuantize> outShotLocations{};
+	const AShotgun* pShotgun = Cast<AShotgun>(m_pEquippedWeapon);
+	checkf(pShotgun, TEXT("Equipped weapon is not a shotgun"));
+
+	UE_LOG(LogTemp, Warning, TEXT("Firing shotgun 2"));
+	pShotgun->ShotgunGetVectorWithSpread(m_HitTarget, outShotLocations);
+	if(!m_pCharacter->HasAuthority()) ShotgunLocalFire(outShotLocations); //We don't want to shoot twice on the server
+	ShotgunServerFire(outShotLocations);
 }
 
 void UCombatComponent::StartFireTimer()
@@ -347,11 +358,23 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	if (jumpToShotgunReloadAnimationEnd) JumpToShotgunReloadAnimationEnd();
 }
 
+void UCombatComponent::ShotgunServerFire_Implementation(const TArray<FVector_NetQuantize>& traceHitLocations)
+{
+	MulticastFireShotgun(traceHitLocations);
+}
+
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitLocation)
 {
 	MulticastFire(traceHitLocation);
 }
 
+void UCombatComponent::MulticastFireShotgun_Implementation(const TArray<FVector_NetQuantize>& traceHitLocations)
+{
+	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	if (m_pCharacter->IsLocallyControlled() && !m_pCharacter->HasAuthority()) return;
+	
+	ShotgunLocalFire(traceHitLocations);
+}
 
 void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& traceHitLocation)
 {
@@ -361,22 +384,25 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& t
 	LocalFire(traceHitLocation);
 }
 
-
 void UCombatComponent::LocalFire(const FVector_NetQuantize& traceHitLocation)
 {
-
-	if (m_pEquippedWeapon && m_CombatState == ECombatState::ECS_Reloading && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)
-	{
-		m_pCharacter->PlayFireMontage(m_IsAiming);
-		m_pEquippedWeapon->Fire(traceHitLocation);
-		m_CombatState = ECombatState::ECS_Unoccupied;
-		return;
-	}
-	
 	if (!m_pEquippedWeapon || m_CombatState != ECombatState::ECS_Unoccupied) return;
     
 	m_pCharacter->PlayFireMontage(m_IsAiming);
 	m_pEquippedWeapon->Fire(traceHitLocation);
+}
+
+void UCombatComponent::ShotgunLocalFire(const TArray<FVector_NetQuantize>& traceHitLocations)
+{
+	if (!m_pEquippedWeapon || !m_pCharacter) return;
+	if (m_CombatState == ECombatState::ECS_ThrowingGrenade) return;
+	
+	m_pCharacter->PlayFireMontage(m_IsAiming);
+
+	AShotgun* pShotgun = Cast<AShotgun>(m_pEquippedWeapon);
+	checkf(pShotgun, TEXT("Equipped weapon is not a shotgun"));
+	pShotgun->FireShotgun(traceHitLocations);
+	m_CombatState = ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)

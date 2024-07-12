@@ -51,9 +51,9 @@ void AWeapon::BeginPlay()
 		// Activate sphere in the server
 		m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		m_pAreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-		m_pAreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
-		m_pAreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereOverlapEnd);
 	}
+	m_pAreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+	m_pAreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereOverlapEnd);
 
 	if (m_pPickUpWidget)
 	{

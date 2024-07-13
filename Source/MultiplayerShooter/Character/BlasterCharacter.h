@@ -10,6 +10,7 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class UBoxComponent;
 class UBuffComponent;
 //Forward declarations
 class ABlasterPlayerState;
@@ -59,6 +60,42 @@ public:
 	void UpdateHudAmmo();
 
 	void SpawnDefaultWeapon();
+
+	UPROPERTY(EditAnywhere, DisplayName = "Head Box", Category = "Combat|HitBoxes")
+	UBoxComponent* head{};
+	UPROPERTY(EditAnywhere, DisplayName = "Pelvis Box", Category = "Combat|HitBoxes")
+	UBoxComponent* pelvis{};
+	UPROPERTY(EditAnywhere, DisplayName = "Spine 01 Box", Category = "Combat|HitBoxes")
+	UBoxComponent* spine_01{};
+	UPROPERTY(EditAnywhere, DisplayName = "Spine 02 Box", Category = "Combat|HitBoxes")
+	UBoxComponent* spine_02{};
+	UPROPERTY(EditAnywhere, DisplayName = "Upper Arm L Box", Category = "Combat|HitBoxes")
+	UBoxComponent* upperarm_l{};
+	UPROPERTY(EditAnywhere, DisplayName = "Upper Arm R Box", Category = "Combat|HitBoxes")
+	UBoxComponent* upperarm_r{};
+	UPROPERTY(EditAnywhere, DisplayName = "Lower Arm L Box", Category = "Combat|HitBoxes")
+	UBoxComponent* lowerarm_l{};
+	UPROPERTY(EditAnywhere, DisplayName = "Lower Arm R Box", Category = "Combat|HitBoxes")
+    UBoxComponent* lowerarm_r{};
+	UPROPERTY(EditAnywhere, DisplayName = "Hand L Box", Category = "Combat|HitBoxes")
+	UBoxComponent* hand_l{};
+	UPROPERTY(EditAnywhere, DisplayName = "Hand R Box", Category = "Combat|HitBoxes")
+	UBoxComponent* hand_r{};
+	UPROPERTY(EditAnywhere, DisplayName = "Backpack Box", Category = "Combat|HitBoxes")
+	UBoxComponent* backpack{};
+	UPROPERTY(EditAnywhere, DisplayName = "Thigh L Box", Category = "Combat|HitBoxes")
+	UBoxComponent* thigh_l{};
+	UPROPERTY(EditAnywhere, DisplayName = "Thigh R Box", Category = "Combat|HitBoxes")
+	UBoxComponent* thigh_r{};
+	UPROPERTY(EditAnywhere, DisplayName = "Calf L Box", Category = "Combat|HitBoxes")
+	UBoxComponent* calf_l{};
+	UPROPERTY(EditAnywhere, DisplayName = "Calf R Box", Category = "Combat|HitBoxes")
+	UBoxComponent* calf_r{};
+	UPROPERTY(EditAnywhere, DisplayName = "Foot L Box", Category = "Combat|HitBoxes")
+	UBoxComponent* foot_l{};
+	UPROPERTY(EditAnywhere, DisplayName = "Foot R Box", Category = "Combat|HitBoxes")
+	UBoxComponent* foot_r{};
+	
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
 	USpringArmComponent* m_pCameraBoom{};

@@ -3,6 +3,7 @@
 
 #include "BlasterCharacter.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/BuffComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/CombatComponent.h"
@@ -58,6 +59,59 @@ ABlasterCharacter::ABlasterCharacter()
 	m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	m_CurrentHealth = m_MaxHealth;
 	m_IsAlive = true;
+
+	//Set up collision boxes
+	head = CreateDefaultSubobject<UBoxComponent>(TEXT("head"));
+	head->SetupAttachment(GetMesh(), "head");
+	head->SetCollisionResponseToAllChannels(ECR_Ignore);
+	pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("pelvis"));
+	pelvis->SetupAttachment(GetMesh(), "pelvis");
+	pelvis->SetCollisionResponseToAllChannels(ECR_Ignore);
+	spine_01 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_01"));
+	spine_01->SetupAttachment(GetMesh(), "spine_01");
+	spine_01->SetCollisionResponseToAllChannels(ECR_Ignore);
+	spine_02 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_02"));
+	spine_02->SetupAttachment(GetMesh(), "spine_02");
+	spine_02->SetCollisionResponseToAllChannels(ECR_Ignore);
+	upperarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_l"));
+	upperarm_l->SetupAttachment(GetMesh(), "upperarm_l");
+	upperarm_l->SetCollisionResponseToAllChannels(ECR_Ignore);
+	upperarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_r"));
+	upperarm_r->SetupAttachment(GetMesh(), "upperarm_r");
+	upperarm_r->SetCollisionResponseToAllChannels(ECR_Ignore);
+	lowerarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_l"));
+	lowerarm_l->SetupAttachment(GetMesh(), "lowerarm_l");
+	lowerarm_l->SetCollisionResponseToAllChannels(ECR_Ignore);
+	lowerarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_r"));
+	lowerarm_r->SetupAttachment(GetMesh(), "lowerarm_r");
+	lowerarm_r->SetCollisionResponseToAllChannels(ECR_Ignore);
+	hand_l = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_l"));
+	hand_l->SetupAttachment(GetMesh(), "hand_l");
+	hand_l->SetCollisionResponseToAllChannels(ECR_Ignore);
+	hand_r = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_r"));
+	hand_r->SetupAttachment(GetMesh(), "hand_r");
+	hand_r->SetCollisionResponseToAllChannels(ECR_Ignore);
+	thigh_l = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_l"));
+	thigh_l->SetupAttachment(GetMesh(), "thigh_l");
+	thigh_l->SetCollisionResponseToAllChannels(ECR_Ignore);
+	thigh_r = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_r"));
+	thigh_r->SetupAttachment(GetMesh(), "thigh_r");
+	thigh_r->SetCollisionResponseToAllChannels(ECR_Ignore);
+	calf_l = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_l"));
+	calf_l->SetupAttachment(GetMesh(), "calf_l");
+	calf_l->SetCollisionResponseToAllChannels(ECR_Ignore);
+	calf_r = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_r"));
+	calf_r->SetupAttachment(GetMesh(), "calf_r");
+	calf_r->SetCollisionResponseToAllChannels(ECR_Ignore);
+	foot_l = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_l"));
+	foot_l->SetupAttachment(GetMesh(), "foot_l");
+	foot_l->SetCollisionResponseToAllChannels(ECR_Ignore);
+	foot_r = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_r"));
+	foot_r->SetupAttachment(GetMesh(), "foot_r");
+	foot_r->SetCollisionResponseToAllChannels(ECR_Ignore);
+	backpack = CreateDefaultSubobject<UBoxComponent>(TEXT("backpack"));
+	backpack->SetupAttachment(GetMesh(), "backpack");
+	backpack->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
 void ABlasterCharacter::BeginPlay()

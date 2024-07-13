@@ -185,9 +185,11 @@ void UCombatComponent::PickupAmmo(const EWeaponType weaponType, const int ammoAm
 
 void UCombatComponent::Reload()
 {
-	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull()) return;
+	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull() || m_IsLocallyReloading) return;
 	
 	ServerReload();
+	HandleReloadingForBothServerAndClient();
+	m_IsLocallyReloading = true;
 }
 
 void UCombatComponent::ServerReload_Implementation()
@@ -196,7 +198,7 @@ void UCombatComponent::ServerReload_Implementation()
 
 	m_CombatState = ECombatState::ECS_Reloading;
 		
-	HandleReloadingForBothServerAndClient();
+	if (!m_pCharacter->IsLocallyControlled()) HandleReloadingForBothServerAndClient();
 }
 
 void UCombatComponent::HandleReloadingForBothServerAndClient()
@@ -212,7 +214,7 @@ void UCombatComponent::OnRep_CombatState()
 		if (m_IsFireButtonPressed) Fire();
 		break;
 	case ECombatState::ECS_Reloading:
-		HandleReloadingForBothServerAndClient();
+		if (!m_pCharacter->IsLocallyControlled()) HandleReloadingForBothServerAndClient();
 		break;
 	case ECombatState::ECS_ThrowingGrenade:
 		// The reason for the NOT is locally controlled is because the montage will have already been played on the local client
@@ -653,15 +655,16 @@ bool UCombatComponent::CanFire() const
 	if (!HasWeapon()) return false;
 	return m_CanFire &&
 		m_IsFireButtonPressed &&
-			m_pEquippedWeapon->HasAmmoInMagazine()
-	//Special exception where you can fire the shotgun if you are reloading
-	&& (m_CombatState == ECombatState::ECS_Unoccupied || (m_CombatState == ECombatState::ECS_Reloading && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun));
+		m_pEquippedWeapon->HasAmmoInMagazine() &&
+		//Special exception where you can fire the shotgun if you are reloading
+		(m_CombatState == ECombatState::ECS_Unoccupied || (m_CombatState == ECombatState::ECS_Reloading && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)) &&
+		!m_IsLocallyReloading;
 }
 
 void UCombatComponent::FinishedReloading()
 {
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
-	
+	m_IsLocallyReloading = false;
 	if (m_pCharacter->HasAuthority())
 	{
 		m_CombatState = ECombatState::ECS_Unoccupied;

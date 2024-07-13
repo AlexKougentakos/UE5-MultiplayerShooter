@@ -108,13 +108,12 @@ private:
 	void OnRep_Aiming();
 
 	bool m_IsFireButtonPressed{};
+	bool m_IsLocallyReloading{};
 
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Base Walk Speed")
 	float m_BaseWalkSpeed{};
-
 	UPROPERTY(EditAnywhere, Category = Movement, DisplayName = "Aiming Walk Speed")
 	float m_AimingWalkSpeed{};
-
 	UPROPERTY(EditAnywhere, Category = Combat, DisplayName = "Crosshairs Center", meta = (ToolTip = "The amount the crosshair will move outwards when the player shoots 1 bullet"))
 	float m_ShootingCrosshairSpread{1.f};
 	

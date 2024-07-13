@@ -242,6 +242,7 @@ public: // Getters & Setters
 	UBuffComponent* GetBuffComponent() const { return m_pBuffComponent; }
 	
 	bool IsAlive() const { return m_IsAlive; }
+	bool IsLocallyReloading() const { return m_pCombat->m_IsLocallyReloading; }
 
 	float GetMaxHealth() const { return m_MaxHealth; }
 	float GetCurrentHealth() const { return m_CurrentHealth; }

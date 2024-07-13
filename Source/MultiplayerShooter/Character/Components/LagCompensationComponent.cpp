@@ -15,9 +15,6 @@ void ULagCompensationComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FFramePackage framePackage{};
-	SaveFramePackage(framePackage);
-	ShowFramePackage(framePackage);
 }
 
 
@@ -26,6 +23,30 @@ void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	UpdateFrameHistory();
+}
+
+void ULagCompensationComponent::UpdateFrameHistory()
+{
+	FFramePackage currentFrame{};
+	SaveFramePackage(currentFrame);
+	
+	//For the first and second elements ever added we can just add them
+	if (m_FrameHistory.Num() <= 1)
+	{
+		m_FrameHistory.AddFront(currentFrame);
+	}
+	else
+	{
+		m_FrameHistory.Add(currentFrame);
+		//Remove the last frame until we go below the max recording time
+		while(currentFrame.Time - m_FrameHistory.Last().Time)
+		{
+			m_FrameHistory.PopFront();
+		}
+	}
+	
+	ShowFramePackage(currentFrame);
 }
 
 void ULagCompensationComponent::ShowFramePackage(const FFramePackage& framePackage)
@@ -37,13 +58,14 @@ void ULagCompensationComponent::ShowFramePackage(const FFramePackage& framePacka
 			hitBox.Value.BoxExtend,
 			hitBox.Value.Rotation.Quaternion(),
 			FColor::Green,
-			true);
+			false,
+			4.f);
 	}
 }
 
 void ULagCompensationComponent::SaveFramePackage(FFramePackage& framePackage)
 {
-	checkf(m_pCharacter, TEXT("Character is nullptr"));
+	if(!m_pCharacter) return;
 
 	//This will get the server's time, but we are syncing the time in the blaster character
 	framePackage.Time = GetWorld()->GetTimeSeconds();

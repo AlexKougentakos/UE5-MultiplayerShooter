@@ -284,6 +284,7 @@ public: // Getters & Setters
 	UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
 	UCombatComponent* GetCombatComponent() const { return m_pCombat; }
 	UBuffComponent* GetBuffComponent() const { return m_pBuffComponent; }
+	ULagCompensationComponent* GetLagCompensationComponent() const { return m_pLagCompensation; }
 	
 	bool IsAlive() const { return m_IsAlive; }
 	bool IsLocallyReloading() const { return m_pCombat->m_IsLocallyReloading; }

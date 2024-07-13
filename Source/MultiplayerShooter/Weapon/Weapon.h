@@ -101,7 +101,13 @@ protected:
 		, UPrimitiveComponent* OtherComp
 		, int32 OtherBodyIndex);
 
-
+	
+	ABlasterCharacter* m_pWeaponHolder{};
+	ABlasterPlayerController* m_pWeaponHolderController{};
+		
+	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
+	USoundCue* m_pPickupSound{};
+	
 	// Zooming
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Zooming", DisplayName = "Zoomed FOV")
 	float m_ZoomedFOV{30.f};
@@ -115,9 +121,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Has Automatic Fire")
 	bool m_CurrentWeaponHasAutomaticFire{true};
-	
-	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
-	USoundCue* m_pPickupSound{};
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats", DisplayName = "Damage")
+	float m_Damage{20.f};
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Fire Type")
 	EFireType m_FireType{EFireType::EFT_HitScan};
@@ -132,6 +138,10 @@ protected:
 		UPROPERTY(EditAnywhere, DisplayName = "Sphere Radius", Category = "Weapon Stats|Weapon Scatter", meta = (ToolTip = "The bigger the value, the bigger the spread"))
 		float m_SphereRadius{ 75.f };
 
+	//For debugging purposes only
+	UPROPERTY(EditAnywhere, Category = "Server Side Rewind", DisplayName = "Use Server Side Rewind")
+	bool m_UseServerSideRewind{false};
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")
 	USkeletalMeshComponent* m_pWeaponMesh{};
@@ -140,7 +150,7 @@ private:
 	USphereComponent* m_pAreaSphere{};
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties",
-		DisplayName = "Weapon State")
+	DisplayName = "Weapon State")
 	EWeaponState m_WeaponState{EWeaponState::EWS_Initial};
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Type")
@@ -177,16 +187,16 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Bullet Shell Class")
 	TSubclassOf<ABulletShell> m_pBulletShellClass{};
 
-	ABlasterCharacter* m_pWeaponHolder{};
-	ABlasterPlayerController* m_pWeaponHolderController{};
 
 	bool m_ShouldDestroyWeapon{false};
+
 public:
 	void SetWeaponState(const EWeaponState state);
 	USkeletalMeshComponent* GetWeaponMesh() const { return m_pWeaponMesh; }
 	float GetZoomedFOV() const { return m_ZoomedFOV; }
 	float GetZoomInterpolationSpeed() const { return m_ZoomInterpolationSpeed; }
 
+	float GetDamage() const { return m_Damage; }
 	float GetFireDelay() const { return m_FireDelay; }
 	bool HasAutomaticFire() const { return m_CurrentWeaponHasAutomaticFire; }
 	bool HasAmmoInMagazine() const { return m_CurrentAmmo > 0; }

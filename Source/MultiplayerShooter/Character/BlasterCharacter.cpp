@@ -67,71 +67,54 @@ ABlasterCharacter::ABlasterCharacter()
 	head = CreateDefaultSubobject<UBoxComponent>(TEXT("head"));
 	head->SetupAttachment(GetMesh(), "head");
 	head->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("head", head);
 	pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("pelvis"));
 	pelvis->SetupAttachment(GetMesh(), "pelvis");
 	pelvis->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("pelvis", pelvis);
 	spine_01 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_01"));
 	spine_01->SetupAttachment(GetMesh(), "spine_01");
 	spine_01->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("spine_01", spine_01);
 	spine_02 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_02"));
 	spine_02->SetupAttachment(GetMesh(), "spine_02");
 	spine_02->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("spine_02", spine_02);
 	upperarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_l"));
 	upperarm_l->SetupAttachment(GetMesh(), "upperarm_l");
 	upperarm_l->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("upperarm_l", upperarm_l);
 	upperarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_r"));
 	upperarm_r->SetupAttachment(GetMesh(), "upperarm_r");
 	upperarm_r->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("upperarm_r", upperarm_r);
 	lowerarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_l"));
 	lowerarm_l->SetupAttachment(GetMesh(), "lowerarm_l");
 	lowerarm_l->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("lowerarm_l", lowerarm_l);
 	lowerarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_r"));
 	lowerarm_r->SetupAttachment(GetMesh(), "lowerarm_r");
 	lowerarm_r->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("lowerarm_r", lowerarm_r);
 	hand_l = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_l"));
 	hand_l->SetupAttachment(GetMesh(), "hand_l");
 	hand_l->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("hand_l", hand_l);
 	hand_r = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_r"));
 	hand_r->SetupAttachment(GetMesh(), "hand_r");
 	hand_r->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("hand_r", hand_r);
 	thigh_l = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_l"));
 	thigh_l->SetupAttachment(GetMesh(), "thigh_l");
 	thigh_l->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("thigh_l", thigh_l);
 	thigh_r = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_r"));
 	thigh_r->SetupAttachment(GetMesh(), "thigh_r");
 	thigh_r->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("thigh_r", thigh_r);
 	calf_l = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_l"));
 	calf_l->SetupAttachment(GetMesh(), "calf_l");
 	calf_l->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("calf_l", calf_l);
 	calf_r = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_r"));
 	calf_r->SetupAttachment(GetMesh(), "calf_r");
 	calf_r->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("calf_r", calf_r);
 	foot_l = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_l"));
 	foot_l->SetupAttachment(GetMesh(), "foot_l");
 	foot_l->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("foot_l", foot_l);
 	foot_r = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_r"));
 	foot_r->SetupAttachment(GetMesh(), "foot_r");
 	foot_r->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("foot_r", foot_r);
 	backpack = CreateDefaultSubobject<UBoxComponent>(TEXT("backpack"));
 	backpack->SetupAttachment(GetMesh(), "backpack");
 	backpack->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitBoxes.Add("backpack", backpack);
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -140,6 +123,23 @@ void ABlasterCharacter::BeginPlay()
 	
 	m_pPlayerController = Cast<ABlasterPlayerController>(GetController());
 
+	HitBoxes.Add("foot_l", foot_l);
+	HitBoxes.Add("foot_r", foot_r);
+	HitBoxes.Add("backpack", backpack);
+	HitBoxes.Add("calf_r", calf_r);
+	HitBoxes.Add("calf_l", calf_l);
+	HitBoxes.Add("thigh_r", thigh_r);
+	HitBoxes.Add("thigh_l", thigh_l);
+	HitBoxes.Add("hand_r", hand_r);
+	HitBoxes.Add("hand_l", hand_l);
+	HitBoxes.Add("lowerarm_r", lowerarm_r);
+	HitBoxes.Add("lowerarm_l", lowerarm_l);
+	HitBoxes.Add("upperarm_r", upperarm_r);
+	HitBoxes.Add("head", head);
+	HitBoxes.Add("pelvis", pelvis);
+	HitBoxes.Add("spine_01", spine_01);
+	HitBoxes.Add("spine_02", spine_02);
+	HitBoxes.Add("upperarm_l", upperarm_l);
 	
 	if (m_pPlayerController)
 	{

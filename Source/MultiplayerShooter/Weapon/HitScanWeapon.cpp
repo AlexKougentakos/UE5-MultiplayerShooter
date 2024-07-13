@@ -3,13 +3,15 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/Character/Components/LagCompensationComponent.h"
+#include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "Particles/ParticleSystemComponent.h"
 
 void AHitScanWeapon::Fire(const FVector& hitTarget)
 {
 	Super::Fire(hitTarget);
 
-	const APawn* pOwnerPawn = Cast<APawn>(GetOwner());
+	APawn* pOwnerPawn = Cast<APawn>(GetOwner());
 	if (!pOwnerPawn) return;
 	AController* pOwnerController = pOwnerPawn->GetController();
 	//Instigator controllers are null on simulated proxies, we are only using this for the damage application on the server side
@@ -25,13 +27,25 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 		WeaponTraceHit(start, hitTarget, hitResult);
 
 		//Draw sphere at the landing point
-		DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.f, 12, FColor::Red, true, 1.f);
+		DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.f, 12, FColor::Emerald, true, 1.f);
 		if (hitResult.bBlockingHit)
 		{
 			ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
-			if (pCharacter && HasAuthority())
+			if (pCharacter)
 			{
-				UGameplayStatics::ApplyDamage(pCharacter, m_Damage, pOwnerController, this, UDamageType::StaticClass());
+				if (HasAuthority() && !m_UseServerSideRewind)
+					UGameplayStatics::ApplyDamage(pCharacter, m_Damage, pOwnerController, this, UDamageType::StaticClass());
+				if (!HasAuthority() && m_UseServerSideRewind)
+				{
+					m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(pOwnerController);
+					m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(pOwnerPawn);
+					
+					//This the amount of time that the server has to rewind back in order to get the character to his location
+					//at the time that we shot
+					const float time = m_pWeaponHolderController->GetServerTime() - m_pWeaponHolderController->GetSingleTripTime();
+					if(pCharacter == m_pWeaponHolder) UE_LOG(LogTemp, Warning, TEXT("Server Damage Request"));
+					m_pWeaponHolder->GetLagCompensationComponent()->ServerDamageRequest(pCharacter, start, hitTarget, time, this);
+				}
 			}
 
 			if (m_pImpactParticles)

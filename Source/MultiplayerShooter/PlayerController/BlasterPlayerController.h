@@ -18,24 +18,12 @@ class MULTIPLAYERSHOOTER_API ABlasterPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnPossess(APawn* InPawn) override;
 	void HandleHighPingWarning(float DeltaSeconds);
 	virtual void ReceivedPlayer() override; // This is the earliest we can get the time from the player so we can have an accurate time sync
-	
-	void SetHudHealth(const float health, const float maxHealth);
-	void SetHudShield(const float shield, const float maxShield);
-	void SetHudScore(const float score);
-	void SetHudDeaths(const float deaths);
-	void SetHudAmmo(const int ammo);
-	void SetHudCarriedAmmo(const int carriedAmmo);
-	void ShowAmmo(const bool showAmmo);
-	void SetHudMatchCountDown(const float time);
-	void SetHudAnnouncementCountDown(const float time);
-	
-	virtual void Tick(float DeltaSeconds) override;
-	
-	float GetServerTime() const; // Synced with server world time
+
 
 	void OnMatchStateSet(const FName state);
 
@@ -77,8 +65,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Time Sync", DisplayName = "Time Sync Frequency")
 	float m_TimeSyncFrequency{5.f};
-
 	float m_TimeSinceLastSync{0.f};
+	float m_SingleTripTime{0.f};
 
 	//Every so often we will request the server time to keep the client in sync
 	void HandleTimeSync(float DeltaSeconds);
@@ -125,5 +113,19 @@ private:
 	bool m_InitializeCarriedAmmo{false};
 	int m_WeaponAmmo{0};
 	bool m_InitializeWeaponAmmo{false};
+public:
+		
+	void SetHudHealth(const float health, const float maxHealth);
+	void SetHudShield(const float shield, const float maxShield);
+	void SetHudScore(const float score);
+	void SetHudDeaths(const float deaths);
+	void SetHudAmmo(const int ammo);
+	void SetHudCarriedAmmo(const int carriedAmmo);
+	void ShowAmmo(const bool showAmmo);
+	void SetHudMatchCountDown(const float time);
+	void SetHudAnnouncementCountDown(const float time);
+	
+	float GetSingleTripTime() const { return m_SingleTripTime; }
+	float GetServerTime() const; // Synced with server world time
 };
 

@@ -514,7 +514,8 @@ void ABlasterPlayerController::ClientReportServerTime_Implementation(float timeO
 {
 	// Calculate the round trip time
 	const float roundTripTime = GetWorld()->GetTimeSeconds() - timeOfClientRequest;
-	const float serverTime = timeServerReceivedRequest + roundTripTime * 0.5f;
+	m_SingleTripTime = roundTripTime * 0.5f;
+	const float serverTime = timeServerReceivedRequest + m_SingleTripTime;
 	m_ClientServerTimeDifference = serverTime - GetWorld()->GetTimeSeconds();
 }
 

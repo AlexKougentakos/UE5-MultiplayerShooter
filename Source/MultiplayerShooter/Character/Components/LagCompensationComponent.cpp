@@ -1,7 +1,9 @@
 ﻿#include "LagCompensationComponent.h"
 
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/Weapon/Weapon.h"
 
 
 ULagCompensationComponent::ULagCompensationComponent()
@@ -23,33 +25,33 @@ void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (!m_pCharacter || !m_pCharacter->HasAuthority()) return;
+	
 	UpdateFrameHistory();
 }
 
 void ULagCompensationComponent::UpdateFrameHistory()
 {
 	FFramePackage currentFrame{};
-	SaveFramePackage(currentFrame);
-	
+    SaveFramePackage(currentFrame);
 	//For the first and second elements ever added we can just add them
 	if (m_FrameHistory.Num() <= 1)
 	{
-		m_FrameHistory.AddFront(currentFrame);
+		m_FrameHistory.AddHead(currentFrame);
 	}
 	else
 	{
-		m_FrameHistory.Add(currentFrame);
-		//Remove the last frame until we go below the max recording time
-		while(currentFrame.Time - m_FrameHistory.Last().Time)
+		float historyLength = m_FrameHistory.GetHead()->GetValue().Time - m_FrameHistory.GetTail()->GetValue().Time;
+		while(historyLength > m_MaxRecordingTime)
 		{
-			m_FrameHistory.PopFront();
+			m_FrameHistory.RemoveNode(m_FrameHistory.GetTail());
+			historyLength = m_FrameHistory.GetHead()->GetValue().Time - m_FrameHistory.GetTail()->GetValue().Time;
 		}
+		m_FrameHistory.AddHead(currentFrame);
 	}
-	
-	ShowFramePackage(currentFrame);
 }
 
-void ULagCompensationComponent::ShowFramePackage(const FFramePackage& framePackage)
+void ULagCompensationComponent::ShowFramePackage(const FFramePackage& framePackage, FColor color)
 {
 	for (const auto& hitBox : framePackage.HitBoxInfo)
 	{
@@ -57,9 +59,197 @@ void ULagCompensationComponent::ShowFramePackage(const FFramePackage& framePacka
 			hitBox.Value.Location,
 			hitBox.Value.BoxExtend,
 			hitBox.Value.Rotation.Quaternion(),
-			FColor::Green,
-			false,
-			4.f);
+			color,
+			true);
+	}
+}
+
+FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ABlasterCharacter* pHitCharacter,
+	const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime)
+{
+	//This is the history of the character that GOT shot.
+	//If we are calling this function we ARE the character that did the shooting
+	const TDoubleLinkedList<FFramePackage>& frameHistory = pHitCharacter->GetLagCompensationComponent()->m_FrameHistory;
+
+	const float oldestHitTime = frameHistory.GetTail()->GetValue().Time;
+	const float newestHitTime = frameHistory.GetHead()->GetValue().Time;
+	
+	if (!pHitCharacter ||
+		!pHitCharacter->GetLagCompensationComponent() ||
+			frameHistory.Num() <= 1 ||
+			oldestHitTime > hitTime // too far back - too laggy to perform a fair server side rewind
+			) return {false, false};
+	
+	bool shouldInterpolate = true;
+	//These if checks are there to verify that the hit we are rewinding is within the frame history
+	FFramePackage frameToCheck{};
+	if (oldestHitTime == hitTime) //Very unlikely but we have to check it
+	{
+		frameToCheck = frameHistory.GetTail()->GetValue();
+		shouldInterpolate = false;
+	}
+	if (newestHitTime <= hitTime)
+	{
+		frameToCheck = frameHistory.GetHead()->GetValue();
+		shouldInterpolate = false;
+	}
+
+	TDoubleLinkedList<FFramePackage>::TDoubleLinkedListNode* pYounger = frameHistory.GetHead();
+	TDoubleLinkedList<FFramePackage>::TDoubleLinkedListNode* pOlder = pYounger;
+	while(pOlder->GetValue().Time > hitTime) // run the loop while OLDER is still younger than hit time
+	{
+		if (!pOlder->GetNextNode()) break;
+		//Keep moving them back until older and younger are on either side of the hit time
+		//What you are looking for is this: pOlder->Time < hitTime < pYounger->Time
+		pOlder = pOlder->GetNextNode();
+		if (pOlder->GetValue().Time > hitTime)
+			pYounger = pOlder;
+	}
+	if (pOlder->GetValue().Time == hitTime)
+	{
+		frameToCheck = pOlder->GetValue();
+		shouldInterpolate = false;
+	}
+	
+	FVector location = pOlder->GetValue().HitBoxInfo["head"].Location;
+	UE_LOG(LogTemp, Warning, TEXT("ServerSideRewind(): Actor location: %s"), *pHitCharacter->GetActorLocation().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("ServerSideRewind(): Head location: %s"), *location.ToString());
+	
+	if (shouldInterpolate)
+	{
+		frameToCheck = InterpolateBetweenFrames(pOlder->GetValue(), pYounger->GetValue(), hitTime);
+	}
+
+	ShowFramePackage(frameToCheck, FColor::Blue);
+	DrawDebugSphere(GetWorld(), frameToCheck.HitBoxInfo["head"].Location, 30.f, 12, FColor::Green, true);
+
+
+	return ConfirmHit(frameToCheck, pHitCharacter, traceStart, traceEnd);
+}
+
+void ULagCompensationComponent::ServerDamageRequest_Implementation(ABlasterCharacter* pHitCharacter,
+	const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime,
+	AWeapon* pDamageCauser)
+{
+	const FServerSideRewindResult result = ServerSideRewind(pHitCharacter, traceStart, traceEnd, hitTime);
+
+	if (!pHitCharacter || !result.WasHitConfirmed || !pDamageCauser) return;
+
+	UGameplayStatics::ApplyDamage(pHitCharacter, pDamageCauser->GetDamage(), pHitCharacter->GetController(),
+		pDamageCauser, UDamageType::StaticClass());
+}
+
+FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackage& framePackage,
+                                                              ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd)
+{
+	if (!pHitCharacter) return FServerSideRewindResult{};
+
+	FFramePackage currentFrame{};
+	GetPlayerHitBoxes(pHitCharacter, currentFrame);
+	MovePlayerHitBoxes(pHitCharacter, framePackage);
+	DrawDebugSphere(GetWorld(), traceEnd, 10.f, 12, FColor::Red, true, 1.f);
+	
+	UBoxComponent* pHeadBox = pHitCharacter->HitBoxes["head"];
+	pHeadBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	pHeadBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+
+	FHitResult hitResult{};
+	const FVector end = traceStart + (traceEnd - traceStart) * 1.25f;
+	DrawDebugLine(GetWorld(), traceStart, end, FColor::Red, true, 1.f, 0, 1.f);
+
+	//Temporarily disable the player's mesh collision so that it doesn't get in the way of the line trace
+	pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, end, ECC_Visibility);
+	if (hitResult.bBlockingHit) //we got a headshot
+	{
+		ResetPlayerHitBoxes(pHitCharacter, currentFrame);
+		pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		return FServerSideRewindResult{true, true};
+	}
+
+	
+	//If we reach here that means it's not a head shot
+	for (const auto& hitBox : pHitCharacter->HitBoxes)
+	{
+		if (hitBox.Value == nullptr) continue;
+		
+		hitBox.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		hitBox.Value->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	}
+	
+	hitResult = {};
+	GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, end, ECC_Visibility);
+	if (hitResult.bBlockingHit)
+	{
+		ResetPlayerHitBoxes(pHitCharacter, currentFrame);
+		pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		return FServerSideRewindResult{true, false};
+	}
+
+	//If we reach here that means that it was a miss
+	ResetPlayerHitBoxes(pHitCharacter, currentFrame);
+	pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	return FServerSideRewindResult{false, false};
+}
+
+void ULagCompensationComponent::GetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, FFramePackage& outFramePackage)
+{
+	if (!pHitCharacter) return;
+
+	for (const auto& hitBox : pHitCharacter->HitBoxes)
+	{
+		FBoxInformation boxInfo{};
+		boxInfo.Location = hitBox.Value->GetComponentLocation();
+		boxInfo.Rotation = hitBox.Value->GetComponentRotation();
+		boxInfo.BoxExtend = hitBox.Value->GetScaledBoxExtent();
+
+		outFramePackage.HitBoxInfo.Add(hitBox.Key, boxInfo);
+
+		if (hitBox.Key == "head")
+		{
+			FVector location = hitBox.Value->GetComponentLocation();
+			UE_LOG(LogTemp, Warning, TEXT("GetPlayerHitBoxes(): Actor location: %s"), *pHitCharacter->GetActorLocation().ToString());
+			UE_LOG(LogTemp, Warning, TEXT("GetPlayerHitBoxes(): Head location: %s"), *location.ToString());
+		}
+	}
+}
+	
+void ULagCompensationComponent::MovePlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& outFramePackage)
+{
+	if (pHitCharacter == nullptr) return;
+	for (auto& HitBoxPair : pHitCharacter->HitBoxes)
+	{
+		if (HitBoxPair.Value != nullptr)
+		{
+			HitBoxPair.Value->SetWorldLocation(outFramePackage.HitBoxInfo[HitBoxPair.Key].Location);
+			HitBoxPair.Value->SetWorldRotation(outFramePackage.HitBoxInfo[HitBoxPair.Key].Rotation);
+			HitBoxPair.Value->SetBoxExtent(outFramePackage.HitBoxInfo[HitBoxPair.Key].BoxExtend);
+		}
+	}
+
+	if (outFramePackage.HitBoxInfo.Contains("head"))
+	{
+		FVector location = pHitCharacter->HitBoxes["head"]->GetComponentLocation();
+		UE_LOG(LogTemp, Warning, TEXT("MovePlayerHitBoxes(): Actor location: %s"), *pHitCharacter->GetActorLocation().ToString());
+		UE_LOG(LogTemp, Warning, TEXT("MovePlayerHitBoxes(): Head location: %s"), *location.ToString());
+	}
+}
+
+void ULagCompensationComponent::ResetPlayerHitBoxes(ABlasterCharacter* pHitCharacter,
+	const FFramePackage& outFramePackage)
+{
+	if (!pHitCharacter) return;
+
+	for (const auto& hitBox : pHitCharacter->HitBoxes)
+	{
+		if (hitBox.Value == nullptr) continue;
+		
+		const FBoxInformation& boxInfo = outFramePackage.HitBoxInfo[hitBox.Key];
+		hitBox.Value->SetWorldLocation(boxInfo.Location);
+		hitBox.Value->SetWorldRotation(boxInfo.Rotation);
+		hitBox.Value->SetBoxExtent(boxInfo.BoxExtend);
+		hitBox.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -72,6 +262,7 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& framePackage)
 	for(const auto& hitBox : m_pCharacter->HitBoxes)
 	{
 		FBoxInformation boxInfo{};
+		
 		boxInfo.Location = hitBox.Value->GetComponentLocation();
 		boxInfo.Rotation = hitBox.Value->GetComponentRotation();
 		boxInfo.BoxExtend = hitBox.Value->GetScaledBoxExtent();
@@ -80,3 +271,28 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& framePackage)
 	}
 }
 
+FFramePackage ULagCompensationComponent::InterpolateBetweenFrames(const FFramePackage& olderFrame,
+	const FFramePackage& youngerFrame, const float hitTime)
+{
+	const float distance = youngerFrame.Time - olderFrame.Time;
+	const float alpha = FMath::Clamp((hitTime - olderFrame.Time) / distance, 0.f, 1.f);
+
+	FFramePackage interpolatedFrame{};
+	interpolatedFrame.Time = hitTime;
+
+	for (const auto& youngerPair : youngerFrame.HitBoxInfo)
+	{
+		const FName& boxInfoName = youngerPair.Key;
+		const FBoxInformation& olderBoxInfo = olderFrame.HitBoxInfo[boxInfoName];
+		const FBoxInformation& youngerBoxInfo = youngerPair.Value;
+
+		FBoxInformation interpolationBoxInfo{};
+		interpolationBoxInfo.Location = FMath::VInterpTo(olderBoxInfo.Location, youngerBoxInfo.Location, 1, alpha);
+		interpolationBoxInfo.Rotation = FMath::RInterpTo(olderBoxInfo.Rotation, youngerBoxInfo.Rotation, 1, alpha);
+		interpolationBoxInfo.BoxExtend = youngerBoxInfo.BoxExtend;
+
+		interpolatedFrame.HitBoxInfo.Add(boxInfoName, interpolationBoxInfo);
+	}
+
+	return interpolatedFrame;
+}

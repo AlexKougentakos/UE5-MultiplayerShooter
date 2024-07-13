@@ -77,7 +77,6 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, m_WeaponState);
-	DOREPLIFETIME(AWeapon, m_CurrentAmmo);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -107,7 +106,6 @@ void AWeapon::EnableCustomDepth(bool enable) const
 	m_pWeaponMesh->SetRenderCustomDepth(enable);
 }
 
-
 FVector AWeapon::GetVectorWithSpread(const FVector& hitTarget) const
 {
 	const USkeletalMeshSocket* muzzleSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
@@ -127,6 +125,7 @@ FVector AWeapon::GetVectorWithSpread(const FVector& hitTarget) const
 
 	return {start + toEndLocation * BULLET_TRACE_LENGTH / toEndLocation.Size()}; //Dividing to avoid overflow
 }
+
 void AWeapon::SetWeaponState(const EWeaponState state)
 {
 	//We change the state here to call the OnRep_WeaponState function
@@ -210,6 +209,8 @@ void AWeapon::OnDropped()
 	m_pWeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	m_pWeaponMesh->MarkRenderStateDirty();
 	EnableCustomDepth(true);
+
+	m_AmmoSequence = 0;
 }
 
 void AWeapon::OnRep_Owner()
@@ -224,19 +225,41 @@ void AWeapon::OnRep_Owner()
 	else UpdateHudAmmo();	
 }
 
-void AWeapon::OnRep_Ammo()
+void AWeapon::SpendAmmoRound()
 {
-	//m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(GetOwner());
+	m_CurrentAmmo = FMath::Clamp(m_CurrentAmmo - 1, 0, m_MaxAmmo);
+	UpdateHudAmmo();
+	// Server reconciliation
+	if (HasAuthority())
+		ClientUpdateAmmo(m_CurrentAmmo);
+	else if(m_pWeaponHolder->IsLocallyControlled())
+		++m_AmmoSequence;
+	//Ammo sequence, once again, is the number of unprocessed server requests for ammo
+	//It gets incremented here and decremented in the ClientUpdateAmmo()
+}
+
+void AWeapon::ClientUpdateAmmo_Implementation(const int serverAmmo)
+{
+	if (HasAuthority()) return;
+	
+	m_CurrentAmmo = serverAmmo;
+	--m_AmmoSequence;
+	m_CurrentAmmo -= m_AmmoSequence;
+	UpdateHudAmmo();
+}
+
+void AWeapon::ClientAddAmmo_Implementation(const int ammo)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Adding ammo 0"));
+	if (HasAuthority()) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Adding ammo"));
+	m_CurrentAmmo = FMath::Clamp(m_CurrentAmmo + ammo, 0, m_MaxAmmo);
 	if (m_pWeaponHolder && IsMagazineFull())
 	{
 		m_pWeaponHolder->GetCombatComponent()->JumpToShotgunReloadAnimationEnd();
 	}
-	UpdateHudAmmo();
-}
-
-void AWeapon::SpendAmmoRound()
-{
-	m_CurrentAmmo = FMath::Clamp(m_CurrentAmmo - 1, 0, m_MaxAmmo);
+	UE_LOG(LogTemp, Warning, TEXT("Current ammo: %d"), m_CurrentAmmo);
 	UpdateHudAmmo();
 }
 
@@ -252,7 +275,6 @@ void AWeapon::UpdateHudAmmo()
 		}
 	}
 }
-
 
 void AWeapon::ShowPickupWidget(bool show) const
 {
@@ -281,8 +303,8 @@ void AWeapon::Fire(const FVector& hitTarget)
 		socketTransform.GetRotation().Rotator(),
 		FActorSpawnParameters());
 	}
-	if (HasAuthority())
-		SpendAmmoRound();
+	
+	SpendAmmoRound();
 }
 
 int AWeapon::Reload(const int availableAmmo)
@@ -291,6 +313,7 @@ int AWeapon::Reload(const int availableAmmo)
 	const int ammoToReload = FMath::Min(availableAmmo, missingAmmo);
 	m_CurrentAmmo += ammoToReload;
 
+	ClientAddAmmo(ammoToReload);
 	UpdateHudAmmo();
 	return ammoToReload;
 }

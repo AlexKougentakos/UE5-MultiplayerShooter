@@ -151,12 +151,14 @@ private:
 	 */
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Ammo")
 	int m_MaxAmmo{30};
-	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
 	int m_CurrentAmmo{};
-	UFUNCTION()
-	void OnRep_Ammo();
 	void SpendAmmoRound();
 
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAmmo(const int serverAmmo);
+	UFUNCTION(Client, Reliable)
+	void ClientAddAmmo(const int ammo);
+	int m_AmmoSequence{}; // Used to keep track of the unprocessed server requests for ammo
 
 	UFUNCTION()
 	void OnRep_WeaponState();

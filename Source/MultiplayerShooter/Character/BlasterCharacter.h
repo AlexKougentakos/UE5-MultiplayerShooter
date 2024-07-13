@@ -10,6 +10,7 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class ULagCompensationComponent;
 class UBoxComponent;
 class UBuffComponent;
 //Forward declarations
@@ -95,6 +96,9 @@ public:
 	UBoxComponent* foot_l{};
 	UPROPERTY(EditAnywhere, DisplayName = "Foot R Box", Category = "Combat|HitBoxes")
 	UBoxComponent* foot_r{};
+
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitBoxes{};
 	
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
@@ -108,6 +112,9 @@ private: // Variables
 
 	UPROPERTY(VisibleAnywhere, DisplayName = "Combat Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* m_pCombat{};
+	
+	UPROPERTY(VisibleAnywhere, DisplayName = "Lag Compensation Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	ULagCompensationComponent* m_pLagCompensation{};
 
 	UPROPERTY(VisibleAnywhere, DisplayName = "Buff Component", BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UBuffComponent* m_pBuffComponent{};

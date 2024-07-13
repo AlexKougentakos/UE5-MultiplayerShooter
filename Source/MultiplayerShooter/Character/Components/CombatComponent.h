@@ -100,8 +100,12 @@ private:
 
 	bool m_ShouldSwapWeapons{};
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Aiming)
 	bool m_IsAiming{};
+	bool m_IsAimButtonPressed{}; //This is used for the local player to determine if the aim button is pressed
+
+	UFUNCTION()
+	void OnRep_Aiming();
 
 	bool m_IsFireButtonPressed{};
 

@@ -227,7 +227,6 @@ void UCombatComponent::OnRep_CombatState()
 	}
 }
 
-
 void UCombatComponent::SetAiming(const bool isAiming)
 {
 	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
@@ -238,6 +237,16 @@ void UCombatComponent::SetAiming(const bool isAiming)
 
 	if (HasWeapon() && m_pCharacter->IsLocallyControlled() && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper)
 		m_pCharacter->ShowSniperScopeWidget(isAiming);
+
+	if (m_pCharacter->IsLocallyControlled()) m_IsAimButtonPressed = isAiming;
+}
+
+
+void UCombatComponent::OnRep_Aiming()
+{
+	if (!m_pCharacter->IsLocallyControlled()) return;
+	
+	m_IsAiming = m_IsAimButtonPressed;	
 }
 
 void UCombatComponent::FireButtonPressed(const bool isPressed)
@@ -675,6 +684,7 @@ void UCombatComponent::ThrowGrenade()
 	if (!m_pCharacter->HasAuthority())
 		ServerThrowGranade();
 }
+
 
 void UCombatComponent::ServerThrowGranade_Implementation()
 {

@@ -64,8 +64,7 @@ void ULagCompensationComponent::ShowFramePackage(const FFramePackage& framePacka
 	}
 }
 
-FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ABlasterCharacter* pHitCharacter,
-	const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime)
+FFramePackage ULagCompensationComponent::GetFrameToCheck(ABlasterCharacter* pHitCharacter, const float hitTime)
 {
 	//This is the history of the character that GOT shot.
 	//If we are calling this function we ARE the character that did the shooting
@@ -78,7 +77,7 @@ FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ABlasterChar
 		!pHitCharacter->GetLagCompensationComponent() ||
 			frameHistory.Num() <= 1 ||
 			oldestHitTime > hitTime // too far back - too laggy to perform a fair server side rewind
-			) return {false, false};
+			) return FFramePackage{};
 	
 	bool shouldInterpolate = true;
 	//These if checks are there to verify that the hit we are rewinding is within the frame history
@@ -116,20 +115,169 @@ FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ABlasterChar
 		frameToCheck = InterpolateBetweenFrames(pOlder->GetValue(), pYounger->GetValue(), hitTime);
 	}
 
-	return ConfirmHit(frameToCheck, pHitCharacter, traceStart, traceEnd);
+	frameToCheck.Character = pHitCharacter;
+	return frameToCheck;
 }
 
 void ULagCompensationComponent::ServerDamageRequest_Implementation(ABlasterCharacter* pHitCharacter,
-	const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime,
-	AWeapon* pDamageCauser)
+																   const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime,
+																   AWeapon* pDamageCauser)
 {
 	const FServerSideRewindResult result = ServerSideRewind(pHitCharacter, traceStart, traceEnd, hitTime);
 	
 	if (!pHitCharacter || !result.WasHitConfirmed || !pDamageCauser) return;
 
-	UGameplayStatics::ApplyDamage(pHitCharacter, pDamageCauser->GetDamage(), pHitCharacter->GetController(),
+	UGameplayStatics::ApplyDamage(pHitCharacter, pDamageCauser->GetDamage(), m_pCharacter->GetController(),
 		pDamageCauser, UDamageType::StaticClass());
 }
+
+void ULagCompensationComponent::ServerShotgunDamageRequest_Implementation(
+	const TArray<ABlasterCharacter*>& pHitCharacters, const FVector_NetQuantize& traceStart,
+	const TArray<FVector_NetQuantize>& hitLocations, const float hitTime, AWeapon* pDamageCauser)
+{
+	FServerSideRewindShotgunResult confirm = ServerSideRewindShotgun(pHitCharacters, traceStart, hitLocations, hitTime);
+
+	for (const auto& character : pHitCharacters)
+	{
+		if (!character || !character->IsWeaponEquipped()) continue;
+		float totalDamage{};
+		if (confirm.HeadShots.Contains(character))
+		{
+			const float headShotDamage = confirm.HeadShots[character] * pDamageCauser->GetDamage();
+			totalDamage += headShotDamage;
+		}
+		if (confirm.BodyShots.Contains(character))
+		{
+			const float bodyShotDamage = confirm.BodyShots[character] * pDamageCauser->GetDamage();
+			totalDamage += bodyShotDamage;
+		}
+
+		UGameplayStatics::ApplyDamage(character, totalDamage, m_pCharacter->GetController(),
+	pDamageCauser, UDamageType::StaticClass());
+	}
+}
+
+FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ABlasterCharacter* pHitCharacter,
+                                                                    const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime)
+{
+	FFramePackage frameToCheck = GetFrameToCheck(pHitCharacter, hitTime);
+	return ConfirmHit(frameToCheck, pHitCharacter, traceStart, traceEnd);
+}
+
+FServerSideRewindShotgunResult ULagCompensationComponent::ServerSideRewindShotgun(
+	const TArray<ABlasterCharacter*>& pHitCharacter, const FVector_NetQuantize& traceStart,
+	const TArray<FVector_NetQuantize>& traceEnd, const float hitTime)
+{
+	TArray<FFramePackage> framesToCheck{};
+	for (ABlasterCharacter* character : pHitCharacter)
+	{
+		framesToCheck.Add(GetFrameToCheck(character, hitTime));
+	}
+
+	return ConfirmHitShotgun(framesToCheck, traceStart, traceEnd);
+}
+
+FServerSideRewindShotgunResult ULagCompensationComponent::ConfirmHitShotgun(const TArray<FFramePackage>& framePackages,
+	const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations)
+{
+	FServerSideRewindShotgunResult shotgunResult{};
+	TArray<FFramePackage> currentFrames{};
+
+
+	for (const auto& framePackage : framePackages)
+	{
+		ABlasterCharacter* pHitCharacter = framePackage.Character;
+		if (!pHitCharacter) continue;
+		
+		//Save the current frame of each character we hit so that we can restore them later
+		//And also move them to the frame we are checking
+		FFramePackage currentFrame{};
+		currentFrame.Character = pHitCharacter;
+		GetPlayerHitBoxes(pHitCharacter, currentFrame);
+		MovePlayerHitBoxes(pHitCharacter, framePackage);
+		currentFrames.Add(currentFrame);
+		
+		//Temporarily disable the player's mesh collision so that it doesn't get in the way of the line trace
+		pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	// Check for headshots first	
+	for (const auto& framePackage : framePackages)
+	{
+		UBoxComponent* pHeadBox = framePackage.Character->HitBoxes["head"];
+		pHeadBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		pHeadBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	}
+
+	//Perform the line trace to see if the hit was a headshot
+	const auto pWorld = GetWorld();
+	for (const auto& hitLocation : hitLocations)
+	{
+		FHitResult hitResult{};
+		const FVector end = traceStart + (hitLocation - traceStart) * 1.25f;
+		
+		pWorld->LineTraceSingleByChannel(hitResult, traceStart, end, ECC_Visibility);
+
+		ABlasterCharacter* pHitCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
+		if (pHitCharacter)
+		{
+			//If this player has already been added to the damage map then just increment the number of headshots
+			if (shotgunResult.HeadShots.Contains(pHitCharacter))
+				shotgunResult.HeadShots[pHitCharacter]++;
+			
+			else //Otherwise add them to the map
+				shotgunResult.HeadShots.Emplace(pHitCharacter, 1);
+		}
+	}
+
+	for (const auto& framePackage : framePackages)
+	{
+		//Enable collision for all hit boxes
+		for(const auto& hitBox : framePackage.Character->HitBoxes)
+		{
+			if (hitBox.Value == nullptr) continue;
+			
+			hitBox.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			hitBox.Value->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		}
+
+		//Disable collision for the head box
+		UBoxComponent* pHeadBox = framePackage.Character->HitBoxes["head"];
+		pHeadBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	//Perform the line trace to see if the hit was a body shot
+	for (const auto& hitLocation : hitLocations)
+	{
+		FHitResult hitResult{};
+		const FVector end = traceStart + (hitLocation - traceStart) * 1.25f;
+		
+		pWorld->LineTraceSingleByChannel(hitResult, traceStart, end, ECC_Visibility);
+
+		ABlasterCharacter* pHitCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
+		if (pHitCharacter)
+		{
+			//If this player has already been added to the damage map then just increment the number of body shots
+			if (shotgunResult.BodyShots.Contains(pHitCharacter))
+				shotgunResult.BodyShots[pHitCharacter]++;
+			
+			else //Otherwise add them to the map
+				shotgunResult.BodyShots.Emplace(pHitCharacter, 1);
+		}
+	}
+
+	for (const auto& frame : currentFrames)
+	{
+		ABlasterCharacter* pHitCharacter = frame.Character;
+		if (!pHitCharacter) continue;
+
+		ResetPlayerHitBoxes(pHitCharacter, frame);
+		pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+
+	return shotgunResult;
+}
+
 
 FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackage& framePackage,
                                                               ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd)
@@ -227,12 +375,14 @@ void ULagCompensationComponent::ResetPlayerHitBoxes(ABlasterCharacter* pHitChara
 	}
 }
 
+
 void ULagCompensationComponent::SaveFramePackage(FFramePackage& framePackage)
 {
 	if(!m_pCharacter) return;
 
 	//This will get the server's time, but we are syncing the time in the blaster character
 	framePackage.Time = GetWorld()->GetTimeSeconds();
+	framePackage.Character = m_pCharacter;
 	for(const auto& hitBox : m_pCharacter->HitBoxes)
 	{
 		FBoxInformation boxInfo{};

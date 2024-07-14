@@ -4,6 +4,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/Character/Components/LagCompensationComponent.h"
+#include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "Particles/ParticleSystemComponent.h"
 
 AShotgun::AShotgun()
@@ -27,7 +29,7 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 {
 	AWeapon::Fire(FVector{});
 
-	const APawn* pOwnerPawn = Cast<APawn>(GetOwner());
+	APawn* pOwnerPawn = Cast<APawn>(GetOwner());
 	if (!pOwnerPawn) return;
 	AController* pOwnerController = pOwnerPawn->GetController();
 
@@ -45,7 +47,7 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 			WeaponTraceHit(start, hitLocation, hitResult);
 
 			ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
-			if (pCharacter && HasAuthority())
+			if (pCharacter)
 			{
 				if (hitMap.Contains(pCharacter))
 				{
@@ -66,11 +68,31 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 		//Apply damage
 		//Instigator controllers are null on simulated proxies, we are only using this for the damage application on the server side
 		// so we only care if it's null on the server
-		if (!pOwnerController && HasAuthority()) return;
+		//if (!pOwnerController && HasAuthority()) return;
+
+		TArray<ABlasterCharacter*> hitCharacters{};
 		for (const auto& pair : hitMap)
 		{
-			if (HasAuthority() && pOwnerController)
+			if (!pair.Key || !pOwnerController) continue;
+			
+			hitCharacters.Emplace(pair.Key);
+			if (HasAuthority() && !m_UseServerSideRewind)
+			{
 				UGameplayStatics::ApplyDamage(pair.Key, m_Damage * pair.Value, pOwnerController, this, UDamageType::StaticClass());
+			}
+		}
+
+		if (!HasAuthority() && m_UseServerSideRewind) //Use server side rewind
+		{
+			m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(pOwnerController);
+			m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(pOwnerPawn);
+
+			if (!m_pWeaponHolder->IsLocallyControlled()) return;
+			
+			//This the amount of time that the server has to rewind back in order to get the character to his location
+			//at the time that we shot
+			const float time = m_pWeaponHolderController->GetServerTime() - m_pWeaponHolderController->GetSingleTripTime();
+			m_pWeaponHolder->GetLagCompensationComponent()->ServerShotgunDamageRequest(hitCharacters, start, hitLocations, time, this);
 		}
 	}
 }

@@ -37,6 +37,8 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 				{
 					m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(pOwnerController);
 					m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(pOwnerPawn);
+
+					if (!m_pWeaponHolder->IsLocallyControlled()) return;
 					
 					//This the amount of time that the server has to rewind back in order to get the character to his location
 					//at the time that we shot

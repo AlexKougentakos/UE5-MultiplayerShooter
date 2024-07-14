@@ -5,6 +5,8 @@
 #include "LagCompensationComponent.generated.h"
 
 
+class AWeapon;
+class ABlasterCharacter;
 class ABlasterPlayerController;
 
 USTRUCT()
@@ -30,6 +32,9 @@ struct FFramePackage
 
 	UPROPERTY()
 	TMap<FName, FBoxInformation> HitBoxInfo{};
+
+	UPROPERTY()
+	ABlasterCharacter* Character{};
 };
 
 USTRUCT()
@@ -41,6 +46,17 @@ struct FServerSideRewindResult
 	bool WasHitConfirmed{};
 	UPROPERTY()
 	bool Headshot{};
+};
+
+USTRUCT()
+struct FServerSideRewindShotgunResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TMap<ABlasterCharacter*, uint32> HeadShots{};
+	UPROPERTY()
+	TMap<ABlasterCharacter*, uint32> BodyShots{};
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -61,6 +77,25 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerDamageRequest(ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime, AWeapon* pDamageCauser);
+
+	
+	/*
+	 * 	SHOTGUNS
+	 */
+	UFUNCTION(Server, Reliable)
+	void ServerShotgunDamageRequest(
+		const TArray<ABlasterCharacter*>& pHitCharacters,
+		const FVector_NetQuantize& traceStart,
+		const TArray<FVector_NetQuantize>& hitLocations,
+		const float hitTime,
+		AWeapon* pDamageCauser);
+
+		FServerSideRewindShotgunResult ServerSideRewindShotgun(
+		const TArray<ABlasterCharacter*>& pHitCharacter,
+		const FVector_NetQuantize& traceStart,
+		const TArray<FVector_NetQuantize>& traceEnd,
+		const float hitTime);
+	
 private:
 	ABlasterCharacter* m_pCharacter{};
 	ABlasterPlayerController* m_pBlasterPlayerController{};
@@ -75,4 +110,11 @@ private:
 	void GetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, FFramePackage& outFramePackage);
 	void MovePlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& outFramePackage);
 	void ResetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& package);
+	FFramePackage GetFrameToCheck(ABlasterCharacter* pHitCharacter, const float hitTime);
+
+
+	FServerSideRewindShotgunResult ConfirmHitShotgun(
+		const TArray<FFramePackage>& framePackages,
+		const FVector_NetQuantize& traceStart,
+		const TArray<FVector_NetQuantize>& hitLocations);
 };

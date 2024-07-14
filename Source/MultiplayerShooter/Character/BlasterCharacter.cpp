@@ -115,13 +115,6 @@ ABlasterCharacter::ABlasterCharacter()
 	backpack = CreateDefaultSubobject<UBoxComponent>(TEXT("backpack"));
 	backpack->SetupAttachment(GetMesh(), "backpack");
 	backpack->SetCollisionResponseToAllChannels(ECR_Ignore);
-}
-
-void ABlasterCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	m_pPlayerController = Cast<ABlasterPlayerController>(GetController());
 
 	HitBoxes.Add("foot_l", foot_l);
 	HitBoxes.Add("foot_r", foot_r);
@@ -140,6 +133,14 @@ void ABlasterCharacter::BeginPlay()
 	HitBoxes.Add("spine_01", spine_01);
 	HitBoxes.Add("spine_02", spine_02);
 	HitBoxes.Add("upperarm_l", upperarm_l);
+	
+}
+
+void ABlasterCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	m_pPlayerController = Cast<ABlasterPlayerController>(GetController());
 	
 	if (m_pPlayerController)
 	{
@@ -476,6 +477,7 @@ void ABlasterCharacter::SpawnDefaultWeapon()
 		m_pCombat->EquipWeapon(pStartingWeapon);
 	}
 }
+
 
 void ABlasterCharacter::MulticastHit_Implementation()
 {

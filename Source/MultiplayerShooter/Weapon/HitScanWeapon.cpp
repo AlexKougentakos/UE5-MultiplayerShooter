@@ -25,9 +25,7 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 		const FVector start = muzzleTransform.GetLocation();
 		FHitResult hitResult{};
 		WeaponTraceHit(start, hitTarget, hitResult);
-
-		//Draw sphere at the landing point
-		DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.f, 12, FColor::Emerald, true, 1.f);
+		
 		if (hitResult.bBlockingHit)
 		{
 			ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
@@ -43,7 +41,6 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 					//This the amount of time that the server has to rewind back in order to get the character to his location
 					//at the time that we shot
 					const float time = m_pWeaponHolderController->GetServerTime() - m_pWeaponHolderController->GetSingleTripTime();
-					if(pCharacter == m_pWeaponHolder) UE_LOG(LogTemp, Warning, TEXT("Server Damage Request"));
 					m_pWeaponHolder->GetLagCompensationComponent()->ServerDamageRequest(pCharacter, start, hitTarget, time, this);
 				}
 			}

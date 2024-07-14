@@ -111,18 +111,10 @@ FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ABlasterChar
 		shouldInterpolate = false;
 	}
 	
-	FVector location = pOlder->GetValue().HitBoxInfo["head"].Location;
-	UE_LOG(LogTemp, Warning, TEXT("ServerSideRewind(): Actor location: %s"), *pHitCharacter->GetActorLocation().ToString());
-	UE_LOG(LogTemp, Warning, TEXT("ServerSideRewind(): Head location: %s"), *location.ToString());
-	
 	if (shouldInterpolate)
 	{
 		frameToCheck = InterpolateBetweenFrames(pOlder->GetValue(), pYounger->GetValue(), hitTime);
 	}
-
-	ShowFramePackage(frameToCheck, FColor::Blue);
-	DrawDebugSphere(GetWorld(), frameToCheck.HitBoxInfo["head"].Location, 30.f, 12, FColor::Green, true);
-
 
 	return ConfirmHit(frameToCheck, pHitCharacter, traceStart, traceEnd);
 }
@@ -132,7 +124,7 @@ void ULagCompensationComponent::ServerDamageRequest_Implementation(ABlasterChara
 	AWeapon* pDamageCauser)
 {
 	const FServerSideRewindResult result = ServerSideRewind(pHitCharacter, traceStart, traceEnd, hitTime);
-
+	
 	if (!pHitCharacter || !result.WasHitConfirmed || !pDamageCauser) return;
 
 	UGameplayStatics::ApplyDamage(pHitCharacter, pDamageCauser->GetDamage(), pHitCharacter->GetController(),
@@ -143,11 +135,10 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
                                                               ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd)
 {
 	if (!pHitCharacter) return FServerSideRewindResult{};
-
+	
 	FFramePackage currentFrame{};
 	GetPlayerHitBoxes(pHitCharacter, currentFrame);
 	MovePlayerHitBoxes(pHitCharacter, framePackage);
-	DrawDebugSphere(GetWorld(), traceEnd, 10.f, 12, FColor::Red, true, 1.f);
 	
 	UBoxComponent* pHeadBox = pHitCharacter->HitBoxes["head"];
 	pHeadBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -155,11 +146,9 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 
 	FHitResult hitResult{};
 	const FVector end = traceStart + (traceEnd - traceStart) * 1.25f;
-	DrawDebugLine(GetWorld(), traceStart, end, FColor::Red, true, 1.f, 0, 1.f);
 
 	//Temporarily disable the player's mesh collision so that it doesn't get in the way of the line trace
 	pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
 	GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, end, ECC_Visibility);
 	if (hitResult.bBlockingHit) //we got a headshot
 	{
@@ -167,7 +156,6 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 		pHitCharacter->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		return FServerSideRewindResult{true, true};
 	}
-
 	
 	//If we reach here that means it's not a head shot
 	for (const auto& hitBox : pHitCharacter->HitBoxes)
@@ -177,7 +165,6 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 		hitBox.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		hitBox.Value->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	}
-	
 	hitResult = {};
 	GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, end, ECC_Visibility);
 	if (hitResult.bBlockingHit)
@@ -205,13 +192,6 @@ void ULagCompensationComponent::GetPlayerHitBoxes(ABlasterCharacter* pHitCharact
 		boxInfo.BoxExtend = hitBox.Value->GetScaledBoxExtent();
 
 		outFramePackage.HitBoxInfo.Add(hitBox.Key, boxInfo);
-
-		if (hitBox.Key == "head")
-		{
-			FVector location = hitBox.Value->GetComponentLocation();
-			UE_LOG(LogTemp, Warning, TEXT("GetPlayerHitBoxes(): Actor location: %s"), *pHitCharacter->GetActorLocation().ToString());
-			UE_LOG(LogTemp, Warning, TEXT("GetPlayerHitBoxes(): Head location: %s"), *location.ToString());
-		}
 	}
 }
 	
@@ -224,31 +204,25 @@ void ULagCompensationComponent::MovePlayerHitBoxes(ABlasterCharacter* pHitCharac
 		{
 			HitBoxPair.Value->SetWorldLocation(outFramePackage.HitBoxInfo[HitBoxPair.Key].Location);
 			HitBoxPair.Value->SetWorldRotation(outFramePackage.HitBoxInfo[HitBoxPair.Key].Rotation);
-			HitBoxPair.Value->SetBoxExtent(outFramePackage.HitBoxInfo[HitBoxPair.Key].BoxExtend);
+			//HitBoxPair.Value->SetBoxExtent(outFramePackage.HitBoxInfo[HitBoxPair.Key].BoxExtend);
+			//setting the box extent is causing it to shrink
 		}
-	}
-
-	if (outFramePackage.HitBoxInfo.Contains("head"))
-	{
-		FVector location = pHitCharacter->HitBoxes["head"]->GetComponentLocation();
-		UE_LOG(LogTemp, Warning, TEXT("MovePlayerHitBoxes(): Actor location: %s"), *pHitCharacter->GetActorLocation().ToString());
-		UE_LOG(LogTemp, Warning, TEXT("MovePlayerHitBoxes(): Head location: %s"), *location.ToString());
 	}
 }
 
 void ULagCompensationComponent::ResetPlayerHitBoxes(ABlasterCharacter* pHitCharacter,
-	const FFramePackage& outFramePackage)
+	const FFramePackage& package)
 {
 	if (!pHitCharacter) return;
 
-	for (const auto& hitBox : pHitCharacter->HitBoxes)
+	for (auto& hitBox : pHitCharacter->HitBoxes)
 	{
 		if (hitBox.Value == nullptr) continue;
 		
-		const FBoxInformation& boxInfo = outFramePackage.HitBoxInfo[hitBox.Key];
-		hitBox.Value->SetWorldLocation(boxInfo.Location);
-		hitBox.Value->SetWorldRotation(boxInfo.Rotation);
-		hitBox.Value->SetBoxExtent(boxInfo.BoxExtend);
+		hitBox.Value->SetWorldLocation(package.HitBoxInfo[hitBox.Key].Location);
+		hitBox.Value->SetWorldRotation(package.HitBoxInfo[hitBox.Key].Rotation);
+		//hitBox.Value->SetBoxExtent(package.HitBoxInfo[hitBox.Key].BoxExtend);
+		//setting the box extent is causing it to shrink
 		hitBox.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }

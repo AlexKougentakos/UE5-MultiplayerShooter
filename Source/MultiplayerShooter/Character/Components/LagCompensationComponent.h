@@ -74,5 +74,5 @@ private:
 	FServerSideRewindResult ConfirmHit(const FFramePackage& framePackage, ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd);
 	void GetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, FFramePackage& outFramePackage);
 	void MovePlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& outFramePackage);
-	void ResetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& outFramePackage);
+	void ResetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& package);
 };

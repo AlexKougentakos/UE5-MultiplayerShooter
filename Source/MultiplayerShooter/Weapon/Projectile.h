@@ -67,8 +67,12 @@ protected:
 	void StartDestroyTimer();
 	void DestroyTimerFinished();
 	void DoDamageWithFallOff(const float innerDamageRadius, const float outerDamageRadius, const float damageAmount);
-
-	UPROPERTY(EditAnywhere, DisplayName = "Damage", Category = "Projectile Stats")
+		
+	UPROPERTY(EditAnywhere, Category = "Projectile", DisplayName = "Use Server Side Rewind")
+	bool m_UseServerSideRewind = false;
+	
+	FVector_NetQuantize m_SpawnLocation{};
+	FVector_NetQuantize100 m_InitialVelocity{};
 	float m_Damage{ 20.0f };
 
 	UPROPERTY(EditAnywhere, DisplayName = "Damage Fall Off Inner Radius", Category = "Projectile Stats")
@@ -101,10 +105,14 @@ protected:
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Impact Sound", Category = "Effects|Impact")
 	USoundCue* m_pImpactSound{};
 
+
 	UPROPERTY(EditAnywhere, DisplayName = "Trail Effect", Category = "Effects")
 	UNiagaraSystem* m_pTrailEffect{};
 	UNiagaraComponent* m_pTrailEffectComponent{};
-	
-
-
+public:
+	void SetServerSideRewind(const bool useServerSideRewind) { m_UseServerSideRewind = useServerSideRewind; }
+	void SetInitialVelocity(const FVector& initialVelocity) { m_InitialVelocity = initialVelocity; }
+	void SetSpawnLocation(const FVector& spawnLocation) { m_SpawnLocation = spawnLocation; }
+	const UProjectileMovementComponent* GetProjectileMovementComponent() const { return m_pProjectileMovementComponent; }
+	void SetDamage(const float damage) { m_Damage = damage; }
 };

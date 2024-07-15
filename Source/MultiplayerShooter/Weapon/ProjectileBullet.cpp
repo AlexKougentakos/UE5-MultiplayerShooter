@@ -15,6 +15,27 @@ AProjectileBullet::AProjectileBullet()
 	m_pProjectileMovementComponent->SetIsReplicated(true);
 }
 
+void AProjectileBullet::BeginPlay()
+{
+	Super::BeginPlay();
+
+	FPredictProjectilePathParams pathParams{};
+	pathParams.bTraceWithChannel = true;
+	pathParams.bTraceWithCollision = true;
+	pathParams.DrawDebugTime = 5.f;
+	pathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+	pathParams.LaunchVelocity = GetActorForwardVector() * m_pProjectileMovementComponent->InitialSpeed;
+	pathParams.MaxSimTime = 4.f;
+	pathParams.ProjectileRadius = 5.f;
+	pathParams.SimFrequency = 30.f;
+	pathParams.StartLocation = GetActorLocation();
+	pathParams.TraceChannel = ECC_Visibility;
+	pathParams.ActorsToIgnore.Add(this);
+	FPredictProjectilePathResult pathResult{};
+	
+	UGameplayStatics::PredictProjectilePath(this, pathParams, pathResult);
+}
+
 void AProjectileBullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
                               UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {

@@ -32,4 +32,7 @@ private:
 	APlayerController* m_pPlayerController{};
 	UFUNCTION()
 	void OnDestroySession(const bool wasSuccessful);
+
+	UFUNCTION()
+	void OnPlayerLeftGame();
 };

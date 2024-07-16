@@ -10,10 +10,11 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
+
 class ULagCompensationComponent;
 class UBoxComponent;
 class UBuffComponent;
-//Forward declarations
 class ABlasterPlayerState;
 class USoundCue;
 class UCombatComponent;
@@ -39,8 +40,8 @@ public:
 	virtual void Destroyed() override;
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastEliminated();
-	void Eliminated();
+	void MulticastEliminated(const bool playerLeftGame = false);
+	void Eliminated(const bool playerLeftGame = false);
 
 	void PlayFireMontage(const bool isAiming) const;
 	void PlayHitReactMontage() const;
@@ -100,6 +101,11 @@ public:
 
 	UPROPERTY()
 	TMap<FName, UBoxComponent*> HitBoxes{};
+
+	FOnLeftGame OnLeftGame{};
+	
+	UFUNCTION(Server, Reliable)
+	void ServerLeaveGame();
 	
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
@@ -192,13 +198,7 @@ private: // Variables
 
 	UPROPERTY(ReplicatedUsing = OnRep_Shield, VisibleAnywhere, DisplayName = "Current Shield", Category = "Player Stats")
 	float m_CurrentShield{0.f};
-
-	UFUNCTION()
-	void OnRep_Health(float lastHealth);
-
-	UFUNCTION()
-	void OnRep_Shield(float lastShieldValue);
-
+	
 	ABlasterPlayerController* m_pPlayerController{};
 	bool m_IsAlive{};
 
@@ -215,9 +215,6 @@ private: // Variables
 	UTimelineComponent* m_pDissolveTimeLine{};
 	FOnTimelineFloat m_DissolveTrack{};
 
-	UFUNCTION()
-	void UpdateDissolveMaterial(float dissolveValue);
-	void StartDissolve();
 
 	UPROPERTY(EditAnywhere, DisplayName = "Dissolve Curve", Category = "Animation|Dissolve")
 	UCurveFloat* m_pDissolveCurve{};
@@ -243,10 +240,21 @@ private: // Variables
 
 	UPROPERTY(EditAnywhere, DisplayName = "Starting Weapon", Category = "Player Stats")
 	TSubclassOf<AWeapon> m_DefaultWeaponClass;
+	/*
+	 * PLAYER LEFT GAME
+	 */
+	bool m_PlayerLeftGame{};
+
 	
 private: // Functions
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(const  AWeapon* const pOldWeapon) const;
+
+	UFUNCTION()
+	void OnRep_Health(float lastHealth);
+
+	UFUNCTION()
+	void OnRep_Shield(float lastShieldValue);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
@@ -273,6 +281,11 @@ private: // Functions
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatedBy, AActor* damageCauser);
+
+	
+	UFUNCTION()
+	void UpdateDissolveMaterial(float dissolveValue);
+	void StartDissolve();
 	
 public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);
@@ -308,5 +321,4 @@ public: // Getters & Setters
 	ECombatState GetCombatState() const;
 
 	void SetDisabledGameplay(const bool disabled) { m_DisabledGameplay = disabled; }
-	
 };

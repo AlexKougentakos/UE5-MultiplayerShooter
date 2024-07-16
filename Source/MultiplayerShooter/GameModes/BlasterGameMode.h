@@ -31,6 +31,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void OnMatchStateSet() override;
+
+	void PlayerLeftGame(ABlasterPlayerState* pPlayerState);
 private:
 	TArray<AActor*> m_PlayerStarts{};
 

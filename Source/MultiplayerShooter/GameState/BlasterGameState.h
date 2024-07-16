@@ -25,5 +25,5 @@ private:
 
 	float m_TopScore{};	
 public:
-	const TArray<ABlasterPlayerState*>& GetTopScoringPlayers() const {return m_TopScoringPlayers;}
+	TArray<ABlasterPlayerState*>& GetTopScoringPlayers() {return m_TopScoringPlayers;}
 };

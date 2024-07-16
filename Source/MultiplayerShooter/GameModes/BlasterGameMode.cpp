@@ -106,3 +106,18 @@ void ABlasterGameMode::RequestRespawn(ABlasterCharacter* pCharacterToRespawn,
 	const int32 selection = FMath::RandRange(0, m_PlayerStarts.Num() - 1);
 	RestartPlayerAtPlayerStart(pPlayerController, m_PlayerStarts[selection]);
 }
+
+
+void ABlasterGameMode::PlayerLeftGame(ABlasterPlayerState* pPlayerState)
+{ 
+	//we have to remove the player from the top scoring players list
+	//otherwise the reference is null
+	ABlasterGameState* pGameState = GetGameState<ABlasterGameState>();
+	if (pGameState && pGameState->GetTopScoringPlayers().Contains(pPlayerState))
+	{
+		pGameState->GetTopScoringPlayers().Remove(pPlayerState);
+	}
+
+	ABlasterCharacter* pCharacter =  Cast<ABlasterCharacter>(pPlayerState->GetPawn());
+	if (pCharacter) pCharacter->Eliminated(true);
+}

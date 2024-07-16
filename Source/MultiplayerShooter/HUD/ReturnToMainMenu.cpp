@@ -3,6 +3,7 @@
 #include "MultiplayerSessionsSubsystem.h"
 #include "Components/Button.h"
 #include "GameFramework/GameModeBase.h"
+#include "MultiplayerShooter/Character/BlasterCharacter.h"
 
 void UReturnToMainMenu::MenuSetup()
 {
@@ -27,7 +28,7 @@ void UReturnToMainMenu::MenuSetup()
 	m_pSessionsSubsystem = pGameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 	if (!m_pSessionsSubsystem) return;
 
-	if (!m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.IsBound())
+	//if (!m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.IsBound())
 		m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UReturnToMainMenu::OnDestroySession);
 
 	checkf(ReturnButton, TEXT("ReturnButton is nullptr"));
@@ -67,7 +68,20 @@ bool UReturnToMainMenu::Initialize()
 void UReturnToMainMenu::ReturnButtonClicked()
 {
 	ReturnButton->SetIsEnabled(false);
-	m_pSessionsSubsystem->DestroySession();
+
+	const APlayerController* pPlayerController = GetWorld()->GetFirstPlayerController();
+	if (!pPlayerController) return;
+
+	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>( pPlayerController->GetPawn());
+	if (pCharacter)
+	{
+		pCharacter->ServerLeaveGame();
+		pCharacter->OnLeftGame.AddDynamic(this, &ThisClass::OnPlayerLeftGame);
+	}
+	else
+	{
+		ReturnButton->SetIsEnabled(true);
+	}
 }
 
 void UReturnToMainMenu::OnDestroySession(const bool wasSuccessful)
@@ -92,4 +106,9 @@ void UReturnToMainMenu::OnDestroySession(const bool wasSuccessful)
 	}
 
 	
+}
+
+void UReturnToMainMenu::OnPlayerLeftGame()
+{
+	m_pSessionsSubsystem->DestroySession();
 }

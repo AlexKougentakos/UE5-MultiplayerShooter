@@ -274,10 +274,10 @@ void ABlasterCharacter::Destroyed()
 	if (m_pEliminationBotEffectComponent) m_pEliminationBotEffectComponent->DestroyComponent();
 }
 
-void ABlasterCharacter::Eliminated()
+void ABlasterCharacter::Eliminated(const bool playerLeftGame)
 {
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
-
+	
 	if (m_pCombat->HasWeapon())
 	{
 		if (m_pCombat->m_pEquippedWeapon->ShouldDestroyWeapon())
@@ -287,12 +287,12 @@ void ABlasterCharacter::Eliminated()
 	}
 	if (m_pCombat->HasSecondaryWeapon()) m_pCombat->m_pSecondaryWeapon->Drop();
 	
-	MulticastEliminated();
-	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);
+	MulticastEliminated(playerLeftGame);
 }
 
-void ABlasterCharacter::MulticastEliminated_Implementation()
+void ABlasterCharacter::MulticastEliminated_Implementation(const bool playerLeftGame)
 {
+	m_PlayerLeftGame = playerLeftGame;
 	if (m_pPlayerController) m_pPlayerController->ShowAmmo(false);
 	
 	m_IsAlive = false;
@@ -335,11 +335,20 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 		m_pCombat->HasWeapon() &&
 		m_pCombat->m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper
 		&& m_pCombat->m_IsAiming) ShowSniperScopeWidget(false);
+	
+	GetWorldTimerManager().SetTimer(m_EliminationTimer, this, &ABlasterCharacter::EliminationTimerFinished, m_RespawnTimer);
 }
 
 void ABlasterCharacter::EliminationTimerFinished()
 {
-	GetWorld()->GetAuthGameMode<ABlasterGameMode>()->RequestRespawn(this, m_pPlayerController);
+	if (m_PlayerLeftGame && IsLocallyControlled())
+	{
+		UE_LOG(LogTemp,Warning,TEXT("Player left game"));
+		OnLeftGame.Broadcast();
+		return;
+	}
+	if (!m_PlayerLeftGame)
+		GetWorld()->GetAuthGameMode<ABlasterGameMode>()->RequestRespawn(this, m_pPlayerController);
 }
 
 void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
@@ -793,6 +802,16 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 		m_pCombat->SwapWeapons();
 	
 	m_pCombat->EquipWeapon(m_pOverlappingWeapon);
+}
+
+void ABlasterCharacter::ServerLeaveGame_Implementation()
+{
+	ABlasterGameMode* pGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	ABlasterPlayerState* pPlayerState = GetPlayerState<ABlasterPlayerState>();
+	if (pGameMode && pPlayerState)
+	{
+		pGameMode->PlayerLeftGame(pPlayerState);
+	}
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* const pWeapon)

@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
 
+class UReturnToMainMenu;
 class ABlasterGameMode;
 class UCharacterOverlay;
 class ABlasterHUD;
@@ -19,6 +20,7 @@ class MULTIPLAYERSHOOTER_API ABlasterPlayerController : public APlayerController
 public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void SetupInputComponent() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnPossess(APawn* InPawn) override;
 	void HandleHighPingWarning(float DeltaSeconds);
@@ -86,6 +88,12 @@ private:
 	void ClientJoinedMidGame(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime, float cooldownDuration);
 	
 	UCharacterOverlay* m_pCharacterOverlay{};
+	
+	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Return To Main Menu Widget Class")
+	TSubclassOf<UUserWidget> m_ReturnToMainMenuWidgetClass{};
+	UReturnToMainMenu* m_pReturnToMainMenuWidget{};
+	bool m_IsReturnToMainMenuOpen{false};
+	void ShowReturnToMainMenu();
 
 	float m_TimeSinceLastHighPingWarning{0.f};
 	float m_CurrentHighPingAnimationElapsedTime{0.f};

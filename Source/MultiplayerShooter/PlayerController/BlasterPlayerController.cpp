@@ -12,6 +12,7 @@
 #include "MultiplayerShooter/HUD/Announcement.h"
 #include "MultiplayerShooter/HUD/BlasterHUD.h"
 #include "MultiplayerShooter/HUD/CharacterOverlay.h"
+#include "MultiplayerShooter/HUD/ReturnToMainMenu.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -71,6 +72,14 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	HandleHighPingWarning(DeltaSeconds);
 	HandleTimeSync(DeltaSeconds);
 	PollInitialize();
+}
+
+void ABlasterPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	checkf(InputComponent, TEXT("InputComponent is null"));
+	InputComponent->BindAction("Quit", IE_Pressed, this, &ThisClass::ShowReturnToMainMenu);
 }
 
 
@@ -396,6 +405,26 @@ void ABlasterPlayerController::OnRep_MatchState()
 	if (m_MatchState == MatchState::Cooldown)
 	{
 		HandleCooldown();
+	}
+}
+
+void ABlasterPlayerController::ShowReturnToMainMenu()
+{
+	checkf(m_ReturnToMainMenuWidgetClass, TEXT("Return to main menu widget class is null"));
+	
+	if (!m_pReturnToMainMenuWidget)
+	{
+		m_pReturnToMainMenuWidget = CreateWidget<UReturnToMainMenu>(this, m_ReturnToMainMenuWidgetClass);
+	}
+
+	m_IsReturnToMainMenuOpen = !m_IsReturnToMainMenuOpen;
+	if (m_IsReturnToMainMenuOpen)
+	{
+		m_pReturnToMainMenuWidget->MenuSetup();
+	}
+	else
+	{
+		m_pReturnToMainMenuWidget->MenuTeardown();
 	}
 }
 

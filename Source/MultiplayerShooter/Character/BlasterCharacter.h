@@ -47,6 +47,7 @@ public:
 	void PlayEliminationMontage() const;
 	void PlayRifleReloadMontage() const;
 	void PlayThrowGrenadeMontage() const;
+	void PlayWeaponSwapMontage() const;
 	
 	UFUNCTION(NetMulticast, Unreliable) //Unreliable because it's a cosmetic effect that will mostly go unnoticed with so many hits
 	void MulticastHit();
@@ -130,6 +131,8 @@ private: // Variables
 	float m_ElapsedPollingTime{0.f};
 	const float m_MaxPollingTime{3.f};
 
+	bool m_FinishedSwappingWeapons{};
+
 	FRotator m_LastFrameRotation{};
 
 	ABlasterPlayerState* m_pBlasterPlayerState{};
@@ -156,6 +159,9 @@ private: // Variables
 
 	UPROPERTY(EditAnywhere, DisplayName = "Grenade Throw Montage", Category = "Animation")
 	UAnimMontage* m_pGrenadeThrowMontage{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Weapon Swap Montage", Category = "Animation")
+	UAnimMontage* m_pWeaponSwapMontage{};
 
 	
 	void HideCameraWhenPlayerIsClose();
@@ -288,7 +294,9 @@ public: // Getters & Setters
 	
 	bool IsAlive() const { return m_IsAlive; }
 	bool IsLocallyReloading() const { return m_pCombat->m_IsLocallyReloading; }
-
+	bool HasFinishedSwappingWeapons() const { return m_FinishedSwappingWeapons; }
+	void SetFinishedSwappingWeapons(const bool finished) { m_FinishedSwappingWeapons = finished; }
+	
 	float GetMaxHealth() const { return m_MaxHealth; }
 	float GetCurrentHealth() const { return m_CurrentHealth; }
 	void AddHealth(const float amount) {m_CurrentHealth = FMath::Clamp(m_CurrentHealth + amount, 0.f, m_MaxHealth);}
@@ -300,4 +308,5 @@ public: // Getters & Setters
 	ECombatState GetCombatState() const;
 
 	void SetDisabledGameplay(const bool disabled) { m_DisabledGameplay = disabled; }
+	
 };

@@ -52,8 +52,7 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float deltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(deltaTime, TickType, ThisTickFunction);
-
-
+	
 	if (m_pCharacter->IsLocallyControlled())
 	{
 		FHitResult hitResult{};
@@ -223,7 +222,9 @@ void UCombatComponent::OnRep_CombatState()
 			m_pCharacter->PlayThrowGrenadeMontage();
 		}
 		break;
-	case ECombatState::ECS_MAX:
+	case ECombatState::ECS_SwappingWeapons:
+		if (!m_pCharacter->IsLocallyControlled()) //we already played the animation locally for the player to avoid delays
+			m_pCharacter->PlayWeaponSwapMontage();
 		break;
 	}
 }
@@ -241,7 +242,6 @@ void UCombatComponent::SetAiming(const bool isAiming)
 
 	if (m_pCharacter->IsLocallyControlled()) m_IsAimButtonPressed = isAiming;
 }
-
 
 void UCombatComponent::OnRep_Aiming()
 {
@@ -411,6 +411,7 @@ void UCombatComponent::ShotgunLocalFire(const TArray<FVector_NetQuantize>& trace
 	checkf(pShotgun, TEXT("Equipped weapon is not a shotgun"));
 	pShotgun->FireShotgun(traceHitLocations);
 	m_CombatState = ECombatState::ECS_Unoccupied;
+	m_IsLocallyReloading = false;
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
@@ -452,43 +453,17 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 
 void UCombatComponent::SwapWeapons()
 {
+	if (m_CombatState != ECombatState::ECS_Unoccupied || !m_pCharacter->HasAuthority()) return;
 	
-	AWeapon* pTempWeapon = m_pEquippedWeapon;
-	m_pEquippedWeapon = m_pSecondaryWeapon;
-	m_pSecondaryWeapon = pTempWeapon;
+	m_pCharacter->PlayWeaponSwapMontage();
+	m_CombatState = ECombatState::ECS_SwappingWeapons;
 
-	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
-	{
-		m_CarriedAmmo = m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()];
-	}
-	
-	/*
-	 *	PRIMARY WEAPON 
-	 */
-	UpdateAmmoHud();
+	m_pCharacter->SetFinishedSwappingWeapons(false);
+}
 
-	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-
-	if (weaponSocket)
-		weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
-
-	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
-
-	if (!m_pEquippedWeapon->HasAmmoInMagazine())
-	{
-		Reload();
-	}
-	
-	m_pEquippedWeapon->SetOwner(m_pCharacter);
-	m_pEquippedWeapon->UpdateHudAmmo();
-
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	/*
-	 *	SECONDARY WEAPON 
-	 */
-	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
-	AttachActorToBackpack(m_pSecondaryWeapon);
+bool UCombatComponent::ShouldSwapWeapons() const
+{
+	return HasWeapon() && HasSecondaryWeapon() && m_CombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
@@ -631,6 +606,11 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 		m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.5f, deltaTime, 30.f);
 	else
 		m_CrosshairAimFactor = FMath::FInterpTo(m_CrosshairAimFactor, 0.f, deltaTime, 30.f);
+	if (m_pCharacter->GetMovementComponent()->IsCrouching())
+		m_CrosshairCrouchingFactor = FMath::FInterpTo(m_CrosshairCrouchingFactor, 0.5f, deltaTime, 30.f);
+	else
+		m_CrosshairCrouchingFactor = FMath::FInterpTo(m_CrosshairCrouchingFactor, 0.f, deltaTime, 30.f);
+		
 
 	m_CrosshairShootingFactor = FMath::FInterpTo(m_CrosshairShootingFactor, 0.f, deltaTime, 30.f);
 
@@ -640,21 +620,25 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 		crosshairVelocityFactor + // How fast you are moving
 		m_CrosshairShootingFactor + // If you are shooting
 		m_CrosshairInAirFactor -  //if you are in the air
-		m_CrosshairAimFactor; //if you are aiming
+		m_CrosshairAimFactor - //if you are aiming
+		m_CrosshairCrouchingFactor; //if you are crouching
 	
 	m_pHud->SetHudPackage(m_HudPackage);
-	
 }
 
 bool UCombatComponent::CanFire() const
 {
 	if (!HasWeapon()) return false;
-	return m_CanFire &&
-		m_IsFireButtonPressed &&
+	//Special exception where you can fire the shotgun if you are reloading
+	if (m_CanFire &&
 		m_pEquippedWeapon->HasAmmoInMagazine() &&
-		//Special exception where you can fire the shotgun if you are reloading
-		(m_CombatState == ECombatState::ECS_Unoccupied || (m_CombatState == ECombatState::ECS_Reloading && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)) &&
-		!m_IsLocallyReloading;
+		m_CombatState == ECombatState::ECS_Reloading &&
+		m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun) return true;
+
+	if (m_IsLocallyReloading) return false;
+	
+	return m_CanFire && m_IsFireButtonPressed && m_pEquippedWeapon->HasAmmoInMagazine() && m_CombatState == ECombatState::ECS_Unoccupied; 
+	
 }
 
 void UCombatComponent::FinishedReloading()
@@ -668,7 +652,57 @@ void UCombatComponent::FinishedReloading()
 	}
 
 	if (m_IsFireButtonPressed) Fire();
-		
+}
+
+void UCombatComponent::FinishedWeaponSwap()
+{
+	if (m_pCharacter->HasAuthority())
+	{
+		m_CombatState = ECombatState::ECS_Unoccupied;
+	}
+
+	m_pCharacter->SetFinishedSwappingWeapons(true);
+}
+
+void UCombatComponent::FinishedWeaponSwapAttachment()
+{
+	AWeapon* pTempWeapon = m_pEquippedWeapon;
+	m_pEquippedWeapon = m_pSecondaryWeapon;
+	m_pSecondaryWeapon = pTempWeapon;
+	
+	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
+	{
+		m_CarriedAmmo = m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()];
+	}
+	
+	/*
+	 *	PRIMARY WEAPON 
+	 */
+	UpdateAmmoHud();
+
+	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+
+	if (weaponSocket)
+		weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
+
+	UE_LOG(LogTemp, Warning, TEXT("Sound"));
+	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+
+	if (!m_pEquippedWeapon->HasAmmoInMagazine())
+	{
+		Reload();
+	}
+	
+	m_pEquippedWeapon->SetOwner(m_pCharacter);
+	m_pEquippedWeapon->UpdateHudAmmo();
+
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	/*
+	 *	SECONDARY WEAPON 
+	 */
+	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	AttachActorToBackpack(m_pSecondaryWeapon);
 }
 
 void UCombatComponent::ThrowGrenade()
@@ -683,7 +717,6 @@ void UCombatComponent::ThrowGrenade()
 	if (!m_pCharacter->HasAuthority())
 		ServerThrowGranade();
 }
-
 
 void UCombatComponent::ServerThrowGranade_Implementation()
 {
@@ -704,4 +737,3 @@ void UCombatComponent::InterpolateFOV(const float deltaTime)
 
 	m_pCharacter->GetFollowCamera()->SetFieldOfView(m_CurrentFOV);
 }
-

@@ -82,8 +82,13 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void FinishedReloading();
 
+	UFUNCTION(BlueprintCallable)
+	void FinishedWeaponSwap();
+	
+	UFUNCTION(BlueprintCallable)
+	void FinishedWeaponSwapAttachment();
+	
 	void ThrowGrenade();
-
 	UFUNCTION(Server, Reliable)
 	void ServerThrowGranade();
 
@@ -120,6 +125,7 @@ private:
 	float m_CrosshairInAirFactor{};
 	float m_CrosshairAimFactor{};
 	float m_CrosshairShootingFactor{};
+	float m_CrosshairCrouchingFactor{};
 	FHUDPackage m_HudPackage{};
 	
 	FVector m_HitTarget{};

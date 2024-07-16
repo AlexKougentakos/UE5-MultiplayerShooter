@@ -185,7 +185,7 @@ void ABlasterCharacter::PollInitialize(float deltaTime)
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 	PollInitialize(DeltaTime);
 	
 	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
@@ -390,6 +390,15 @@ void ABlasterCharacter::PlayThrowGrenadeMontage() const
 	pAnimInstance->Montage_Play(m_pGrenadeThrowMontage, 1.f);
 }
 
+void ABlasterCharacter::PlayWeaponSwapMontage() const
+{
+	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
+	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
+	checkf(m_pWeaponSwapMontage, TEXT("Weapon Swap Montage is nullptr"));
+
+	pAnimInstance->Montage_Play(m_pWeaponSwapMontage, 1.f);
+}
+
 void ABlasterCharacter::PlayRifleReloadMontage() const
 {
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
@@ -516,7 +525,13 @@ void ABlasterCharacter::EquipButtonPressed()
 {
 	if (!m_pCombat || m_DisabledGameplay) return;
 	
-	ServerEquipButtonPressed();
+	if (m_pCombat->m_CombatState == ECombatState::ECS_Unoccupied) ServerEquipButtonPressed();
+	if (m_pCombat->ShouldSwapWeapons() && !HasAuthority() && m_pOverlappingWeapon == nullptr)
+	{
+		PlayWeaponSwapMontage();
+		m_pCombat->m_CombatState = ECombatState::ECS_SwappingWeapons;
+		m_FinishedSwappingWeapons = false;
+	}
 }
 
 void ABlasterCharacter::CrouchButtonPressed()

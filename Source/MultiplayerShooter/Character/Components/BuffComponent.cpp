@@ -89,7 +89,6 @@ void UBuffComponent::BuffSpeed(const float baseSpeed, const float crouchedSpeed,
 
 void UBuffComponent::ResetSpeed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Resetting speed"));
 	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = m_InitialBaseSpeed;
 	m_pCharacter->GetCharacterMovement()->MaxWalkSpeedCrouched = m_InitialCrouchedSpeed;
 	MulticastSpeedBuff(m_InitialBaseSpeed, m_InitialCrouchedSpeed);

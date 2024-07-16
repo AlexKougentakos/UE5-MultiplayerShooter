@@ -146,7 +146,6 @@ void UCombatComponent::UpdateAmmoHud()
 	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
 	if (m_pPlayerController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Updating HUD Ammo"));
 		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
 		m_pPlayerController->ShowAmmo(true);
 	}
@@ -293,7 +292,6 @@ void UCombatComponent::FireWeaponBasedOnFireType()
 		FireProjectileWeapon();
 		break;
 	case EFireType::EFT_Shotgun:
-		UE_LOG(LogTemp, Warning, TEXT("Firing shotgun"));
 		FireShotgun();
 		break;;
 	}
@@ -319,8 +317,7 @@ void UCombatComponent::FireShotgun()
 	TArray<FVector_NetQuantize> outShotLocations{};
 	const AShotgun* pShotgun = Cast<AShotgun>(m_pEquippedWeapon);
 	checkf(pShotgun, TEXT("Equipped weapon is not a shotgun"));
-
-	UE_LOG(LogTemp, Warning, TEXT("Firing shotgun 2"));
+	
 	pShotgun->ShotgunGetVectorWithSpread(m_HitTarget, outShotLocations);
 	if(!m_pCharacter->HasAuthority()) ShotgunLocalFire(outShotLocations); //We don't want to shoot twice on the server
 	ShotgunServerFire(outShotLocations);
@@ -468,8 +465,6 @@ void UCombatComponent::SwapWeapons()
 	/*
 	 *	PRIMARY WEAPON 
 	 */
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	
 	UpdateAmmoHud();
 
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
@@ -488,6 +483,7 @@ void UCombatComponent::SwapWeapons()
 	m_pEquippedWeapon->SetOwner(m_pCharacter);
 	m_pEquippedWeapon->UpdateHudAmmo();
 
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	/*
 	 *	SECONDARY WEAPON 
 	 */
@@ -497,9 +493,7 @@ void UCombatComponent::SwapWeapons()
 
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
 {
-		
 	m_pEquippedWeapon = pWeapon;
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	
 	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
 	{
@@ -524,18 +518,20 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
 	
 	m_pEquippedWeapon->SetOwner(m_pCharacter);
 	m_pEquippedWeapon->UpdateHudAmmo();
+	
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 }
 
 void UCombatComponent::EquipSecondaryWeapon(AWeapon* const pWeapon)
 {
 	m_pSecondaryWeapon = pWeapon;
-	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	m_pSecondaryWeapon->SetOwner(m_pCharacter);
 	AttachActorToBackpack(pWeapon);
 	
 	checkf(m_pSecondaryWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
 	
-	m_pSecondaryWeapon->SetOwner(m_pCharacter);
+	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 }
 
 void UCombatComponent::AttachActorToBackpack(AActor* const pActor)
@@ -551,12 +547,6 @@ void UCombatComponent::AttachActorToBackpack(AActor* const pActor)
 void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (!m_pEquippedWeapon) return;
-	UE_LOG(LogTemp, Warning, TEXT("Carried Ammo: %d"), m_CarriedAmmo);
-
-	//I repeat this here because we have two things that are replicated, the weapon state and the attachment of the weapon to the character
-	// Just because I called one before the other doesn't guarantee that it will happen first so there's a chance that the weapon will be attached to the character before the weapon state is set
-	// meaning that the weapon will still have physics enabled when you pick it up, which is why I am explicitly setting it here
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
@@ -578,17 +568,23 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	UpdateAmmoHud();
 	m_pEquippedWeapon->UpdateHudAmmo();
 	UpdateAmmoValues(true);
+
+	//I repeat this here because we have two things that are replicated, the weapon state and the attachment of the weapon to the character
+	// Just because I called one before the other doesn't guarantee that it will happen first so there's a chance that the weapon will be attached to the character before the weapon state is set
+	// meaning that the weapon will still have physics enabled when you pick it up, which is why I am explicitly setting it here
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon()
 {
 	if (m_pSecondaryWeapon)
 	{
-		m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 		AttachActorToBackpack(m_pSecondaryWeapon);
 		
 		checkf(m_pSecondaryWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
+		
+		m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	}
 }
 

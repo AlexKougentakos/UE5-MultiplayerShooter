@@ -76,7 +76,7 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 			if (!pair.Key || !pOwnerController) continue;
 			
 			hitCharacters.Emplace(pair.Key);
-			if (HasAuthority() && !m_UseServerSideRewind)
+			if (HasAuthority() && (!m_UseServerSideRewind || pOwnerPawn->IsLocallyControlled()))
 			{
 				UGameplayStatics::ApplyDamage(pair.Key, m_Damage * pair.Value, pOwnerController, this, UDamageType::StaticClass());
 			}

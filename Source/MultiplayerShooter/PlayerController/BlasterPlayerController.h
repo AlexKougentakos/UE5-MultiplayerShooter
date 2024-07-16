@@ -9,9 +9,9 @@
 class ABlasterGameMode;
 class UCharacterOverlay;
 class ABlasterHUD;
-/**
- * 
- */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, isPingTooHigh);
+
 UCLASS()
 class MULTIPLAYERSHOOTER_API ABlasterPlayerController : public APlayerController
 {
@@ -23,13 +23,13 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 	void HandleHighPingWarning(float DeltaSeconds);
 	virtual void ReceivedPlayer() override; // This is the earliest we can get the time from the player so we can have an accurate time sync
-
-
+	
 	void OnMatchStateSet(const FName state);
 
 	void HighPingWarning();
 	void StopHighPingWarning();
 
+	FHighPingDelegate OnHighPingWarning;
 private:
 	ABlasterHUD* m_pHUD{};
 	ABlasterGameMode* m_pGameMode{};
@@ -71,6 +71,8 @@ private:
 	//Every so often we will request the server time to keep the client in sync
 	void HandleTimeSync(float DeltaSeconds);
 
+	bool m_CheckPingFlag{false};
+
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName m_MatchState{};
 
@@ -95,6 +97,8 @@ private:
 	float m_HighPingCheckFrequency{20.f};
 	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "High Ping Threshold")
 	float m_HighPingThreshold{100.f};
+	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "Server Side Rewind Ping Cap")
+	float m_ServerSideRewindPingCap{150.f};
 	UPROPERTY(EditAnywhere, Category = "Ping", DisplayName = "Ping Update Frequency")
 	float m_PingUpdateFrequency{1.f};
 
@@ -127,5 +131,10 @@ public:
 	
 	float GetSingleTripTime() const { return m_SingleTripTime; }
 	float GetServerTime() const; // Synced with server world time
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportPingStatus(bool highPing);
+
+	void MarkPingCheckFlag() { m_CheckPingFlag = true; }
 };
 

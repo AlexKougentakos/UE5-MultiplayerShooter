@@ -137,11 +137,12 @@ protected:
 
 		UPROPERTY(EditAnywhere, DisplayName = "Sphere Radius", Category = "Weapon Stats|Weapon Scatter", meta = (ToolTip = "The bigger the value, the bigger the spread"))
 		float m_SphereRadius{ 75.f };
-
-	//For debugging purposes only
-	UPROPERTY(EditAnywhere, Category = "Server Side Rewind", DisplayName = "Use Server Side Rewind")
+	
+	UPROPERTY(Replicated, EditAnywhere, Category = "Server Side Rewind", DisplayName = "Use Server Side Rewind")
 	bool m_UseServerSideRewind{false};
 
+	UFUNCTION()
+	void OnPingTooHigh(bool isPingTooHigh);
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Mesh")
 	USkeletalMeshComponent* m_pWeaponMesh{};

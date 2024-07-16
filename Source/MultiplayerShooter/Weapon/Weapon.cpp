@@ -77,6 +77,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, m_WeaponState);
+	DOREPLIFETIME_CONDITION(AWeapon, m_UseServerSideRewind, COND_OwnerOnly);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -171,6 +172,17 @@ void AWeapon::OnEquipped()
 	}
 
 	EnableCustomDepth(false);
+
+	//bind delegate
+	m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(GetOwner());
+	if (!m_pWeaponHolder) return;
+	
+	m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(m_pWeaponHolder->GetController());
+	if (m_pWeaponHolderController && HasAuthority() && !m_pWeaponHolderController->OnHighPingWarning.IsBound() && m_UseServerSideRewind)
+	{
+		m_pWeaponHolderController->OnHighPingWarning.AddDynamic(this, &AWeapon::OnPingTooHigh);
+		m_pWeaponHolderController->MarkPingCheckFlag();
+	}
 }
 
 void AWeapon::OnEquippedSecondary()
@@ -192,6 +204,16 @@ void AWeapon::OnEquippedSecondary()
 	m_pWeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
 	m_pWeaponMesh->MarkRenderStateDirty();
 	EnableCustomDepth(true);
+	
+	//un-bind delegate
+	m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(GetOwner());
+	if (!m_pWeaponHolder) return;
+
+	m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(m_pWeaponHolder->GetController());
+	if (m_pWeaponHolderController && HasAuthority() && m_pWeaponHolderController->OnHighPingWarning.IsBound() && m_UseServerSideRewind)
+	{
+		m_pWeaponHolderController->OnHighPingWarning.RemoveDynamic(this, &AWeapon::OnPingTooHigh);
+	}
 }
 
 void AWeapon::OnDropped()
@@ -211,6 +233,16 @@ void AWeapon::OnDropped()
 	EnableCustomDepth(true);
 
 	m_AmmoSequence = 0;
+
+	//un-bind delegate
+	m_pWeaponHolder = m_pWeaponHolder ? m_pWeaponHolder : Cast<ABlasterCharacter>(GetOwner());
+	if (!m_pWeaponHolder) return;
+
+	m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(m_pWeaponHolder->GetController());
+	if (m_pWeaponHolderController && HasAuthority() && m_pWeaponHolderController->OnHighPingWarning.IsBound() && m_UseServerSideRewind)
+	{
+		m_pWeaponHolderController->OnHighPingWarning.RemoveDynamic(this, &AWeapon::OnPingTooHigh);
+	}
 }
 
 void AWeapon::OnRep_Owner()
@@ -223,6 +255,11 @@ void AWeapon::OnRep_Owner()
 		m_pWeaponHolderController = nullptr;
 	}
 	else UpdateHudAmmo();	
+}
+
+void AWeapon::OnPingTooHigh(bool isPingTooHigh)
+{
+	m_UseServerSideRewind = !isPingTooHigh;
 }
 
 void AWeapon::SpendAmmoRound()
@@ -250,16 +287,13 @@ void AWeapon::ClientUpdateAmmo_Implementation(const int serverAmmo)
 
 void AWeapon::ClientAddAmmo_Implementation(const int ammo)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Adding ammo 0"));
 	if (HasAuthority()) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("Adding ammo"));
+	
 	m_CurrentAmmo = FMath::Clamp(m_CurrentAmmo + ammo, 0, m_MaxAmmo);
 	if (m_pWeaponHolder && IsMagazineFull())
 	{
 		m_pWeaponHolder->GetCombatComponent()->JumpToShotgunReloadAnimationEnd();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Current ammo: %d"), m_CurrentAmmo);
 	UpdateHudAmmo();
 }
 

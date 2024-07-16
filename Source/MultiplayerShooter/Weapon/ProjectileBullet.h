@@ -6,6 +6,7 @@
 #include "Projectile.h"
 #include "ProjectileBullet.generated.h"
 
+class AWeapon;
 /**
  * 
  */
@@ -18,5 +19,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit) override;
-	
+private:
+	AWeapon* m_FiringWeapon{};
 };

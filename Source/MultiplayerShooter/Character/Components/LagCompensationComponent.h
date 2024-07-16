@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "LagCompensationComponent.generated.h"
 
 
@@ -73,15 +74,33 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void ShowFramePackage(const FFramePackage& framePackage, FColor color);
-	FServerSideRewindResult ServerSideRewind(ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime);
+	FServerSideRewindResult ServerSideRewind(
+		ABlasterCharacter* pHitCharacter,
+		const FVector_NetQuantize& traceStart,
+		const FVector_NetQuantize& traceEnd,
+		const float hitTime);
 
-	UFUNCTION(Server, Reliable)
-	void ServerDamageRequest(ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime, AWeapon* pDamageCauser);
+	FServerSideRewindResult ServerSideRewindProjectile(
+		ABlasterCharacter* pHitCharacter,
+		const FVector_NetQuantize& traceStart,
+		const FVector_NetQuantize100& initialVelocity,
+		const float hitTime);
+
+	FServerSideRewindShotgunResult ServerSideRewindShotgun(
+		const TArray<ABlasterCharacter*>& pHitCharacter,
+		const FVector_NetQuantize& traceStart,
+		const TArray<FVector_NetQuantize>& traceEnd,
+		const float hitTime);
 
 	
-	/*
-	 * 	SHOTGUNS
-	 */
+	UFUNCTION(Server, Reliable)
+	void ServerDamageRequest(
+		ABlasterCharacter* pHitCharacter,
+		const FVector_NetQuantize& traceStart,
+		const FVector_NetQuantize& traceEnd,
+		const float hitTime,
+		AWeapon* pDamageCauser);
+	
 	UFUNCTION(Server, Reliable)
 	void ServerShotgunDamageRequest(
 		const TArray<ABlasterCharacter*>& pHitCharacters,
@@ -90,11 +109,15 @@ public:
 		const float hitTime,
 		AWeapon* pDamageCauser);
 
-		FServerSideRewindShotgunResult ServerSideRewindShotgun(
-		const TArray<ABlasterCharacter*>& pHitCharacter,
+	UFUNCTION(Server, Reliable)
+	void ServerProjectileDamageRequest(
+		ABlasterCharacter* pHitCharacter,
 		const FVector_NetQuantize& traceStart,
-		const TArray<FVector_NetQuantize>& traceEnd,
-		const float hitTime);
+		const FVector_NetQuantize100& initialVelocity,
+		const float hitTime,
+		AWeapon* pDamageCauser);
+
+
 	
 private:
 	ABlasterCharacter* m_pCharacter{};
@@ -104,17 +127,27 @@ private:
 	float m_MaxRecordingTime{4.f};
 	
 	TDoubleLinkedList<FFramePackage> m_FrameHistory{};
-	void SaveFramePackage(FFramePackage& framePackage);
 	FFramePackage InterpolateBetweenFrames(const FFramePackage& olderFrame, const FFramePackage& youngerFrame, const float hitTime);
-	FServerSideRewindResult ConfirmHit(const FFramePackage& framePackage, ABlasterCharacter* pHitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd);
+	FFramePackage GetFrameToCheck(ABlasterCharacter* pHitCharacter, const float hitTime);
+	
+	void SaveFramePackage(FFramePackage& framePackage);
 	void GetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, FFramePackage& outFramePackage);
 	void MovePlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& outFramePackage);
 	void ResetPlayerHitBoxes(ABlasterCharacter* pHitCharacter, const FFramePackage& package);
-	FFramePackage GetFrameToCheck(ABlasterCharacter* pHitCharacter, const float hitTime);
 
+	FServerSideRewindResult ConfirmHit(const FFramePackage& framePackage,
+		ABlasterCharacter* pHitCharacter,
+		const FVector_NetQuantize& traceStart,
+		const FVector_NetQuantize& traceEnd);
 
 	FServerSideRewindShotgunResult ConfirmHitShotgun(
 		const TArray<FFramePackage>& framePackages,
 		const FVector_NetQuantize& traceStart,
 		const TArray<FVector_NetQuantize>& hitLocations);
+
+	FServerSideRewindResult ConfirmHitProjectile(const FFramePackage& framePackage,
+		ABlasterCharacter* pHitCharacter,
+		const FVector_NetQuantize& startLocation,
+		const FVector_NetQuantize100& initialVelocity,
+		const float hitTime);
 };

@@ -42,10 +42,10 @@ void AProjectileWeapon::SpawnParticleEffect(const FVector& hitTarget)
 				pSpawnedActor->SetServerSideRewind(false);
 				pSpawnedActor->SetDamage(m_Damage);
 			}
-			else //spawned on server, not locally controlled , spawn non replicated projectile, no need for server side rewind
+			else //spawned on server, not locally controlled , spawn non replicated projectile, use server side rewind
 			{
 				pSpawnedActor = GetWorld()->SpawnActor<AProjectile>(m_pServerSideRewindProjectileClass, socketTransform.GetLocation(), rotationFromSocketToTarget, spawnParameters);
-				pSpawnedActor->SetServerSideRewind(false);
+				pSpawnedActor->SetServerSideRewind(true);
 			}
 		}
 		else //we are on the client, so we use server side rewind

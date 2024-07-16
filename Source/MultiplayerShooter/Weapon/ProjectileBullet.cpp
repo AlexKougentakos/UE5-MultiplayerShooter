@@ -3,9 +3,11 @@
 
 #include "ProjectileBullet.h"
 
-#include "GameFramework/Character.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/Character/Components/LagCompensationComponent.h"
+#include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 
 AProjectileBullet::AProjectileBullet()
 {
@@ -18,36 +20,38 @@ AProjectileBullet::AProjectileBullet()
 void AProjectileBullet::BeginPlay()
 {
 	Super::BeginPlay();
-
-	FPredictProjectilePathParams pathParams{};
-	pathParams.bTraceWithChannel = true;
-	pathParams.bTraceWithCollision = true;
-	pathParams.DrawDebugTime = 5.f;
-	pathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
-	pathParams.LaunchVelocity = GetActorForwardVector() * m_pProjectileMovementComponent->InitialSpeed;
-	pathParams.MaxSimTime = 4.f;
-	pathParams.ProjectileRadius = 5.f;
-	pathParams.SimFrequency = 30.f;
-	pathParams.StartLocation = GetActorLocation();
-	pathParams.TraceChannel = ECC_Visibility;
-	pathParams.ActorsToIgnore.Add(this);
-	FPredictProjectilePathResult pathResult{};
-	
-	UGameplayStatics::PredictProjectilePath(this, pathParams, pathResult);
 }
 
 void AProjectileBullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
                               UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	const ACharacter* ownerCharacter = Cast<ACharacter>(GetOwner());
-	if (!ownerCharacter) return;
+	const ABlasterCharacter* pOwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
+	if (!pOwnerCharacter) return;
 
-	AController* ownerController = ownerCharacter->GetController();
-	if (!ownerController) return;
+	ABlasterPlayerController* pOwnerController = Cast<ABlasterPlayerController>(pOwnerCharacter->GetController());
+	if (!pOwnerController) return;
 
 	if (!OtherActor) return;
 	
-	UGameplayStatics::ApplyDamage(OtherActor, m_Damage, ownerController, this, UDamageType::StaticClass());
+	if (pOwnerCharacter->HasAuthority() && !m_UseServerSideRewind)
+	{
+		UGameplayStatics::ApplyDamage(OtherActor, m_Damage, pOwnerController, this, UDamageType::StaticClass());
+
+		//Super should be called last since we are calling the Destroy function in it
+		Super::OnHit(HitComponent, OtherActor, OtherComponent, NormalImpulse, Hit);
+		return;
+	}
+
+	ABlasterCharacter* pHitCharacter = Cast<ABlasterCharacter>(OtherActor);
+	if (m_UseServerSideRewind && pOwnerCharacter->IsLocallyControlled() && pHitCharacter)
+	{
+		pOwnerCharacter->GetLagCompensationComponent()->ServerProjectileDamageRequest(
+			pHitCharacter,
+			m_SpawnLocation,
+			m_InitialVelocity,
+			pOwnerController->GetServerTime() - pOwnerController->GetSingleTripTime(),
+			pOwnerCharacter->GetEquippedWeapon());
+	}
 	
 	//Super should be called last since we are calling the Destroy function in it
 	Super::OnHit(HitComponent, OtherActor, OtherComponent, NormalImpulse, Hit);

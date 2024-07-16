@@ -135,14 +135,17 @@ void ABlasterPlayerController::PollInitialize()
 void ABlasterPlayerController::HandleHighPingWarning(float DeltaSeconds)
 {
 	m_TimeSinceLastHighPingWarning += DeltaSeconds;
-	if (m_TimeSinceLastHighPingWarning >= m_HighPingCheckFrequency)
+	if (m_TimeSinceLastHighPingWarning >= m_HighPingCheckFrequency || m_CheckPingFlag)
 	{
 		if (PlayerState->GetPingInMilliseconds() > m_HighPingThreshold)
 		{
 			HighPingWarning();
 			m_CurrentHighPingAnimationElapsedTime = 0.f;
 		}
+		ServerReportPingStatus(PlayerState->GetPingInMilliseconds() > m_ServerSideRewindPingCap);
 		m_TimeSinceLastHighPingWarning = 0.f;
+
+		m_CheckPingFlag = false;
 	}
 	if (m_pCharacterOverlay && m_pCharacterOverlay->IsAnimationPlaying(m_pCharacterOverlay->PingWarningAnimation))
 	{
@@ -327,6 +330,11 @@ float ABlasterPlayerController::GetServerTime() const
 {
 	if (HasAuthority()) return GetWorld()->GetTimeSeconds(); // If we are on the server we don't have a delay
 	return GetWorld()->GetTimeSeconds() + m_ClientServerTimeDifference;
+}
+
+void ABlasterPlayerController::ServerReportPingStatus_Implementation(bool highPing)
+{
+	OnHighPingWarning.Broadcast(highPing);
 }
 
 //Called on server

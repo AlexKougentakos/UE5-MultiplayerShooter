@@ -10,6 +10,8 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
 class ULagCompensationComponent;
@@ -106,6 +108,11 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerLeaveGame();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastGainedTheLead();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastLostTheLead();
 	
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
@@ -141,7 +148,7 @@ private: // Variables
 
 	FRotator m_LastFrameRotation{};
 
-	ABlasterPlayerState* m_pBlasterPlayerState{};
+	UPROPERTY() ABlasterPlayerState* m_pBlasterPlayerState{};
 	
 	ETurningInPlace m_TurningInPlace{};
 	UPROPERTY(EditAnywhere, Category = "Movement", DisplayName = "Player Rotation Angle Standing", meta = (ToolTip = "The angle at which the player rotates when turning in place when standing"))
@@ -232,8 +239,12 @@ private: // Variables
 
 	UPROPERTY(EditAnywhere, DisplayName = "Elimination Bot Sound Effect", Category = "Animation|EliminationBot")
 	USoundCue* m_pEliminationSound{};
-	
-	UParticleSystemComponent* m_pEliminationBotEffectComponent{};
+
+	UPROPERTY(EditAnywhere, DisplayName = "Top Kills Crown Effect", Category = "Animation|Crown")
+	UNiagaraSystem* m_pTopKillsCrownEffect{};
+
+	UPROPERTY() UNiagaraComponent* m_pTopKillsCrownEffectComponent{};
+	UPROPERTY() UParticleSystemComponent* m_pEliminationBotEffectComponent{};
 
 	UPROPERTY(Replicated)
 	bool m_DisabledGameplay{false};

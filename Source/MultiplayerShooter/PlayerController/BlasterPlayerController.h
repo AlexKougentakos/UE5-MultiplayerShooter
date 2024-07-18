@@ -33,8 +33,8 @@ public:
 
 	FHighPingDelegate OnHighPingWarning;
 private:
-	ABlasterHUD* m_pHUD{};
-	ABlasterGameMode* m_pGameMode{};
+	UPROPERTY() ABlasterHUD* m_pHUD{};
+	UPROPERTY() ABlasterGameMode* m_pGameMode{};
 
 	
 	void SetHudTime();
@@ -87,11 +87,11 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientJoinedMidGame(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime, float cooldownDuration);
 	
-	UCharacterOverlay* m_pCharacterOverlay{};
+	UPROPERTY() UCharacterOverlay* m_pCharacterOverlay{};
 	
 	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Return To Main Menu Widget Class")
 	TSubclassOf<UUserWidget> m_ReturnToMainMenuWidgetClass{};
-	UReturnToMainMenu* m_pReturnToMainMenuWidget{};
+	UPROPERTY() UReturnToMainMenu* m_pReturnToMainMenuWidget{};
 	bool m_IsReturnToMainMenuOpen{false};
 	void ShowReturnToMainMenu();
 

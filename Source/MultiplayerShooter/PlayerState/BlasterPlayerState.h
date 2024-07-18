@@ -25,7 +25,9 @@ public:
 	void AddToSore(float scoreAmount);
 	void AddToDeaths(int deathsAmount = 1);
 private:
+	UPROPERTY()
 	ABlasterCharacter* m_pBlasterCharacter{};
+	UPROPERTY()
 	ABlasterPlayerController* m_pBlasterPlayerController{};
 
 	UPROPERTY(ReplicatedUsing = OnRep_Deaths)

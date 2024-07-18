@@ -171,16 +171,15 @@ void UMultiplayerSessionsSubsystem::OnJoinSessionComplete(FName sessionName, EOn
 
 void UMultiplayerSessionsSubsystem::OnDestroySessionComplete(FName sessionName, bool sessionDestroyed)
 {
-	if (!m_SessionInterface) return;
-
-	m_SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(m_OnDestroySessionCompleteDelegateHandle);
-
+	if (m_SessionInterface)
+	{
+		m_SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(m_OnDestroySessionCompleteDelegateHandle);
+	}
 	if (sessionDestroyed && m_CreateSessionOnDestroy)
 	{
 		m_CreateSessionOnDestroy = false;
 		CreateSession(m_LastNumPublicConnections, m_LastMatchType);
 	}
-	
 	MultiplayerOnDestroySessionComplete.Broadcast(sessionDestroyed);
 }
 

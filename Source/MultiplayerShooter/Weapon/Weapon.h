@@ -102,8 +102,8 @@ protected:
 		, int32 OtherBodyIndex);
 
 	
-	ABlasterCharacter* m_pWeaponHolder{};
-	ABlasterPlayerController* m_pWeaponHolderController{};
+	UPROPERTY() ABlasterCharacter* m_pWeaponHolder{};
+	UPROPERTY() ABlasterPlayerController* m_pWeaponHolderController{};
 		
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Pickup Sound")
 	USoundCue* m_pPickupSound{};

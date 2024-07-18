@@ -27,7 +27,7 @@ protected:
 	UFUNCTION()
 	void PickupDestroyed(AActor* destroyedActor);
 
-	APickup* m_pCurrentPickup{nullptr};
+	UPROPERTY() APickup* m_pCurrentPickup{nullptr};
 private:
 	FTimerHandle m_SpawnTimerHandle{};
 

@@ -2,6 +2,10 @@
 
 
 #include "BlasterCharacter.h"
+
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/BuffComponent.h"
@@ -15,6 +19,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/MultiplayerShooter.h"
 #include "MultiplayerShooter/GameModes/BlasterGameMode.h"
+#include "MultiplayerShooter/GameState/BlasterGameState.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
 #include "MultiplayerShooter/Types/TurningInPlace.h"
@@ -154,6 +159,7 @@ void ABlasterCharacter::BeginPlay()
 
 	SpawnDefaultWeapon();
 	UpdateHudAmmo();
+
 }
 
 void ABlasterCharacter::PollInitialize(float deltaTime)
@@ -167,6 +173,12 @@ void ABlasterCharacter::PollInitialize(float deltaTime)
 		{
 			m_pBlasterPlayerState->AddToSore(0);
 			m_pBlasterPlayerState->AddToDeaths(0);
+			
+			ABlasterGameState* pGameState = GetWorld()->GetGameState<ABlasterGameState>();
+			if (pGameState && pGameState->GetTopScoringPlayers().Contains(m_pBlasterPlayerState))
+			{
+				MulticastGainedTheLead();
+			}
 		}
 		return;
 	}
@@ -277,7 +289,6 @@ void ABlasterCharacter::Destroyed()
 void ABlasterCharacter::Eliminated(const bool playerLeftGame)
 {
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
-	
 	if (m_pCombat->HasWeapon())
 	{
 		if (m_pCombat->m_pEquippedWeapon->ShouldDestroyWeapon())
@@ -330,6 +341,9 @@ void ABlasterCharacter::MulticastEliminated_Implementation(const bool playerLeft
 	checkf(m_pEliminationSound, TEXT("Elimination sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEliminationSound, GetActorLocation());
 
+	//Hide the crown if we have it
+	if (m_pTopKillsCrownEffectComponent) m_pTopKillsCrownEffectComponent->Deactivate();
+
 	// Hide the sniper scope widget
 	if (IsLocallyControlled() &&
 		m_pCombat->HasWeapon() &&
@@ -343,12 +357,12 @@ void ABlasterCharacter::EliminationTimerFinished()
 {
 	if (m_PlayerLeftGame && IsLocallyControlled())
 	{
-		UE_LOG(LogTemp,Warning,TEXT("Player left game"));
 		OnLeftGame.Broadcast();
 		return;
 	}
 	if (!m_PlayerLeftGame)
 		GetWorld()->GetAuthGameMode<ABlasterGameMode>()->RequestRespawn(this, m_pPlayerController);
+	
 }
 
 void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
@@ -496,6 +510,26 @@ void ABlasterCharacter::SpawnDefaultWeapon()
 	}
 }
 
+void ABlasterCharacter::MulticastGainedTheLead_Implementation()
+{
+	if (!m_pTopKillsCrownEffect) return;
+	if (!m_pTopKillsCrownEffectComponent)
+		m_pTopKillsCrownEffectComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			m_pTopKillsCrownEffect,
+			GetCapsuleComponent(),
+			FName(),
+			GetActorLocation() + FVector{0.f, 0.f, 100.f},
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false);
+
+	m_pTopKillsCrownEffectComponent->Activate();
+}
+
+void ABlasterCharacter::MulticastLostTheLead_Implementation()
+{
+	if (m_pTopKillsCrownEffectComponent) m_pTopKillsCrownEffectComponent->Deactivate();
+}
 
 void ABlasterCharacter::MulticastHit_Implementation()
 {

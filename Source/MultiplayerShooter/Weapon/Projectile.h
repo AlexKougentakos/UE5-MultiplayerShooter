@@ -108,7 +108,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, DisplayName = "Trail Effect", Category = "Effects")
 	UNiagaraSystem* m_pTrailEffect{};
-	UNiagaraComponent* m_pTrailEffectComponent{};
+	UPROPERTY() UNiagaraComponent* m_pTrailEffectComponent{};
 public:
 	void SetServerSideRewind(const bool useServerSideRewind) { m_UseServerSideRewind = useServerSideRewind; }
 	void SetInitialVelocity(const FVector& initialVelocity) { m_InitialVelocity = initialVelocity; }

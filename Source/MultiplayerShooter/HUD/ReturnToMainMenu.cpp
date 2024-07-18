@@ -29,7 +29,7 @@ void UReturnToMainMenu::MenuSetup()
 	if (!m_pSessionsSubsystem) return;
 
 	//if (!m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.IsBound())
-		m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UReturnToMainMenu::OnDestroySession);
+	m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UReturnToMainMenu::OnDestroySession);
 
 	checkf(ReturnButton, TEXT("ReturnButton is nullptr"));
 	if (!ReturnButton->OnClicked.IsBound())
@@ -68,7 +68,6 @@ bool UReturnToMainMenu::Initialize()
 void UReturnToMainMenu::ReturnButtonClicked()
 {
 	ReturnButton->SetIsEnabled(false);
-
 	const APlayerController* pPlayerController = GetWorld()->GetFirstPlayerController();
 	if (!pPlayerController) return;
 

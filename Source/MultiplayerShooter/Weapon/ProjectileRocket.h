@@ -31,5 +31,5 @@ protected:
 	URocketMovementComponent* m_pRocketMovementComponent{};
 private:
 
-	UAudioComponent* m_pProjectileInAirLoopComponent{};
+	UPROPERTY() UAudioComponent* m_pProjectileInAirLoopComponent{};
 };

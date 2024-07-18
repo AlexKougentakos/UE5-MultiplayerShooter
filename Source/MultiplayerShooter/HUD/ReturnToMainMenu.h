@@ -27,11 +27,10 @@ private:
 	UFUNCTION()
 	void ReturnButtonClicked();
 
-	UMultiplayerSessionsSubsystem* m_pSessionsSubsystem{};
+	UPROPERTY() UMultiplayerSessionsSubsystem* m_pSessionsSubsystem{};
 
-	APlayerController* m_pPlayerController{};
-	UFUNCTION()
-	void OnDestroySession(const bool wasSuccessful);
+	UPROPERTY() APlayerController* m_pPlayerController{};
+	UFUNCTION() void OnDestroySession(const bool wasSuccessful);
 
 	UFUNCTION()
 	void OnPlayerLeftGame();

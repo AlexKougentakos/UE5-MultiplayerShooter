@@ -85,8 +85,36 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* pEliminatedPlayer,
 	
 	if (pAttackingPlayerState && pAttackingPlayerState != pEliminatedPlayerState)
 	{
+		//Get the top scoring players BEFORE updating the positions
+		TArray<ABlasterPlayerState*> topScoringPlayers = pGameState->GetTopScoringPlayers();
+		
 		pAttackingPlayerState->AddToSore(1.0f);
 		pGameState->UpdateTopScore(pAttackingPlayerState);
+
+		for (int i{}; i < topScoringPlayers.Num(); ++i)
+		{
+			//If the CURRENT top scoring player array DOES NOT contain one of the old players
+			//that means that he lost the lead
+			if (!pGameState->GetTopScoringPlayers().Contains(topScoringPlayers[i]))
+			{
+				 Cast<ABlasterCharacter>(topScoringPlayers[i]->GetPawn())->MulticastLostTheLead();
+			}
+		}
+
+		// Check if the current top scorer is a new top scorer
+		for (const auto& currentTopScorer : pGameState->GetTopScoringPlayers())
+		{
+			bool isNewTopScorer{true};
+			for (const auto& oldTopScorer : topScoringPlayers)
+			{
+				//If any of the old top scorers is the same as the current top scorer
+				//then they are not a new top scorer
+				if (oldTopScorer == currentTopScorer) isNewTopScorer = false;
+			}
+
+			if (isNewTopScorer)
+				Cast<ABlasterCharacter>(currentTopScorer->GetPawn())->MulticastGainedTheLead();
+		}
 	}
 	pEliminatedPlayerState->AddToDeaths();
 		
@@ -102,14 +130,14 @@ void ABlasterGameMode::RequestRespawn(ABlasterCharacter* pCharacterToRespawn,
 
 	pCharacterToRespawn->Reset();
 	pCharacterToRespawn->Destroy();
-
+	
 	const int32 selection = FMath::RandRange(0, m_PlayerStarts.Num() - 1);
 	RestartPlayerAtPlayerStart(pPlayerController, m_PlayerStarts[selection]);
 }
 
 
 void ABlasterGameMode::PlayerLeftGame(ABlasterPlayerState* pPlayerState)
-{ 
+{
 	//we have to remove the player from the top scoring players list
 	//otherwise the reference is null
 	ABlasterGameState* pGameState = GetGameState<ABlasterGameState>();

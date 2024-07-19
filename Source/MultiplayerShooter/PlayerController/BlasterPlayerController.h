@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
 
+class AWeapon;
 class UReturnToMainMenu;
 class ABlasterGameMode;
 class UCharacterOverlay;
@@ -31,6 +32,8 @@ public:
 	void HighPingWarning();
 	void StopHighPingWarning();
 
+	void BroadcastElimination(APlayerState* pAttacker, APlayerState* pVictim, AWeapon* pWeaponUsed);
+	
 	FHighPingDelegate OnHighPingWarning;
 private:
 	UPROPERTY() ABlasterHUD* m_pHUD{};
@@ -86,6 +89,9 @@ private:
 
 	UFUNCTION(Client, Reliable)
 	void ClientJoinedMidGame(FName matchState, float warmUpDuration, float gameDuration, float levelStartingTime, float cooldownDuration);
+	
+	UFUNCTION(Client, Reliable)
+	void ClientEliminationAnnouncement(APlayerState* pAttacker, APlayerState* pVictim, AWeapon* pWeaponUsed);
 	
 	UPROPERTY() UCharacterOverlay* m_pCharacterOverlay{};
 	

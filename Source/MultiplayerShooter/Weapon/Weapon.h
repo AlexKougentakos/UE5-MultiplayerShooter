@@ -157,6 +157,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Type")
 	EWeaponType m_WeaponType{EWeaponType::EWT_Rifle};
 
+	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Killfeed Icon")
+	UTexture2D* m_pKillfeedIcon{};
+
 	/*
 	 * AMMO
 	 */
@@ -206,6 +209,7 @@ public:
 	EWeaponType GetWeaponType() const { return m_WeaponType; }
 	EFireType GetFireType() const { return m_FireType; }
 	USoundCue* GetPickupSound() const { return m_pPickupSound; }
+	UTexture2D* GetKillfeedIcon() const { return m_pKillfeedIcon; }
 	bool ShouldDestroyWeapon() const { return m_ShouldDestroyWeapon; }
 	void SetShouldDestroyWeapon(const bool shouldDestroy) { m_ShouldDestroyWeapon = shouldDestroy; }
 	bool UseScatter() const { return m_UseScatter; }

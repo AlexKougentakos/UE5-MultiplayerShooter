@@ -395,6 +395,7 @@ void ABlasterPlayerController::StopHighPingWarning()
 	}
 }
 
+
 //Called on client
 void ABlasterPlayerController::OnRep_MatchState()
 {
@@ -406,6 +407,40 @@ void ABlasterPlayerController::OnRep_MatchState()
 	{
 		HandleCooldown();
 	}
+}
+
+void ABlasterPlayerController::BroadcastElimination(APlayerState* pAttacker, APlayerState* pVictim,
+	AWeapon* pWeaponUsed)
+{
+	ClientEliminationAnnouncement(pAttacker, pVictim, pWeaponUsed);
+}
+
+void ABlasterPlayerController::ClientEliminationAnnouncement_Implementation(APlayerState* pAttacker,
+	APlayerState* pVictim, AWeapon* pWeaponUsed)
+{
+	APlayerState* self = GetPlayerState<APlayerState>();
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	if (!self || !pAttacker || !pAttacker || !pWeaponUsed || !m_pHUD) return;
+
+	//We killed somebody else
+	if (pAttacker == self && pVictim != self)
+	{
+		m_pHUD->AddEliminationAnnouncement(pVictim->GetPlayerName(), "You", pWeaponUsed);
+		return;
+	}
+	//Somebody else killed us
+	if (pVictim == self && pAttacker != self)
+	{
+		m_pHUD->AddEliminationAnnouncement("You", pAttacker->GetPlayerName(), pWeaponUsed);
+		return;
+	}
+	if (pAttacker == self && pVictim == self)
+	{
+		m_pHUD->AddEliminationAnnouncement("Yourself", "You", pWeaponUsed);
+		return;
+	}
+
+	m_pHUD->AddEliminationAnnouncement(pVictim->GetPlayerName(), pAttacker->GetPlayerName(), pWeaponUsed);
 }
 
 void ABlasterPlayerController::ShowReturnToMainMenu()

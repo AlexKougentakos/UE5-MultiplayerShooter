@@ -117,6 +117,16 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* pEliminatedPlayer,
 		}
 	}
 	pEliminatedPlayerState->AddToDeaths();
+
+	//Elimination message
+	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
+	{
+		ABlasterPlayerController* pPlayerController = Cast<ABlasterPlayerController>(*it);
+		if (!pPlayerController) continue;
+
+		AWeapon* pWeapon = Cast<ABlasterCharacter>(pAttackingPlayerState->GetPawn())->GetEquippedWeapon();
+		pPlayerController->BroadcastElimination(pAttackingPlayerState, pEliminatedPlayerState, pWeapon);
+	}
 		
 	//No need to check for authority here, we are in the game mode which only exists on the server
 	pEliminatedPlayer->Eliminated();

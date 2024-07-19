@@ -288,6 +288,7 @@ void ABlasterCharacter::Destroyed()
 
 void ABlasterCharacter::Eliminated(const bool playerLeftGame)
 {
+	
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	if (m_pCombat->HasWeapon())
 	{

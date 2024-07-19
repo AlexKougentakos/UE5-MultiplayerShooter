@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterOverlay.generated.h"
 
+class UVerticalBox;
 class UImage;
 class UHorizontalBox;
 class UTextBlock;
@@ -53,7 +54,10 @@ public:
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* PingWarningAnimation{};
-
+	
+	UPROPERTY(meta = (BindWidget))
+	UVerticalBox* KillFeed{};
+	
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* PingText{};
 };

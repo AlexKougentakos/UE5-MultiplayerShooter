@@ -6,6 +6,8 @@
 #include "GameFramework/HUD.h"
 #include "BlasterHUD.generated.h"
 
+class AWeapon;
+class UEliminationAnnouncement;
 class UAnnouncement;
 class UCharacterOverlay;
 
@@ -34,6 +36,28 @@ class MULTIPLAYERSHOOTER_API ABlasterHUD : public AHUD
 public:
 	virtual void BeginPlay() override;
 	virtual void DrawHUD() override;
+	
+	UPROPERTY() UCharacterOverlay* m_pCharacterOverlay{};
+	UPROPERTY() UAnnouncement* m_pAnnouncement{};
+	
+	void AddCharacterOverlay();
+	void AddAnnouncement();
+	void AddEliminationAnnouncement(const FString& eliminatedPlayer, const FString& eliminatorPlayer, const AWeapon* pWeaponUsed);
+private:
+	FHUDPackage m_HUDPackage{};
+
+	APlayerController* m_pPlayerController{};
+	
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshair Spread Max")
+	float m_CrosshairSpreadMax{8.f};
+
+	void DrawCrosshair(UTexture2D* crosshair, const FVector2D& viewportCenter, const FVector2D& spread, const FLinearColor& color);
+
+	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Max Kill Feed Items")
+	int m_MaxKillFeedItems{5};
+	
+	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Elimination Announcement Class")
+	TSubclassOf<UEliminationAnnouncement> m_EliminationAnnouncementClass{};
 
 	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Character Overlay Class")
 	TSubclassOf<UUserWidget> m_pCharacterOverlayClass{};
@@ -41,18 +65,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Announcement Class")
 	TSubclassOf<UUserWidget> m_pAnnouncementClass{};
 	
-	UPROPERTY() UCharacterOverlay* m_pCharacterOverlay{};
-	UPROPERTY() UAnnouncement* m_pAnnouncement{};
-	
-	void AddCharacterOverlay();
-	void AddAnnouncement();
-private:
-	FHUDPackage m_HUDPackage{};
-
-	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshair Spread Max")
-	float m_CrosshairSpreadMax{8.f};
-
-	void DrawCrosshair(UTexture2D* crosshair, const FVector2D& viewportCenter, const FVector2D& spread, const FLinearColor& color);
 public: // Getters & Setters
 	void SetHudPackage(const FHUDPackage& hudPackage) { m_HUDPackage = hudPackage; }
 

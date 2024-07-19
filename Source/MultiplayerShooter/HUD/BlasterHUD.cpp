@@ -5,7 +5,9 @@
 
 #include "Announcement.h"
 #include "CharacterOverlay.h"
+#include "EliminationAnnouncement.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/VerticalBox.h"
 
 void ABlasterHUD::DrawHUD()
 {
@@ -66,10 +68,26 @@ void ABlasterHUD::AddCharacterOverlay()
 
 void ABlasterHUD::AddAnnouncement()
 {
-	const auto pPlayerController = GetOwningPlayerController();
+const auto pPlayerController = GetOwningPlayerController();
 	checkf(pPlayerController, TEXT("Player controller is null"));
 	checkf(m_pAnnouncementClass, TEXT("Announcement class is null"));
 
 	m_pAnnouncement = CreateWidget<UAnnouncement>(pPlayerController, m_pAnnouncementClass);
 	m_pAnnouncement->AddToViewport();
+}
+
+void ABlasterHUD::AddEliminationAnnouncement(const FString& eliminatedPlayer, const FString& eliminatorPlayer, const AWeapon* pWeaponUsed)
+{
+	m_pPlayerController = GetOwningPlayerController();
+	checkf(m_pPlayerController, TEXT("Player controller is null"));
+	checkf(m_EliminationAnnouncementClass, TEXT("Elimination announcement class is null"));
+
+	UEliminationAnnouncement* pEliminationAnnouncement = CreateWidget<UEliminationAnnouncement>(m_pPlayerController, m_EliminationAnnouncementClass);
+	pEliminationAnnouncement->SetEliminationAnnouncement(eliminatorPlayer, eliminatedPlayer, pWeaponUsed);
+	m_pCharacterOverlay->KillFeed->AddChild(pEliminationAnnouncement);
+
+	if (m_pCharacterOverlay->KillFeed->GetChildrenCount() > m_MaxKillFeedItems)
+	{
+		m_pCharacterOverlay->KillFeed->RemoveChildAt(0);
+	}
 }

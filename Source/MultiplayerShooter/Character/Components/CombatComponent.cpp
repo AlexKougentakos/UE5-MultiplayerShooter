@@ -147,6 +147,8 @@ void UCombatComponent::UpdateAmmoHud()
 		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
 		m_pPlayerController->ShowAmmo(true);
 	}
+
+	m_pEquippedWeapon->UpdateHudAmmo();
 }
 
 void UCombatComponent::JumpToShotgunReloadAnimationEnd() const
@@ -524,7 +526,12 @@ void UCombatComponent::AttachActorToBackpack(AActor* const pActor)
 void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (!m_pEquippedWeapon) return;
-
+	
+	//I repeat this here because we have two things that are replicated, the weapon state and the attachment of the weapon to the character
+	// Just because I called one before the other doesn't guarantee that it will happen first so there's a chance that the weapon will be attached to the character before the weapon state is set
+	// meaning that the weapon will still have physics enabled when you pick it up, which is why I am explicitly setting it here
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (weaponSocket)
@@ -546,22 +553,19 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	m_pEquippedWeapon->UpdateHudAmmo();
 	UpdateAmmoValues(true);
 
-	//I repeat this here because we have two things that are replicated, the weapon state and the attachment of the weapon to the character
-	// Just because I called one before the other doesn't guarantee that it will happen first so there's a chance that the weapon will be attached to the character before the weapon state is set
-	// meaning that the weapon will still have physics enabled when you pick it up, which is why I am explicitly setting it here
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon()
 {
 	if (m_pSecondaryWeapon)
 	{
+		m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+		
 		AttachActorToBackpack(m_pSecondaryWeapon);
 		
 		checkf(m_pSecondaryWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
 		
-		m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	}
 }
 
@@ -682,6 +686,10 @@ void UCombatComponent::FinishedWeaponSwapAttachment()
 	 */
 	UpdateAmmoHud();
 
+	m_pEquippedWeapon->SetOwner(m_pCharacter);
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	
+	
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (weaponSocket)
@@ -695,11 +703,7 @@ void UCombatComponent::FinishedWeaponSwapAttachment()
 	{
 		Reload();
 	}
-	
-	m_pEquippedWeapon->SetOwner(m_pCharacter);
-	m_pEquippedWeapon->UpdateHudAmmo();
 
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	/*
 	 *	SECONDARY WEAPON 
 	 */

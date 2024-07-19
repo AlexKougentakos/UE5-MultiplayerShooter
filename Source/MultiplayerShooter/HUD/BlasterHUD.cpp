@@ -83,11 +83,22 @@ void ABlasterHUD::AddEliminationAnnouncement(const FString& eliminatedPlayer, co
 	checkf(m_EliminationAnnouncementClass, TEXT("Elimination announcement class is null"));
 
 	UEliminationAnnouncement* pEliminationAnnouncement = CreateWidget<UEliminationAnnouncement>(m_pPlayerController, m_EliminationAnnouncementClass);
+	pEliminationAnnouncement->SetDisplayTime(m_KillFeedItemDisplayTime);
 	pEliminationAnnouncement->SetEliminationAnnouncement(eliminatorPlayer, eliminatedPlayer, pWeaponUsed);
-	m_pCharacterOverlay->KillFeed->AddChild(pEliminationAnnouncement);
+
+	//Get all the current children
+	TArray<UWidget*> killFeedItems = m_pCharacterOverlay->KillFeed->GetAllChildren();
+	//Add it at the beginning, otherwise it would appear at the bottom of the list
+	killFeedItems.EmplaceAt(0, pEliminationAnnouncement);
+	
+	m_pCharacterOverlay->KillFeed->ClearChildren();
+	for (UWidget* pItem : killFeedItems)
+	{
+		m_pCharacterOverlay->KillFeed->AddChildToVerticalBox(pItem);
+	}
 
 	if (m_pCharacterOverlay->KillFeed->GetChildrenCount() > m_MaxKillFeedItems)
 	{
-		m_pCharacterOverlay->KillFeed->RemoveChildAt(0);
+		m_pCharacterOverlay->KillFeed->RemoveChildAt(m_MaxKillFeedItems);
 	}
 }

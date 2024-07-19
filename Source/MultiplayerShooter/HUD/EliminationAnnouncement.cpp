@@ -7,6 +7,17 @@
 #include "Components/TextBlock.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 
+void UEliminationAnnouncement::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	m_DisplayTime -= InDeltaTime;
+	if (m_DisplayTime <= 0.f)
+	{
+		RemoveFromParent();
+	}
+}
+
 void UEliminationAnnouncement::SetEliminationAnnouncement(const FString& eliminator, const FString& eliminated,
                                                           const AWeapon* weapon)
 {

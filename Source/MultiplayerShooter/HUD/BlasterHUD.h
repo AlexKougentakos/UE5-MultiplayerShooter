@@ -55,6 +55,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Max Kill Feed Items")
 	int m_MaxKillFeedItems{5};
+	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Kill Feed Item Display Time")
+    float m_KillFeedItemDisplayTime{7.f};
 	
 	UPROPERTY(EditAnywhere, Category = "UI", DisplayName = "Elimination Announcement Class")
 	TSubclassOf<UEliminationAnnouncement> m_EliminationAnnouncementClass{};

@@ -63,7 +63,6 @@ void UCombatComponent::TickComponent(float deltaTime, ELevelTick TickType, FActo
 		// Handles the FOV changes when aiming
 		InterpolateFOV(deltaTime);
 	}
-	
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
@@ -183,7 +182,7 @@ void UCombatComponent::PickupAmmo(const EWeaponType weaponType, const int ammoAm
 
 void UCombatComponent::Reload()
 {
-	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull() || m_IsLocallyReloading) return;
+	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull() || m_IsLocallyReloading || !m_pCharacter->IsAlive()) return;
 	
 	ServerReload();
 	HandleReloadingForBothServerAndClient();
@@ -474,12 +473,15 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
 	{
 		m_CarriedAmmo = m_CarriedAmmoMap[m_pEquippedWeapon->GetWeaponType()];
 	}
+	
+	m_pEquippedWeapon->SetOwner(m_pCharacter);
+	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 		
 	UpdateAmmoHud();
 
 	const USkeletalMeshSocket* weaponSocket =  m_pCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
-	if (weaponSocket)
+	if (weaponSocket) //This has to be after the set weapon state
 		weaponSocket->AttachActor(m_pEquippedWeapon, m_pCharacter->GetMesh());
 
 	
@@ -491,22 +493,22 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
 		Reload();
 	}
 	
-	m_pEquippedWeapon->SetOwner(m_pCharacter);
 	m_pEquippedWeapon->UpdateHudAmmo();
 	
-	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 }
 
 void UCombatComponent::EquipSecondaryWeapon(AWeapon* const pWeapon)
 {
 	m_pSecondaryWeapon = pWeapon;
 	m_pSecondaryWeapon->SetOwner(m_pCharacter);
+	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+
+	//This has to be after the set weapon state
 	AttachActorToBackpack(pWeapon);
 	
 	checkf(m_pSecondaryWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
 	
-	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 }
 
 void UCombatComponent::AttachActorToBackpack(AActor* const pActor)

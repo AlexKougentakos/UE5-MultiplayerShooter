@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Weapon.h"
 
 #include "BulletShell.h"
@@ -16,7 +13,6 @@ AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
-	SetReplicateMovement(true);
 
 	
 	m_pWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon Mesh"));
@@ -44,6 +40,7 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	SetReplicateMovement(true);
 
 	m_CurrentAmmo = m_MaxAmmo;
 	
@@ -69,6 +66,7 @@ void AWeapon::BeginPlay()
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -156,6 +154,7 @@ void AWeapon::OnRep_WeaponState()
 
 void AWeapon::OnEquipped()
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnEquipped"));
 	ShowPickupWidget(false);
 	m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	m_pWeaponMesh->SetSimulatePhysics(false);

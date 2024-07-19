@@ -213,4 +213,5 @@ public:
 	bool ShouldDestroyWeapon() const { return m_ShouldDestroyWeapon; }
 	void SetShouldDestroyWeapon(const bool shouldDestroy) { m_ShouldDestroyWeapon = shouldDestroy; }
 	bool UseScatter() const { return m_UseScatter; }
+	EWeaponState GetWeaponState() const { return m_WeaponState; }
 };

@@ -106,16 +106,14 @@ void ABlasterHUD::AddEliminationAnnouncement(const FString& eliminatedPlayer, co
 
 void ABlasterHUD::AddChatMessage(const FString& senderName, const FString& message)
 {
-	m_pPlayerController = GetOwningPlayerController();
-	checkf(m_pPlayerController, TEXT("Player controller is null"));
-
-	UE_LOG(LogTemp, Warning, TEXT("AddChatMessage"));
-	if (!m_pCharacterOverlay) return;
-	
 	m_pCharacterOverlay->Chat->AddChatMessage(senderName, message);
 }
 
+
 void ABlasterHUD::ChatOpened()
 {
-	m_pCharacterOverlay->Chat->OpenChat();
+	if (m_pCharacterOverlay && m_pCharacterOverlay->Chat)
+	{
+		m_pCharacterOverlay->Chat->OpenChat();
+	}
 }

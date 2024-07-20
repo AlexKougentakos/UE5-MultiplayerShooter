@@ -145,7 +145,6 @@ void ABlasterGameMode::RequestRespawn(ABlasterCharacter* pCharacterToRespawn,
 	RestartPlayerAtPlayerStart(pPlayerController, m_PlayerStarts[selection]);
 }
 
-
 void ABlasterGameMode::PlayerLeftGame(ABlasterPlayerState* pPlayerState)
 {
 	//we have to remove the player from the top scoring players list

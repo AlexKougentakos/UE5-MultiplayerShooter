@@ -37,6 +37,14 @@ public:
 	FHighPingDelegate OnHighPingWarning;
 
 	void ChatOpened();
+	
+	UFUNCTION(Client, Reliable)
+	void ClientReceiveChatMessage(const FString& SenderName, const FString& Message);
+
+	
+	UFUNCTION(Server, Reliable)
+	void ServerSendChatMessage(const FString& message);
+	void SendChatMessage(const FString& Message);
 private:
 	UPROPERTY() ABlasterHUD* m_pHUD{};
 	UPROPERTY() ABlasterGameMode* m_pGameMode{};
@@ -94,6 +102,8 @@ private:
 	
 	UFUNCTION(Client, Reliable)
 	void ClientEliminationAnnouncement(APlayerState* pAttacker, APlayerState* pVictim, AWeapon* pWeaponUsed);
+
+	
 	
 	UPROPERTY() UCharacterOverlay* m_pCharacterOverlay{};
 	

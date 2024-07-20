@@ -395,6 +395,29 @@ void ABlasterPlayerController::StopHighPingWarning()
 	}
 }
 
+void ABlasterPlayerController::ServerSendChatMessage_Implementation(const FString& Message)
+{    
+	if (!PlayerState) return;
+
+	const FString SenderName = PlayerState->GetPlayerName();
+    
+	// Broadcast to all clients
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (ABlasterPlayerController* pPlayerController = Cast<ABlasterPlayerController>(*It))
+		{
+			pPlayerController->ClientReceiveChatMessage(SenderName, Message);
+		}
+	}
+}
+
+
+void ABlasterPlayerController::ClientReceiveChatMessage_Implementation(const FString& SenderName, const FString& Message)
+{    
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	
+	if (m_pHUD) m_pHUD->AddChatMessage(SenderName, Message);
+}
 
 //Called on client
 void ABlasterPlayerController::OnRep_MatchState()
@@ -409,8 +432,9 @@ void ABlasterPlayerController::OnRep_MatchState()
 	}
 }
 
+
 void ABlasterPlayerController::BroadcastElimination(APlayerState* pAttacker, APlayerState* pVictim,
-	AWeapon* pWeaponUsed)
+                                                    AWeapon* pWeaponUsed)
 {
 	ClientEliminationAnnouncement(pAttacker, pVictim, pWeaponUsed);
 }
@@ -418,6 +442,11 @@ void ABlasterPlayerController::BroadcastElimination(APlayerState* pAttacker, APl
 void ABlasterPlayerController::ChatOpened()
 {
 	m_pHUD->ChatOpened();
+}
+
+void ABlasterPlayerController::SendChatMessage(const FString& Message)
+{
+	ServerSendChatMessage(Message);	
 }
 
 void ABlasterPlayerController::ClientEliminationAnnouncement_Implementation(APlayerState* pAttacker,

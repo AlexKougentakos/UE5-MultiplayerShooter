@@ -41,6 +41,7 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 
 		//Maps each player that got hit with the amount of times they got hit
 		TMap<ABlasterCharacter*, int> hitMap{};
+		TMap<ABlasterCharacter*, int> headshotHitMap{};
 		for(const auto& hitLocation : hitLocations)
 		{
 			FHitResult hitResult{};
@@ -49,14 +50,20 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 			ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
 			if (pCharacter)
 			{
-				if (hitMap.Contains(pCharacter))
+				const bool isHeadshot = hitResult.BoneName == "head";
+
+				if (isHeadshot)
 				{
-					hitMap[pCharacter]++;
+					if (headshotHitMap.Contains(pCharacter)) headshotHitMap[pCharacter]++;
+					else headshotHitMap.Emplace(pCharacter, 1);
 				}
 				else
 				{
-					hitMap.Emplace(pCharacter, 1);
+					if (hitMap.Contains(pCharacter)) hitMap[pCharacter]++;
+					else hitMap.Emplace(pCharacter, 1);
 				}
+
+				
 			}
 
 			if (m_pImpactParticles)
@@ -71,17 +78,46 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 		//if (!pOwnerController && HasAuthority()) return;
 
 		TArray<ABlasterCharacter*> hitCharacters{};
+		TMap<ABlasterCharacter*, float> damageMap{};
+		//Get the total damage for body shots for each actor
 		for (const auto& pair : hitMap)
 		{
-			if (!pair.Key || !pOwnerController) continue;
+			if (!pair.Key) continue;
+
+			damageMap.Emplace(pair.Key, pair.Value * m_Damage);
+			hitCharacters.AddUnique(pair.Key);
+		}
+		//Get the total damage for headshots for each actor
+		for (const auto& pair : headshotHitMap)
+		{
+			if (!pair.Key) continue;
+
+			//Add the headshot damage to the total damage
+			if (damageMap.Contains(pair.Key))
+			{
+				damageMap[pair.Key] += pair.Value * m_HeadShotDamage;
+			}
+			//If it doesn't exist, create a new entry
+			else
+			{
+				damageMap.Emplace(pair.Key, pair.Value * m_HeadShotDamage);
+			}
 			
-			hitCharacters.Emplace(pair.Key);
+			hitCharacters.AddUnique(pair.Key);
+		}
+
+		//Apply the damage
+		for (const auto& pair : damageMap)
+		{
+			if (!pair.Key || !pOwnerController) continue;
+
 			if (HasAuthority() && (!m_UseServerSideRewind || pOwnerPawn->IsLocallyControlled()))
 			{
-				UGameplayStatics::ApplyDamage(pair.Key, m_Damage * pair.Value, pOwnerController, this, UDamageType::StaticClass());
+				UGameplayStatics::ApplyDamage(pair.Key, pair.Value, pOwnerController, this, UDamageType::StaticClass());
 			}
 		}
 
+		
 		if (!HasAuthority() && m_UseServerSideRewind) //Use server side rewind
 		{
 			m_pWeaponHolderController = m_pWeaponHolderController ? m_pWeaponHolderController : Cast<ABlasterPlayerController>(pOwnerController);

@@ -122,8 +122,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Has Automatic Fire")
 	bool m_CurrentWeaponHasAutomaticFire{true};
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Stats", DisplayName = "Damage")
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Damage")
 	float m_Damage{20.f};
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Headshot Damage")
+	float m_HeadShotDamage{40.f};
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Stats|Shooting", DisplayName = "Fire Type")
 	EFireType m_FireType{EFireType::EFT_HitScan};
@@ -163,6 +166,7 @@ private:
 	/*
 	 * AMMO
 	 */
+	
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", DisplayName = "Weapon Ammo")
 	int m_MaxAmmo{30};
 	int m_CurrentAmmo{};
@@ -201,6 +205,7 @@ public:
 	float GetZoomInterpolationSpeed() const { return m_ZoomInterpolationSpeed; }
 
 	float GetDamage() const { return m_Damage; }
+	float GetHeadShotDamage() const { return m_HeadShotDamage; }
 	float GetFireDelay() const { return m_FireDelay; }
 	bool HasAutomaticFire() const { return m_CurrentWeaponHasAutomaticFire; }
 	bool HasAmmoInMagazine() const { return m_CurrentAmmo > 0; }

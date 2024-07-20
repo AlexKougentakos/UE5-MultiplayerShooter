@@ -17,6 +17,6 @@ public:
 	void ShotgunGetVectorWithSpread(const FVector& hitTarget, TArray<FVector_NetQuantize>& outShotLocations) const;
 private:
 
-	UPROPERTY(EditAnywhere, DisplayName = "Number of Pellets", Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, DisplayName = "Number of Pellets", Category = "Weapon Stats|Shooting")
 	int m_NumberOfPellets{ 10 };
 };

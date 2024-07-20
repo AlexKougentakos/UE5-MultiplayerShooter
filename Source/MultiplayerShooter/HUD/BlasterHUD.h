@@ -43,6 +43,9 @@ public:
 	void AddCharacterOverlay();
 	void AddAnnouncement();
 	void AddEliminationAnnouncement(const FString& eliminatedPlayer, const FString& eliminatorPlayer, const AWeapon* pWeaponUsed);
+	void AddChatMessage(const FString& senderName, const FString& message);
+
+	void ChatOpened();
 private:
 	FHUDPackage m_HUDPackage{};
 
@@ -69,6 +72,4 @@ private:
 	
 public: // Getters & Setters
 	void SetHudPackage(const FHUDPackage& hudPackage) { m_HUDPackage = hudPackage; }
-
-	
 };

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterOverlay.generated.h"
 
+class UChat;
 class UVerticalBox;
 class UImage;
 class UHorizontalBox;
@@ -60,4 +61,7 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* PingText{};
+
+	UPROPERTY(meta = (BindWidget))
+	UChat* Chat{};
 };

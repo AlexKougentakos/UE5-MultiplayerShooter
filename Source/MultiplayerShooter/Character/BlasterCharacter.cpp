@@ -237,6 +237,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ABlasterCharacter::ReloadButtonPressed);
+	PlayerInputComponent->BindAction("OpenChat", IE_Pressed, this, &ABlasterCharacter::EnterChatTyping);
 	//PlayerInputComponent->BindAction("GrenadeThrow", IE_Pressed, this, &ABlasterCharacter::GrenadeThrowButtonPressed);
 	//The animation replication was very bugged and I couldn't get it fixed. I am leaving the logic in the code in case
 	//I can fix it later
@@ -734,6 +735,24 @@ void ABlasterCharacter::ReloadButtonPressed()
 	if (m_DisabledGameplay) return;
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	m_pCombat->Reload();
+}
+
+void ABlasterCharacter::EnterChatTyping()
+{
+	if (m_pPlayerController)
+	{
+		m_pPlayerController->ChatOpened();
+	}
+}
+
+void ABlasterCharacter::ExitChatTyping()
+{
+	if (m_pPlayerController)
+	{
+		m_pPlayerController->SetInputMode(FInputModeGameOnly());
+		m_pPlayerController->bShowMouseCursor = false;
+		
+	}
 }
 
 void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType,

@@ -415,8 +415,13 @@ void ABlasterPlayerController::BroadcastElimination(APlayerState* pAttacker, APl
 	ClientEliminationAnnouncement(pAttacker, pVictim, pWeaponUsed);
 }
 
+void ABlasterPlayerController::ChatOpened()
+{
+	m_pHUD->ChatOpened();
+}
+
 void ABlasterPlayerController::ClientEliminationAnnouncement_Implementation(APlayerState* pAttacker,
-	APlayerState* pVictim, AWeapon* pWeaponUsed)
+                                                                            APlayerState* pVictim, AWeapon* pWeaponUsed)
 {
 	APlayerState* self = GetPlayerState<APlayerState>();
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());

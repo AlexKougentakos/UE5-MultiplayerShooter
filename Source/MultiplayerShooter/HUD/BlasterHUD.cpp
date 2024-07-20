@@ -5,6 +5,7 @@
 
 #include "Announcement.h"
 #include "CharacterOverlay.h"
+#include "Chat.h"
 #include "EliminationAnnouncement.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/VerticalBox.h"
@@ -101,4 +102,20 @@ void ABlasterHUD::AddEliminationAnnouncement(const FString& eliminatedPlayer, co
 	{
 		m_pCharacterOverlay->KillFeed->RemoveChildAt(m_MaxKillFeedItems);
 	}
+}
+
+void ABlasterHUD::AddChatMessage(const FString& senderName, const FString& message)
+{
+	m_pPlayerController = GetOwningPlayerController();
+	checkf(m_pPlayerController, TEXT("Player controller is null"));
+
+	UE_LOG(LogTemp, Warning, TEXT("AddChatMessage"));
+	if (!m_pCharacterOverlay) return;
+	
+	m_pCharacterOverlay->Chat->AddChatMessage(senderName, message);
+}
+
+void ABlasterHUD::ChatOpened()
+{
+	m_pCharacterOverlay->Chat->OpenChat();
 }

@@ -290,6 +290,9 @@ private: // Functions
 	void FireButtonReleased();
 	void ReloadButtonPressed();
 
+	void EnterChatTyping();
+	void ExitChatTyping();
+
 	UFUNCTION()
 	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatedBy, AActor* damageCauser);
 

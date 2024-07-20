@@ -35,6 +35,8 @@ public:
 	void BroadcastElimination(APlayerState* pAttacker, APlayerState* pVictim, AWeapon* pWeaponUsed);
 	
 	FHighPingDelegate OnHighPingWarning;
+
+	void ChatOpened();
 private:
 	UPROPERTY() ABlasterHUD* m_pHUD{};
 	UPROPERTY() ABlasterGameMode* m_pGameMode{};
@@ -100,7 +102,7 @@ private:
 	UPROPERTY() UReturnToMainMenu* m_pReturnToMainMenuWidget{};
 	bool m_IsReturnToMainMenuOpen{false};
 	void ShowReturnToMainMenu();
-
+	
 	float m_TimeSinceLastHighPingWarning{0.f};
 	float m_CurrentHighPingAnimationElapsedTime{0.f};
 	float m_TimeSinceLastPingUpdate{0.f};

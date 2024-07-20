@@ -60,6 +60,12 @@ struct FServerSideRewindShotgunResult
 	TMap<ABlasterCharacter*, uint32> BodyShots{};
 };
 
+UCLASS()
+class MULTIPLAYERSHOOTER_API UHeadshotDamageType : public UDamageType
+{
+	GENERATED_BODY()
+};
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MULTIPLAYERSHOOTER_API ULagCompensationComponent : public UActorComponent
 {

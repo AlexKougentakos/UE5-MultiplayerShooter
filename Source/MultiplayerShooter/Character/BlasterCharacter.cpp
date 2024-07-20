@@ -739,12 +739,22 @@ void ABlasterCharacter::ReloadButtonPressed()
 void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType,
                                       AController* instigatedBy, AActor* damageCauser)
 {
-	if (m_CurrentShield <= 0 ) m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
-	else m_CurrentShield = FMath::Clamp(m_CurrentShield - damage, 0.f, m_MaxShield);
+	//Snipers can break the shield with a headshot
+	if (Cast<AWeapon>(damageCauser)->GetWeaponType() == EWeaponType::EWT_Sniper && damageType && damageType->IsA<UHeadshotDamageType>())
+	{
+		const float shieldDamage = FMath::Clamp(m_CurrentShield - damage, 0.f, m_MaxShield);
+		const float healthDamage = FMath::Clamp(m_CurrentHealth - (damage - shieldDamage), 0.f, m_MaxHealth);
+		m_CurrentShield = shieldDamage;
+		m_CurrentHealth = healthDamage;
+	}
+	else
+	{
+		if (m_CurrentShield <= 0 ) m_CurrentHealth = FMath::Clamp(m_CurrentHealth - damage, 0.f, m_MaxHealth);
+		else m_CurrentShield = FMath::Clamp(m_CurrentShield - damage, 0.f, m_MaxShield);	
+	}
 
 	UpdateHudHealth();
 	UpdateHudShield();
-
 	
 	if (GetCombatState() == ECombatState::ECS_Reloading)
 		m_pCombat->m_CombatState = ECombatState::ECS_Unoccupied;

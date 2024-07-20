@@ -33,8 +33,14 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 			{
 				if (HasAuthority() && (!m_UseServerSideRewind || pOwnerPawn->IsLocallyControlled()))
 				{
-					const float damage = hitResult.BoneName.ToString() == "head" ? m_HeadShotDamage : m_Damage;
-					UGameplayStatics::ApplyDamage(pCharacter, damage, pOwnerController, this, UDamageType::StaticClass());
+					float damage = m_Damage;
+					auto damageType = UDamageType::StaticClass();
+					if (hitResult.BoneName.ToString() == "head")
+					{
+						damage = m_HeadShotDamage;
+						damageType = UHeadshotDamageType::StaticClass();
+					}
+					UGameplayStatics::ApplyDamage(pCharacter, damage, pOwnerController, this, damageType);
 				}
 				if (!HasAuthority() && m_UseServerSideRewind)
 				{

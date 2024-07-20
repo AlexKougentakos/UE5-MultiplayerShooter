@@ -124,14 +124,20 @@ void ULagCompensationComponent::ServerDamageRequest_Implementation(ABlasterChara
 																   const FVector_NetQuantize& traceStart, const FVector_NetQuantize& traceEnd, const float hitTime,
 																   AWeapon* pDamageCauser)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Test"));
 	const FServerSideRewindResult result = ServerSideRewind(pHitCharacter, traceStart, traceEnd, hitTime);
 	
 	if (!pHitCharacter || !result.WasHitConfirmed || !pDamageCauser) return;
 
 
 	const float damage = result.Headshot ? pDamageCauser->GetHeadShotDamage() : pDamageCauser->GetDamage();
+	const auto damageType = result.Headshot ? UHeadshotDamageType::StaticClass() : UDamageType::StaticClass();
+	
+	UE_LOG(LogTemp, Warning, TEXT("Damage: %f"), damage);
+	UE_LOG(LogTemp, Warning, TEXT("Damage Type: %s"), *damageType->GetName());
+	
 	UGameplayStatics::ApplyDamage(pHitCharacter, damage, m_pCharacter->GetController(),
-		pDamageCauser, UDamageType::StaticClass());
+		pDamageCauser, damageType);
 }
 
 void ULagCompensationComponent::ServerProjectileDamageRequest_Implementation(ABlasterCharacter* pHitCharacter,
@@ -141,8 +147,10 @@ void ULagCompensationComponent::ServerProjectileDamageRequest_Implementation(ABl
 	const FServerSideRewindResult result = ServerSideRewindProjectile(pHitCharacter, traceStart, initialVelocity, hitTime);
 	const float damage = result.Headshot ? pDamageCauser->GetHeadShotDamage() : pDamageCauser->GetDamage();
 
+	const auto damageType = result.Headshot ? UHeadshotDamageType::StaticClass() : UDamageType::StaticClass();
+	
 	UGameplayStatics::ApplyDamage(pHitCharacter, damage, m_pCharacter->GetController(),
-	pDamageCauser, UDamageType::StaticClass());
+	pDamageCauser, damageType);
 }
 
 void ULagCompensationComponent::ServerShotgunDamageRequest_Implementation(
@@ -167,7 +175,7 @@ void ULagCompensationComponent::ServerShotgunDamageRequest_Implementation(
 		}
 
 		UGameplayStatics::ApplyDamage(character, totalDamage, m_pCharacter->GetController(),
-	pDamageCauser, UDamageType::StaticClass());
+		pDamageCauser, UDamageType::StaticClass());
 	}
 }
 

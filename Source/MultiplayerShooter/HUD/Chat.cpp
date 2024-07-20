@@ -62,7 +62,6 @@ void UChat::CloseChat() const
 	
 	pChatInputContainerSlot->SetSize(test);
 	
-	ChatArea->SetRenderScale({0.f, 0.f});
 	CurrentChatMessage->SetText(FText{FText::FromString("Press \"/\" to type...")});
 
 }
@@ -70,7 +69,7 @@ void UChat::CloseChat() const
 void UChat::AddChatMessage(const FString& senderName, const FString& message)
 {
 	//You have to create two instances because an element cannot have two parents
-	RecentMessages->AddChild(	CreateChatMessage(senderName, message));
+	RecentMessages->AddChild(CreateChatMessage(senderName, message));
 	MessageContainer->AddChild(CreateChatMessage(senderName, message));
 	
 	if (RecentMessages->GetChildrenCount() > m_RecentMessageCap)

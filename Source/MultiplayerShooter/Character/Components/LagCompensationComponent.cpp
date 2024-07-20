@@ -128,18 +128,20 @@ void ULagCompensationComponent::ServerDamageRequest_Implementation(ABlasterChara
 	
 	if (!pHitCharacter || !result.WasHitConfirmed || !pDamageCauser) return;
 
-	UGameplayStatics::ApplyDamage(pHitCharacter, pDamageCauser->GetDamage(), m_pCharacter->GetController(),
+
+	const float damage = result.Headshot ? pDamageCauser->GetHeadShotDamage() : pDamageCauser->GetDamage();
+	UGameplayStatics::ApplyDamage(pHitCharacter, damage, m_pCharacter->GetController(),
 		pDamageCauser, UDamageType::StaticClass());
 }
-
 
 void ULagCompensationComponent::ServerProjectileDamageRequest_Implementation(ABlasterCharacter* pHitCharacter,
 	const FVector_NetQuantize& traceStart, const FVector_NetQuantize100& initialVelocity, const float hitTime,
 	AWeapon* pDamageCauser)
 {
 	const FServerSideRewindResult result = ServerSideRewindProjectile(pHitCharacter, traceStart, initialVelocity, hitTime);
+	const float damage = result.Headshot ? pDamageCauser->GetHeadShotDamage() : pDamageCauser->GetDamage();
 
-	UGameplayStatics::ApplyDamage(pHitCharacter, pDamageCauser->GetDamage(), m_pCharacter->GetController(),
+	UGameplayStatics::ApplyDamage(pHitCharacter, damage, m_pCharacter->GetController(),
 	pDamageCauser, UDamageType::StaticClass());
 }
 
@@ -155,7 +157,7 @@ void ULagCompensationComponent::ServerShotgunDamageRequest_Implementation(
 		float totalDamage{};
 		if (confirm.HeadShots.Contains(character))
 		{
-			const float headShotDamage = confirm.HeadShots[character] * pDamageCauser->GetDamage();
+			const float headShotDamage = confirm.HeadShots[character] * pDamageCauser->GetHeadShotDamage();
 			totalDamage += headShotDamage;
 		}
 		if (confirm.BodyShots.Contains(character))

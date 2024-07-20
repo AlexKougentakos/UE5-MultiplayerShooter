@@ -74,6 +74,7 @@ protected:
 	FVector_NetQuantize m_SpawnLocation{};
 	FVector_NetQuantize100 m_InitialVelocity{};
 	float m_Damage{ 20.0f };
+	float m_HeadShotDamage{40.f};
 
 	UPROPERTY(EditAnywhere, DisplayName = "Damage Fall Off Inner Radius", Category = "Projectile Stats")
 	float m_InnerDamageRadius{ 200.0f };
@@ -114,5 +115,5 @@ public:
 	void SetInitialVelocity(const FVector& initialVelocity) { m_InitialVelocity = initialVelocity; }
 	void SetSpawnLocation(const FVector& spawnLocation) { m_SpawnLocation = spawnLocation; }
 	const UProjectileMovementComponent* GetProjectileMovementComponent() const { return m_pProjectileMovementComponent; }
-	void SetDamage(const float damage) { m_Damage = damage; }
+	void SetDamage(const float damage, const float headShotDamage) { m_Damage = damage; m_HeadShotDamage = headShotDamage; }
 };

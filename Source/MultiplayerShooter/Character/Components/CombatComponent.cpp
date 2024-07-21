@@ -672,6 +672,8 @@ void UCombatComponent::FinishedWeaponSwap()
 
 void UCombatComponent::FinishedWeaponSwapAttachment()
 {
+	if (!m_pCharacter || !m_pCharacter->HasAuthority()) return;
+	
 	AWeapon* pTempWeapon = m_pEquippedWeapon;
 	m_pEquippedWeapon = m_pSecondaryWeapon;
 	m_pSecondaryWeapon = pTempWeapon;

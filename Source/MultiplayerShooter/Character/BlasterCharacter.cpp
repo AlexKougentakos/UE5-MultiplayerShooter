@@ -417,6 +417,7 @@ void ABlasterCharacter::PlayThrowGrenadeMontage() const
 
 void ABlasterCharacter::PlayWeaponSwapMontage() const
 {
+	UE_LOG(LogTemp, Warning, TEXT("PlayWeaponSwapMontage"));
 	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
 	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
 	checkf(m_pWeaponSwapMontage, TEXT("Weapon Swap Montage is nullptr"));
@@ -568,9 +569,15 @@ void ABlasterCharacter::LookUp(const float value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Equip button pressed"));
 	if (!m_pCombat || m_DisabledGameplay) return;
 	
-	if (m_pCombat->m_CombatState == ECombatState::ECS_Unoccupied) ServerEquipButtonPressed();
+	if (m_pCombat->m_CombatState == ECombatState::ECS_Unoccupied)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server Equip button pressed"));
+		ServerEquipButtonPressed();
+	}
+	
 	if (m_pCombat->ShouldSwapWeapons() && !HasAuthority() && m_pOverlappingWeapon == nullptr)
 	{
 		PlayWeaponSwapMontage();
@@ -759,7 +766,8 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
                                       AController* instigatedBy, AActor* damageCauser)
 {
 	//Snipers can break the shield with a headshot
-	if (Cast<AWeapon>(damageCauser)->GetWeaponType() == EWeaponType::EWT_Sniper && damageType && damageType->IsA<UHeadshotDamageType>())
+	const AWeapon* pDamagingWeapon = Cast<AWeapon>(damageCauser);
+	if (pDamagingWeapon &&  pDamagingWeapon->GetWeaponType() == EWeaponType::EWT_Sniper && damageType && damageType->IsA<UHeadshotDamageType>())
 	{
 		const float shieldDamage = FMath::Clamp(m_CurrentShield - damage, 0.f, m_MaxShield);
 		const float healthDamage = FMath::Clamp(m_CurrentHealth - (damage - shieldDamage), 0.f, m_MaxHealth);
@@ -861,6 +869,7 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (!m_pCombat) return;
 
+	UE_LOG(LogTemp, Warning, TEXT("ServerEquipButtonPressed_Implementation"));
 	//If we have two weapons and we are not overlapping any then we use this button to switch weapons
 	if (m_pCombat->HasWeapon() && m_pCombat->HasSecondaryWeapon() && !m_pOverlappingWeapon)
 		m_pCombat->SwapWeapons();

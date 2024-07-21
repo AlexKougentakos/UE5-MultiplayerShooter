@@ -411,7 +411,6 @@ void ABlasterPlayerController::ServerSendChatMessage_Implementation(const FStrin
 	}
 }
 
-
 void ABlasterPlayerController::ClientReceiveChatMessage_Implementation(const FString& SenderName, const FString& Message)
 {    
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());

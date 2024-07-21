@@ -40,7 +40,6 @@ public:
 	
 	UFUNCTION(Client, Reliable)
 	void ClientReceiveChatMessage(const FString& SenderName, const FString& Message);
-
 	
 	UFUNCTION(Server, Reliable)
 	void ServerSendChatMessage(const FString& message);

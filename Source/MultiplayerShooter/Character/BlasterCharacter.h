@@ -59,10 +59,11 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool showScope);
-
+	
 	void UpdateHudHealth();
 	void UpdateHudShield();
 	void UpdateHudAmmo();
+	void UpdateHudWeapons();
 
 	void SpawnDefaultWeapon();
 

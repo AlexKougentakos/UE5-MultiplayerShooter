@@ -49,6 +49,7 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	pCharacter->UpdateHudHealth();
 	pCharacter->UpdateHudShield();
 	pCharacter->UpdateHudAmmo();
+	pCharacter->UpdateHudWeapons();
 	
 }
 
@@ -122,21 +123,21 @@ void ABlasterPlayerController::PollInitialize()
 				SetHudDeaths(m_Deaths);
 				m_InitializeDeaths = false;
 			}
-			bool showAmmo = false;
 			if (m_InitializeCarriedAmmo)
 			{
 				SetHudCarriedAmmo(m_CarriedAmmo);
 				m_InitializeCarriedAmmo = false;
-				showAmmo = true;
 			}
 			if (m_InitializeWeaponAmmo)
 			{
 				SetHudAmmo(m_WeaponAmmo);
 				m_InitializeWeaponAmmo = false;
-				showAmmo = true;
 			}
-			
-			ShowAmmo(showAmmo);
+			if (m_InitializeWeaponHUD)
+			{
+				UpdateWeaponHud(m_pMainWeapon, m_pSecondaryWeapon);
+				m_InitializeWeaponHUD = false;
+			}
 		}
 	}
 }
@@ -249,6 +250,24 @@ void ABlasterPlayerController::SetHudDeaths(const float deaths)
 	m_pHUD->m_pCharacterOverlay->DeathsAmount->SetText(FText::FromString(deathsAmount));	
 }
 
+
+void ABlasterPlayerController::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	if (!m_pHUD || !m_pHUD->m_pCharacterOverlay ||
+		!m_pHUD->m_pCharacterOverlay->WeaponIcon ||
+		!m_pHUD->m_pCharacterOverlay->SecondaryWeaponIcon)
+	{
+		m_pMainWeapon = pMainWeapon;
+		m_pSecondaryWeapon = pSecondaryWeapon;
+		m_InitializeWeaponHUD = true;
+		return;
+	}
+
+	m_pHUD->UpdateWeaponHud(pMainWeapon, pSecondaryWeapon);
+}
+
+
 void ABlasterPlayerController::SetHudAmmo(const int ammo)
 {
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
@@ -282,17 +301,6 @@ void ABlasterPlayerController::SetHudCarriedAmmo(const int carriedAmmo)
 
 	const FString ammoCount = FString::Printf(TEXT("%d"), carriedAmmo);
 	m_pHUD->m_pCharacterOverlay->CarriedAmmoCount->SetText(FText::FromString(ammoCount));
-}
-
-void ABlasterPlayerController::ShowAmmo(const bool showAmmo)
-{
-	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-	
-	if (!m_pHUD ||
-	!m_pHUD->m_pCharacterOverlay ||
-	!m_pHUD->m_pCharacterOverlay->AmmoContainer) return;
-
-	m_pHUD->m_pCharacterOverlay->AmmoContainer->SetVisibility(showAmmo ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
 
 void ABlasterPlayerController::SetHudMatchCountDown(const float time)
@@ -531,8 +539,10 @@ void ABlasterPlayerController::HandleMatchHasStarted()
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
 	if (m_pHUD)
 	{
+		
 		m_pHUD->AddCharacterOverlay();
 		if (m_pHUD->m_pAnnouncement) m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Hidden);
+		ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(GetPawn());
 	}
 }
 

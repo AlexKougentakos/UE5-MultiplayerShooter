@@ -64,4 +64,17 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UChat* Chat{};
+
+	/*
+	 *	BOTTOM RIGHT WEAPON CONTAINER
+	 */
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* WeaponIcon{};
+	
+	UPROPERTY(meta = (BindWidget))
+	UImage* SecondaryWeaponIcon{};
+	
+	UPROPERTY(meta = (BindWidget))
+	UHorizontalBox* SecondaryWeapon{};
 };

@@ -25,7 +25,7 @@ public:
 	
 	virtual void TickComponent(float deltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 	void EquipWeapon(AWeapon* const pWeapon);
 	bool HasWeapon() const { return m_pEquippedWeapon != nullptr; }
 	bool HasSecondaryWeapon() const { return m_pSecondaryWeapon != nullptr; }
@@ -76,6 +76,7 @@ protected:
 	void MulticastFireShotgun(const TArray<FVector_NetQuantize>& traceHitLocations);
 
 	void SetHudCrosshairs(float deltaTime);
+	void UpdateWeaponHUD();
 
 	bool CanFire() const;
 

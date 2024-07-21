@@ -149,7 +149,6 @@ void ABlasterCharacter::BeginPlay()
 	
 	if (m_pPlayerController)
 	{
-		m_pPlayerController->ShowAmmo(false);
 		UpdateHudHealth();
 		UpdateHudShield();
 	}
@@ -157,9 +156,10 @@ void ABlasterCharacter::BeginPlay()
 	if (HasAuthority())
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 
+	
 	SpawnDefaultWeapon();
 	UpdateHudAmmo();
-
+	m_pCombat->UpdateWeaponHUD();
 }
 
 void ABlasterCharacter::PollInitialize(float deltaTime)
@@ -299,6 +299,7 @@ void ABlasterCharacter::Eliminated(const bool playerLeftGame)
 			m_pCombat->m_pEquippedWeapon->Drop();
 	}
 	if (m_pCombat->HasSecondaryWeapon()) m_pCombat->m_pSecondaryWeapon->Drop();
+	m_pCombat->UpdateWeaponHUD();
 	
 	MulticastEliminated(playerLeftGame);
 }
@@ -306,7 +307,6 @@ void ABlasterCharacter::Eliminated(const bool playerLeftGame)
 void ABlasterCharacter::MulticastEliminated_Implementation(const bool playerLeftGame)
 {
 	m_PlayerLeftGame = playerLeftGame;
-	if (m_pPlayerController) m_pPlayerController->ShowAmmo(false);
 	
 	m_IsAlive = false;
 	PlayEliminationMontage();
@@ -499,6 +499,13 @@ void ABlasterCharacter::UpdateHudAmmo()
 		m_pPlayerController->SetHudCarriedAmmo(m_pCombat->m_CarriedAmmo);
 	}
 	
+}
+
+void ABlasterCharacter::UpdateHudWeapons()
+{
+	if (!m_pCombat) return;
+	
+	m_pCombat->UpdateWeaponHUD();
 }
 
 void ABlasterCharacter::SpawnDefaultWeapon()

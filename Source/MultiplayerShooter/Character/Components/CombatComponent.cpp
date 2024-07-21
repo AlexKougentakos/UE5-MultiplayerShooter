@@ -145,10 +145,18 @@ void UCombatComponent::UpdateAmmoHud()
 	if (m_pPlayerController)
 	{
 		m_pPlayerController->SetHudCarriedAmmo(m_CarriedAmmo);
-		m_pPlayerController->ShowAmmo(true);
 	}
 
 	m_pEquippedWeapon->UpdateHudAmmo();
+}
+
+void UCombatComponent::UpdateWeaponHUD()
+{
+	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
+	if (m_pPlayerController)
+	{
+		m_pPlayerController->UpdateWeaponHud(m_pEquippedWeapon, m_pSecondaryWeapon);
+	}
 }
 
 void UCombatComponent::JumpToShotgunReloadAnimationEnd() const
@@ -421,7 +429,6 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
 	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
 }
 
-
 void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 {
 	if (!m_pCharacter || !pWeapon) return;
@@ -449,6 +456,7 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 	
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
+	UpdateWeaponHUD();
 }
 
 
@@ -539,20 +547,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	
 	m_pCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_pCharacter->bUseControllerRotationYaw = true;
-
-	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
-	if (m_pPlayerController)
-	{
-		m_pPlayerController->ShowAmmo(true);
-	}
-
+	
 	checkf(m_pEquippedWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
 
 	UpdateAmmoHud();
 	m_pEquippedWeapon->UpdateHudAmmo();
 	UpdateAmmoValues(true);
-
+	UpdateWeaponHUD();
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon()
@@ -565,8 +567,8 @@ void UCombatComponent::OnRep_SecondaryWeapon()
 		
 		checkf(m_pSecondaryWeapon->GetPickupSound(), TEXT("Pickup sound is nullptr"));
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pSecondaryWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
-		
 	}
+	UpdateWeaponHUD();
 }
 
 void UCombatComponent::SetHudCrosshairs(float deltaTime)
@@ -677,6 +679,7 @@ void UCombatComponent::FinishedWeaponSwapAttachment()
 	AWeapon* pTempWeapon = m_pEquippedWeapon;
 	m_pEquippedWeapon = m_pSecondaryWeapon;
 	m_pSecondaryWeapon = pTempWeapon;
+	UpdateWeaponHUD();
 	
 	if (m_CarriedAmmoMap.Contains(m_pEquippedWeapon->GetWeaponType()))
 	{
@@ -687,6 +690,7 @@ void UCombatComponent::FinishedWeaponSwapAttachment()
 	 *	PRIMARY WEAPON 
 	 */
 	UpdateAmmoHud();
+	
 
 	m_pEquippedWeapon->SetOwner(m_pCharacter);
 	m_pEquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);

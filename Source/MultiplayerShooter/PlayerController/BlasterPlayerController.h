@@ -44,6 +44,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerSendChatMessage(const FString& message);
 	void SendChatMessage(const FString& Message);
+
+	void UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon);
 private:
 	UPROPERTY() ABlasterHUD* m_pHUD{};
 	UPROPERTY() ABlasterGameMode* m_pGameMode{};
@@ -142,6 +144,9 @@ private:
 	bool m_InitializeCarriedAmmo{false};
 	int m_WeaponAmmo{0};
 	bool m_InitializeWeaponAmmo{false};
+	bool m_InitializeWeaponHUD{false};
+	const AWeapon* m_pMainWeapon{};
+	const AWeapon* m_pSecondaryWeapon{};
 public:
 		
 	void SetHudHealth(const float health, const float maxHealth);
@@ -150,7 +155,6 @@ public:
 	void SetHudDeaths(const float deaths);
 	void SetHudAmmo(const int ammo);
 	void SetHudCarriedAmmo(const int carriedAmmo);
-	void ShowAmmo(const bool showAmmo);
 	void SetHudMatchCountDown(const float time);
 	void SetHudAnnouncementCountDown(const float time);
 	

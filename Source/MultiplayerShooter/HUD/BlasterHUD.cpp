@@ -8,7 +8,10 @@
 #include "Chat.h"
 #include "EliminationAnnouncement.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/HorizontalBox.h"
+#include "Components/Image.h"
 #include "Components/VerticalBox.h"
+#include "MultiplayerShooter/Weapon/Weapon.h"
 
 void ABlasterHUD::DrawHUD()
 {
@@ -116,4 +119,20 @@ void ABlasterHUD::ChatOpened()
 	{
 		m_pCharacterOverlay->Chat->OpenChat();
 	}
+}
+
+void ABlasterHUD::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon)
+{
+	if (!m_pCharacterOverlay) return;
+
+	if (pMainWeapon)
+		m_pCharacterOverlay->WeaponIcon->SetBrushFromTexture(pMainWeapon->GetKillfeedIcon());
+	
+	if (pSecondaryWeapon)
+	{
+		m_pCharacterOverlay->SecondaryWeapon->SetVisibility(ESlateVisibility::Visible);
+		m_pCharacterOverlay->SecondaryWeaponIcon->SetBrushFromTexture(pSecondaryWeapon->GetKillfeedIcon());
+	}
+	else
+		m_pCharacterOverlay->SecondaryWeapon->SetVisibility(ESlateVisibility::Hidden);
 }

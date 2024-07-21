@@ -46,6 +46,7 @@ public:
 	void AddChatMessage(const FString& senderName, const FString& message);
 	
 	void ChatOpened();
+	void UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon);
 private:
 	FHUDPackage m_HUDPackage{};
 

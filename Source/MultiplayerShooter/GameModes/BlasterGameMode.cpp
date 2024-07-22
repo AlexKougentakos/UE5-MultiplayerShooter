@@ -22,7 +22,7 @@ ABlasterGameMode::ABlasterGameMode()
 void ABlasterGameMode::BeginPlay()
 { 
 	Super::BeginPlay();
-
+	
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), m_PlayerStarts);
 
 	m_LevelStartingTime = GetWorld()->GetTimeSeconds();
@@ -31,7 +31,7 @@ void ABlasterGameMode::BeginPlay()
 void ABlasterGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
+	
 	if (MatchState == MatchState::WaitingToStart)
 	{
 		m_CountdownTime = m_WarmUpDuration - GetWorld()->GetTimeSeconds() + m_LevelStartingTime;

@@ -81,6 +81,7 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	HandleHighPingWarning(DeltaSeconds);
 	HandleTimeSync(DeltaSeconds);
 	PollInitialize();
+	
 }
 
 void ABlasterPlayerController::SetupInputComponent()
@@ -372,6 +373,7 @@ void ABlasterPlayerController::SetHudAnnouncementCountDown(const float time)
 float ABlasterPlayerController::GetServerTime() const
 {
 	if (HasAuthority()) return GetWorld()->GetTimeSeconds(); // If we are on the server we don't have a delay
+	UE_LOG(LogBlasterHUD, Log, TEXT("GetServerTime called: %f"), GetWorld()->GetTimeSeconds() + m_ClientServerTimeDifference);
 	return GetWorld()->GetTimeSeconds() + m_ClientServerTimeDifference;
 }
 
@@ -758,6 +760,7 @@ void ABlasterPlayerController::SetHudTime()
 void ABlasterPlayerController::ServerRequestServerTime_Implementation(float timeOfClientRequest)
 {
 	const float timeServerReceivedRequest = GetWorld()->GetTimeSeconds();
+	UE_LOG(LogBlasterHUD, Log, TEXT("Server time: %.5f | Time of client request: %.5f"), timeServerReceivedRequest, timeOfClientRequest);
 	ClientReportServerTime(timeOfClientRequest, timeServerReceivedRequest);
 }
 

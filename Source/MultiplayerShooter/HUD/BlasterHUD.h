@@ -40,10 +40,11 @@ public:
 	void AddCharacterOverlay();
 	void AddAnnouncement();
 	void AddEliminationAnnouncement(const FString& eliminatedPlayer, const FString& eliminatorPlayer, const AWeapon* pWeaponUsed);
-	void AddChatMessage(const FString& senderName, const FString& message);
+	void AddChatMessage(const FString& senderName, const FString& message) const;
 	
-	void ChatOpened();
-	void UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon);
+	void ChatOpened() const;
+	void UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon) const;
+	void HideUI(const bool hide) const;
 private:
 	FHUDPackage m_HUDPackage{};
 	

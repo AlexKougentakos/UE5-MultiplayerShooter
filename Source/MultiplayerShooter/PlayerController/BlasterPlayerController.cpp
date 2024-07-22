@@ -285,6 +285,14 @@ void ABlasterPlayerController::UpdateWeaponHud(const AWeapon* pMainWeapon, const
 	m_pHUD->UpdateWeaponHud(pMainWeapon, pSecondaryWeapon);
 }
 
+void ABlasterPlayerController::HideUI(const bool hide)
+{
+	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+	if (!m_pHUD) return;
+
+	m_pHUD->HideUI(hide);
+}
+
 
 void ABlasterPlayerController::SetHudAmmo(const int ammo)
 {

@@ -107,13 +107,13 @@ void ABlasterHUD::AddEliminationAnnouncement(const FString& eliminatedPlayer, co
 	}
 }
 
-void ABlasterHUD::AddChatMessage(const FString& senderName, const FString& message)
+void ABlasterHUD::AddChatMessage(const FString& senderName, const FString& message) const
 {
 	m_pCharacterOverlay->Chat->AddChatMessage(senderName, message);
 }
 
 
-void ABlasterHUD::ChatOpened()
+void ABlasterHUD::ChatOpened() const
 {
 	if (m_pCharacterOverlay && m_pCharacterOverlay->Chat)
 	{
@@ -121,7 +121,7 @@ void ABlasterHUD::ChatOpened()
 	}
 }
 
-void ABlasterHUD::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon)
+void ABlasterHUD::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon) const
 {
 	if (!m_pCharacterOverlay) return;
 
@@ -135,4 +135,9 @@ void ABlasterHUD::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSe
 	}
 	else
 		m_pCharacterOverlay->SecondaryWeapon->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void ABlasterHUD::HideUI(const bool hide) const
+{
+	m_pCharacterOverlay->SetVisibility(hide ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
 }

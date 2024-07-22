@@ -46,6 +46,7 @@ public:
 	void SendChatMessage(const FString& Message);
 
 	void UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon);
+	void HideUI(const bool hide);
 private:
 	UPROPERTY() ABlasterHUD* m_pHUD{};
 	UPROPERTY() ABlasterGameMode* m_pGameMode{};

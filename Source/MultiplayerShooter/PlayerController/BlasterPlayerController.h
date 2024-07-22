@@ -36,7 +36,7 @@ public:
 	
 	FHighPingDelegate OnHighPingWarning;
 
-	void ChatOpened();
+	void ChatOpened() const;
 	
 	UFUNCTION(Client, Reliable)
 	void ClientReceiveChatMessage(const FString& SenderName, const FString& Message);

@@ -26,9 +26,6 @@ public:
 	FLinearColor CrosshairColor{FLinearColor::White};
 };
 
-/**
- * 
- */
 UCLASS()
 class MULTIPLAYERSHOOTER_API ABlasterHUD : public AHUD
 {
@@ -49,8 +46,8 @@ public:
 	void UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSecondaryWeapon);
 private:
 	FHUDPackage m_HUDPackage{};
-
-	APlayerController* m_pPlayerController{};
+	
+	UPROPERTY() APlayerController* m_pPlayerController{};
 	
 	UPROPERTY(EditAnywhere, Category = "Crosshairs", DisplayName = "Crosshair Spread Max")
 	float m_CrosshairSpreadMax{8.f};

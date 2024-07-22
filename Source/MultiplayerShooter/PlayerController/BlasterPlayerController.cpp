@@ -16,6 +16,8 @@
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogBlasterHUD, Log, All);
+
 void ABlasterPlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
@@ -43,14 +45,20 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(InPawn);
-	if (!pCharacter) return;
+	UE_LOG(LogBlasterHUD, Log, TEXT("OnPossess called"));
 
+	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(InPawn);
+	if (!pCharacter)
+	{
+		UE_LOG(LogBlasterHUD, Error, TEXT("Failed to cast InPawn to ABlasterCharacter"));
+		return;
+	}
+
+	UE_LOG(LogBlasterHUD, Log, TEXT("Updating HUD elements for possessed character"));
 	pCharacter->UpdateHudHealth();
 	pCharacter->UpdateHudShield();
 	pCharacter->UpdateHudAmmo();
 	pCharacter->UpdateHudWeapons();
-	
 }
 
 void ABlasterPlayerController::Tick(float DeltaSeconds)
@@ -96,13 +104,15 @@ void ABlasterPlayerController::HandleTimeSync(float DeltaSeconds)
 
 void ABlasterPlayerController::PollInitialize()
 {
+	UE_LOG(LogBlasterHUD, Verbose, TEXT("PollInitialize called"));
+
 	if (!m_pCharacterOverlay)
 	{
 		if (m_pHUD && m_pHUD->m_pCharacterOverlay)
 		{
+			UE_LOG(LogBlasterHUD, Log, TEXT("Character overlay found. Initializing HUD values."));
 			m_pCharacterOverlay = m_pHUD->m_pCharacterOverlay;
 
-			// Initialize the HUD values once the overlay is valid
 			if (m_InitializeHealth)
 			{
 				SetHudHealth(m_Health, m_MaxHealth);
@@ -139,6 +149,10 @@ void ABlasterPlayerController::PollInitialize()
 				m_InitializeWeaponHUD = false;
 			}
 		}
+		else
+		{
+			UE_LOG(LogBlasterHUD, Verbose, TEXT("Character overlay not found. Waiting for next poll."));
+		}
 	}
 }
 
@@ -170,6 +184,8 @@ void ABlasterPlayerController::HandleHighPingWarning(float DeltaSeconds)
 
 void ABlasterPlayerController::SetHudHealth(const float health, const float maxHealth)
 {
+	UE_LOG(LogBlasterHUD, Log, TEXT("SetHudHealth called: Health = %.2f, MaxHealth = %.2f"), health, maxHealth);
+
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
 
 	if (!m_pHUD ||
@@ -177,19 +193,21 @@ void ABlasterPlayerController::SetHudHealth(const float health, const float maxH
 		!m_pHUD->m_pCharacterOverlay->HealthBar ||
 		!m_pHUD->m_pCharacterOverlay->HealthText)
 	{
+		UE_LOG(LogBlasterHUD, Warning, TEXT("HUD elements not initialized. Storing values for later."));
 		m_InitializeHealth = true;
 		m_Health = health;
 		m_MaxHealth = maxHealth;
 		return;
 	}
 
-	// Set health bar
+	UE_LOG(LogBlasterHUD, Log, TEXT("Updating HUD health elements"));
 	const float healthPercentage = health / maxHealth;
 	m_pHUD->m_pCharacterOverlay->HealthBar->SetPercent(healthPercentage);
 
-	// Set health text
 	const FString healthString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(health), FMath::CeilToInt(maxHealth));
 	m_pHUD->m_pCharacterOverlay->HealthText->SetText(FText::FromString(healthString));
+
+	UE_LOG(LogBlasterHUD, Log, TEXT("HUD health updated: %s"), *healthString);
 }
 
 void ABlasterPlayerController::SetHudShield(const float shield, const float maxShield)
@@ -371,36 +389,65 @@ void ABlasterPlayerController::OnMatchStateSet(const FName state)
 
 void ABlasterPlayerController::HighPingWarning()
 {
-	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-	if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_MatchState == MatchState::InProgress)
-	{
-		UWidgetAnimation* pHighPingAnimation = m_pHUD->m_pCharacterOverlay->PingWarningAnimation;
-		checkf(pHighPingAnimation, TEXT("Ping warning animation is null"));
-		checkf(m_pHUD->m_pCharacterOverlay->PingWarning, TEXT("Ping warning widget is null"));
-		
-		m_pHUD->m_pCharacterOverlay->PingWarning->SetOpacity(1.f);
-		if (m_pHUD->m_pCharacterOverlay->IsAnimationPlaying(pHighPingAnimation))
-		{
-			m_pHUD->m_pCharacterOverlay->StopAnimation(pHighPingAnimation);
-		}
-		m_pHUD->m_pCharacterOverlay->PlayAnimation(pHighPingAnimation, 0.f, 8);
-	}
+    UE_LOG(LogBlasterHUD, Log, TEXT("HighPingWarning called"));
+
+    m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+    if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_MatchState == MatchState::InProgress)
+    {
+        UWidgetAnimation* pHighPingAnimation = m_pHUD->m_pCharacterOverlay->PingWarningAnimation;
+        if (!pHighPingAnimation)
+        {
+            UE_LOG(LogBlasterHUD, Error, TEXT("Ping warning animation is null"));
+            return;
+        }
+        if (!m_pHUD->m_pCharacterOverlay->PingWarning)
+        {
+            UE_LOG(LogBlasterHUD, Error, TEXT("Ping warning widget is null"));
+            return;
+        }
+        
+        UE_LOG(LogBlasterHUD, Log, TEXT("Showing high ping warning"));
+        m_pHUD->m_pCharacterOverlay->PingWarning->SetOpacity(1.f);
+        if (m_pHUD->m_pCharacterOverlay->IsAnimationPlaying(pHighPingAnimation))
+        {
+            UE_LOG(LogBlasterHUD, Log, TEXT("Stopping existing high ping animation"));
+            m_pHUD->m_pCharacterOverlay->StopAnimation(pHighPingAnimation);
+        }
+        UE_LOG(LogBlasterHUD, Log, TEXT("Playing high ping animation"));
+        m_pHUD->m_pCharacterOverlay->PlayAnimation(pHighPingAnimation, 0.f, 8);
+    }
+    else
+    {
+        UE_LOG(LogBlasterHUD, Warning, TEXT("Unable to show high ping warning. HUD or overlay not initialized."));
+    }
 }
 
 void ABlasterPlayerController::StopHighPingWarning()
 {
-	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-	if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingWarning)
-	{
-		const UWidgetAnimation* pHighPingAnimation = m_pHUD->m_pCharacterOverlay->PingWarningAnimation;
-		checkf(pHighPingAnimation, TEXT("Ping warning animation is null"));
-		
-		m_pHUD->m_pCharacterOverlay->PingWarning->SetOpacity(0.f);
-		if (m_pHUD->m_pCharacterOverlay->IsAnimationPlaying(pHighPingAnimation))
-		{
-			m_pHUD->m_pCharacterOverlay->StopAnimation(pHighPingAnimation);
-		}
-	}
+    UE_LOG(LogBlasterHUD, Log, TEXT("StopHighPingWarning called"));
+
+    m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+    if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingWarning)
+    {
+        const UWidgetAnimation* pHighPingAnimation = m_pHUD->m_pCharacterOverlay->PingWarningAnimation;
+        if (!pHighPingAnimation)
+        {
+            UE_LOG(LogBlasterHUD, Error, TEXT("Ping warning animation is null"));
+            return;
+        }
+        
+        UE_LOG(LogBlasterHUD, Log, TEXT("Hiding high ping warning"));
+        m_pHUD->m_pCharacterOverlay->PingWarning->SetOpacity(0.f);
+        if (m_pHUD->m_pCharacterOverlay->IsAnimationPlaying(pHighPingAnimation))
+        {
+            UE_LOG(LogBlasterHUD, Log, TEXT("Stopping high ping animation"));
+            m_pHUD->m_pCharacterOverlay->StopAnimation(pHighPingAnimation);
+        }
+    }
+    else
+    {
+        UE_LOG(LogBlasterHUD, Warning, TEXT("Unable to stop high ping warning. HUD or overlay not initialized."));
+    }
 }
 
 void ABlasterPlayerController::ServerSendChatMessage_Implementation(const FString& Message)
@@ -439,14 +486,13 @@ void ABlasterPlayerController::OnRep_MatchState()
 	}
 }
 
-
 void ABlasterPlayerController::BroadcastElimination(APlayerState* pAttacker, APlayerState* pVictim,
                                                     AWeapon* pWeaponUsed)
 {
 	ClientEliminationAnnouncement(pAttacker, pVictim, pWeaponUsed);
 }
 
-void ABlasterPlayerController::ChatOpened()
+void ABlasterPlayerController::ChatOpened() const
 {
 	m_pHUD->ChatOpened();
 }
@@ -536,86 +582,169 @@ void ABlasterPlayerController::ClientJoinedMidGame_Implementation(FName matchSta
 
 void ABlasterPlayerController::HandleMatchHasStarted()
 {
+	UE_LOG(LogBlasterHUD, Log, TEXT("HandleMatchHasStarted called"));
+
 	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
 	if (m_pHUD)
 	{
-		
+		UE_LOG(LogBlasterHUD, Log, TEXT("Adding character overlay"));
 		m_pHUD->AddCharacterOverlay();
-		if (m_pHUD->m_pAnnouncement) m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Hidden);
+		if (m_pHUD->m_pAnnouncement)
+		{
+			UE_LOG(LogBlasterHUD, Log, TEXT("Hiding announcement"));
+			m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Hidden);
+		}
 		ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(GetPawn());
+		if (pCharacter)
+		{
+			UE_LOG(LogBlasterHUD, Log, TEXT("Character found. Updating HUD elements"));
+			// Add any specific character-related HUD updates here
+		}
+		else
+		{
+			UE_LOG(LogBlasterHUD, Warning, TEXT("Character not found in HandleMatchHasStarted"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogBlasterHUD, Error, TEXT("HUD is null in HandleMatchHasStarted"));
 	}
 }
 
 void ABlasterPlayerController::HandleCooldown()
 {
-	m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-	if (m_pHUD)
-	{
-		m_pHUD->m_pCharacterOverlay->RemoveFromParent();
-		if (m_pHUD->m_pAnnouncement)
-		{
-			m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Visible);
+    UE_LOG(LogBlasterHUD, Log, TEXT("HandleCooldown called"));
 
-			const FString announcementTitle{"New Match Starts In: "};
-			m_pHUD->m_pAnnouncement->AnnouncementTitle->SetText(FText::FromString(announcementTitle));
-	
-			const auto pGameState = Cast<ABlasterGameState>(GetWorld()->GetGameState());
-			checkf(pGameState, TEXT("GameState is null"));
+    m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
+    if (m_pHUD)
+    {
+        UE_LOG(LogBlasterHUD, Log, TEXT("Removing character overlay"));
+        m_pHUD->m_pCharacterOverlay->RemoveFromParent();
+        if (m_pHUD->m_pAnnouncement)
+        {
+            UE_LOG(LogBlasterHUD, Log, TEXT("Showing announcement"));
+            m_pHUD->m_pAnnouncement->SetVisibility(ESlateVisibility::Visible);
 
-			const auto pPlayerState = GetPlayerState<ABlasterPlayerState>();
-			checkf(pPlayerState, TEXT("PlayerState is null"));
+            const FString announcementTitle{"New Match Starts In: "};
+            m_pHUD->m_pAnnouncement->AnnouncementTitle->SetText(FText::FromString(announcementTitle));
+    
+            const auto pGameState = Cast<ABlasterGameState>(GetWorld()->GetGameState());
+            if (!pGameState)
+            {
+                UE_LOG(LogBlasterHUD, Error, TEXT("GameState is null in HandleCooldown"));
+                return;
+            }
 
-			const TArray<ABlasterPlayerState*> topPlayers = pGameState->GetTopScoringPlayers();
-			FString announcementDescription{};
-			if (topPlayers.IsEmpty()) announcementDescription = "Nobody got a kill? Really?";
-			else if (topPlayers.Num() == 1)
-			{
-				if (topPlayers[0] == pPlayerState) announcementDescription = "You are the top player!"; // For the local player
-				else announcementDescription = FString::Printf(TEXT("%s is the top player!"), *topPlayers[0]->GetPlayerName());
-			}
-			else
-			{
-				announcementDescription = FString("Top Scoring Players: \n");
-				for (const auto pTopPlayer : topPlayers)
-					announcementDescription += FString::Printf(TEXT("%s\n"), *pTopPlayer->GetPlayerName());
-			}
+            const auto pPlayerState = GetPlayerState<ABlasterPlayerState>();
+            if (!pPlayerState)
+            {
+                UE_LOG(LogBlasterHUD, Error, TEXT("PlayerState is null in HandleCooldown"));
+                return;
+            }
 
-			m_pHUD->m_pAnnouncement->AnnouncementDescription->SetText(FText::FromString(announcementDescription));
-		}
-	}
+            const TArray<ABlasterPlayerState*> topPlayers = pGameState->GetTopScoringPlayers();
+            FString announcementDescription{};
+            if (topPlayers.IsEmpty())
+            {
+                announcementDescription = "Nobody got a kill? Really?";
+            }
+            else if (topPlayers.Num() == 1)
+            {
+                if (topPlayers[0] == pPlayerState)
+                {
+                    announcementDescription = "You are the top player!";
+                }
+                else
+                {
+                    announcementDescription = FString::Printf(TEXT("%s is the top player!"), *topPlayers[0]->GetPlayerName());
+                }
+            }
+            else
+            {
+                announcementDescription = FString("Top Scoring Players: \n");
+                for (const auto pTopPlayer : topPlayers)
+                {
+                    announcementDescription += FString::Printf(TEXT("%s\n"), *pTopPlayer->GetPlayerName());
+                }
+            }
 
-	const auto pCharacter = Cast<ABlasterCharacter>(GetPawn());
-	if (pCharacter)
-	{
-		pCharacter->SetDisabledGameplay(true);
-		pCharacter->GetCombatComponent()->FireButtonPressed(false); //Release the fire button when the game gets cut off
-	}
+            UE_LOG(LogBlasterHUD, Log, TEXT("Setting announcement description: %s"), *announcementDescription);
+            m_pHUD->m_pAnnouncement->AnnouncementDescription->SetText(FText::FromString(announcementDescription));
+        }
+        else
+        {
+            UE_LOG(LogBlasterHUD, Warning, TEXT("Announcement widget is null in HandleCooldown"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogBlasterHUD, Error, TEXT("HUD is null in HandleCooldown"));
+    }
+
+    const auto pCharacter = Cast<ABlasterCharacter>(GetPawn());
+    if (pCharacter)
+    {
+        UE_LOG(LogBlasterHUD, Log, TEXT("Disabling gameplay for character"));
+        pCharacter->SetDisabledGameplay(true);
+        pCharacter->GetCombatComponent()->FireButtonPressed(false);
+    }
+    else
+    {
+        UE_LOG(LogBlasterHUD, Warning, TEXT("Character not found in HandleCooldown"));
+    }
 }
+
 
 void ABlasterPlayerController::SetHudTime()
 {
+	UE_LOG(LogBlasterHUD, Verbose, TEXT("SetHudTime called"));
+
 	float timeLeft = 0.f;
-	if (m_MatchState == MatchState::WaitingToStart) timeLeft = m_WarmUpDuration - GetServerTime() + m_LevelStartingTime;
-	else if (m_MatchState == MatchState::InProgress) timeLeft = m_WarmUpDuration + m_MatchDuration - GetServerTime() + m_LevelStartingTime;
-	else if (m_MatchState == MatchState::Cooldown) timeLeft = m_CooldownDuration + m_WarmUpDuration + m_MatchDuration - GetServerTime() + m_LevelStartingTime;
+	if (m_MatchState == MatchState::WaitingToStart)
+	{
+		timeLeft = m_WarmUpDuration - GetServerTime() + m_LevelStartingTime;
+	}
+	else if (m_MatchState == MatchState::InProgress)
+	{
+		timeLeft = m_WarmUpDuration + m_MatchDuration - GetServerTime() + m_LevelStartingTime;
+	}
+	else if (m_MatchState == MatchState::Cooldown)
+	{
+		timeLeft = m_CooldownDuration + m_WarmUpDuration + m_MatchDuration - GetServerTime() + m_LevelStartingTime;
+	}
 	unsigned int secondsLeft = FMath::CeilToInt(timeLeft);
-	
+    
 	if (HasAuthority())
 	{
 		m_pGameMode = m_pGameMode ? m_pGameMode : Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
 
-		checkf(m_pGameMode, TEXT("Game mode is null"));
-		secondsLeft = FMath::CeilToInt(m_pGameMode->GetCountdownTime());
+		if (m_pGameMode)
+		{
+			secondsLeft = FMath::CeilToInt(m_pGameMode->GetCountdownTime());
+		}
+		else
+		{
+			UE_LOG(LogBlasterHUD, Error, TEXT("GameMode is null in SetHudTime"));
+		}
 	}
-	
-	if (secondsLeft != m_CountDownSeconds) // Only update once a full second has passed
+    
+	if (secondsLeft != m_CountDownSeconds)
 	{
-		if (m_MatchState == MatchState::WaitingToStart || m_MatchState == MatchState::Cooldown) SetHudAnnouncementCountDown(timeLeft);
-		else if (m_MatchState == MatchState::InProgress) SetHudMatchCountDown(timeLeft);
+		if (m_MatchState == MatchState::WaitingToStart || m_MatchState == MatchState::Cooldown)
+		{
+			UE_LOG(LogBlasterHUD, Log, TEXT("Updating announcement countdown: %.2f"), timeLeft);
+			SetHudAnnouncementCountDown(timeLeft);
+		}
+		else if (m_MatchState == MatchState::InProgress)
+		{
+			UE_LOG(LogBlasterHUD, Log, TEXT("Updating match countdown: %.2f"), timeLeft);
+			SetHudMatchCountDown(timeLeft);
+		}
 	}
-	
+    
 	m_CountDownSeconds = secondsLeft;
 }
+
 
 // Called on the client, executed on the server
 void ABlasterPlayerController::ServerRequestServerTime_Implementation(float timeOfClientRequest)
@@ -633,5 +762,3 @@ void ABlasterPlayerController::ClientReportServerTime_Implementation(float timeO
 	const float serverTime = timeServerReceivedRequest + m_SingleTripTime;
 	m_ClientServerTimeDifference = serverTime - GetWorld()->GetTimeSeconds();
 }
-
-

@@ -193,7 +193,8 @@ void UCombatComponent::PickupAmmo(const EWeaponType weaponType, const int ammoAm
 void UCombatComponent::Reload()
 {
 	if (m_CarriedAmmo <= 0 || m_CombatState == ECombatState::ECS_Reloading || m_pEquippedWeapon->IsMagazineFull() || m_IsLocallyReloading || !m_pCharacter->IsAlive()) return;
-	
+
+	SetAiming(false);
 	ServerReload();
 	HandleReloadingForBothServerAndClient();
 	m_IsLocallyReloading = true;
@@ -240,6 +241,9 @@ void UCombatComponent::OnRep_CombatState()
 
 void UCombatComponent::SetAiming(const bool isAiming)
 {
+	//If we are already out of the aiming state, we don't want to set it again
+	if (m_IsAiming == isAiming) return;
+	
 	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
 	ServerSetAiming(isAiming);
 	checkf(m_pCharacter, TEXT("Character is nullptr"));

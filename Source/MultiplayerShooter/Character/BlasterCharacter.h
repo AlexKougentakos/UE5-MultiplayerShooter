@@ -256,8 +256,6 @@ private: // Variables
 	 * PLAYER LEFT GAME
 	 */
 	bool m_PlayerLeftGame{};
-
-	
 private: // Functions
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(const  AWeapon* const pOldWeapon) const;

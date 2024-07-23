@@ -727,6 +727,13 @@ void ABlasterPlayerController::SetHudTime()
     
 	if (HasAuthority())
 	{
+		//TODO: Test to see if this works in the packaged build
+		if (!m_pGameMode)
+		{
+			m_pGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+			m_LevelStartingTime = m_pGameMode->GetLevelStartingTime();
+		}
+		
 		m_pGameMode = m_pGameMode ? m_pGameMode : Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
 
 		if (m_pGameMode)

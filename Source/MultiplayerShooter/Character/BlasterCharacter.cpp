@@ -933,4 +933,3 @@ ECombatState ABlasterCharacter::GetCombatState() const
 	checkf(m_pCombat, TEXT("Combat component is nullptr"));
 	return m_pCombat->m_CombatState;
 }
-

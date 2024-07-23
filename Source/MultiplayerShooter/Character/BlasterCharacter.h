@@ -137,6 +137,9 @@ private: // Variables
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* m_pOverlappingWeapon{};
 
+	UPROPERTY(EditAnywhere, DisplayName = "Pick Up Distance", Category = "Player Stats")
+	float m_PickUpDistance{200.f};
+
 	float m_AimOffsetPitch{};
 	float m_AimOffsetYaw{};
 	float m_InterpolatedAimOffsetYaw{};
@@ -181,7 +184,7 @@ private: // Variables
 	void HideCameraWhenPlayerIsClose();
 	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
 	float m_PlayerHideDistance{200.f}; // The minimum distance there needs to be between the player and the camera for the camera to remain active
-
+	
 	/*
 	 * PROXY SIMULATED TURNING
 	 */
@@ -252,9 +255,7 @@ private: // Variables
 
 	UPROPERTY(EditAnywhere, DisplayName = "Starting Weapon", Category = "Player Stats")
 	TSubclassOf<AWeapon> m_DefaultWeaponClass;
-	/*
-	 * PLAYER LEFT GAME
-	 */
+
 	bool m_PlayerLeftGame{};
 private: // Functions
 	UFUNCTION()
@@ -295,6 +296,7 @@ private: // Functions
 	UFUNCTION()
 	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatedBy, AActor* damageCauser);
 
+	void TraceForWeaponPickup();
 	
 	UFUNCTION()
 	void UpdateDissolveMaterial(float dissolveValue);

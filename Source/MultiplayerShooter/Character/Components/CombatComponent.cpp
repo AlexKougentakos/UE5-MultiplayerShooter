@@ -95,7 +95,6 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 	else
 		m_HudPackage.CrosshairColor = FLinearColor::White;
 	
-	
 	// Manually set the end point to the furthest away point when the trace doesn't hit anything (example: when shooting in the sky)
 	if (!hitResult.bBlockingHit)
 	{
@@ -244,8 +243,6 @@ void UCombatComponent::SetAiming(const bool isAiming)
 	checkf(m_pCharacter, TEXT("Character is nullptr"));
 	
 	m_pCharacter->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimingWalkSpeed : m_BaseWalkSpeed;
-
-
 
 	if (HasWeapon() && m_pCharacter->IsLocallyControlled() && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper)
 	{

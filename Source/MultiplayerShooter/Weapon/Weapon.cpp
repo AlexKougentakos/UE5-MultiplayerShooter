@@ -5,6 +5,7 @@
 #include "Components/WidgetComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MultiplayerShooter/MultiplayerShooter.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -48,11 +49,8 @@ void AWeapon::BeginPlay()
 	{
 		// Activate sphere in the server
 		m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		m_pAreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+		m_pAreaSphere->SetCollisionResponseToChannel(ETC_PickUp, ECR_Block);
 	}
-	m_pAreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
-	m_pAreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereOverlapEnd);
-
 	if (m_pPickUpWidget)
 	{
 		m_pPickUpWidget->SetVisibility(false);
@@ -75,28 +73,6 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 
 	DOREPLIFETIME(AWeapon, m_WeaponState);
 	DOREPLIFETIME_CONDITION(AWeapon, m_UseServerSideRewind, COND_OwnerOnly);
-}
-
-void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                              UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	ABlasterCharacter* const pCharacter = Cast<ABlasterCharacter>(OtherActor);
-	
-	if (pCharacter)
-	{
-		pCharacter->SetOverlappingWeapon(this);
-	}
-}
-
-void AWeapon::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	ABlasterCharacter* const pCharacter = Cast<ABlasterCharacter>(OtherActor);
-	
-	if (pCharacter)
-	{
-		pCharacter->SetOverlappingWeapon(nullptr);
-	}	
 }
 
 void AWeapon::EnableCustomDepth(bool enable) const
@@ -131,8 +107,6 @@ void AWeapon::SetWeaponState(const EWeaponState state)
 
 	switch (m_WeaponState)
 	{
-	case EWeaponState::EWS_Initial:
-		break;
 	case EWeaponState::EWS_Equipped:
 		OnEquipped();
 		break;
@@ -154,7 +128,6 @@ void AWeapon::OnRep_WeaponState()
 
 void AWeapon::OnEquipped()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnEquipped"));
 	ShowPickupWidget(false);
 	m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	m_pWeaponMesh->SetSimulatePhysics(false);

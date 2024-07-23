@@ -215,6 +215,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	}
 	
 	HideCameraWhenPlayerIsClose();
+	TraceForWeaponPickup();
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -802,6 +803,43 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 		checkf(instigatedBy, TEXT("InstigatedBy is nullptr"));
 		
 		pBlasterGameMode->PlayerEliminated(this, m_pPlayerController, Cast<ABlasterPlayerController>(instigatedBy));
+	}
+}
+
+void ABlasterCharacter::TraceForWeaponPickup()
+{
+	FHitResult hitResult{};
+	FVector2D viewport{};
+	GEngine->GameViewport->GetViewportSize(viewport);
+
+	const FVector2D crosshairLocation = viewport / 2.0f;
+	FVector crosshairWorldPosition{};
+	FVector crosshairWorldDirection{};
+
+	const bool screenToWorldSucceeded =
+		UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(GetWorld(), 0), crosshairLocation, crosshairWorldPosition, crosshairWorldDirection);
+
+	if (!screenToWorldSucceeded) return;
+
+	FVector start = crosshairWorldPosition;
+	
+	const float distanceToCharacter = FVector::Dist(start, GetActorLocation());
+	start += crosshairWorldDirection * (distanceToCharacter + 50.f);
+	
+	const FVector end = start + crosshairWorldDirection * m_PickUpDistance;
+	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ETC_PickUp);
+
+	if (hitResult.bBlockingHit)
+	{
+		AWeapon* pWeapon = Cast<AWeapon>(hitResult.GetActor());
+		if (pWeapon)
+		{
+			SetOverlappingWeapon(pWeapon);
+		}
+	}
+	else
+	{
+		SetOverlappingWeapon(nullptr);
 	}
 }
 

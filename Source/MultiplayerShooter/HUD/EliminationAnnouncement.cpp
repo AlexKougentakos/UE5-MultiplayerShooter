@@ -26,6 +26,7 @@ void UEliminationAnnouncement::SetEliminationAnnouncement(const FString& elimina
 	UTexture2D* weaponIcon = weapon->GetKillfeedIcon();
 	FSlateBrush brush;
 	brush.ImageSize = FVector2D(weaponIcon->GetSizeX(), weaponIcon->GetSizeY());
+	brush.TintColor = FColor{0, 0, 0, 255};
 	brush.SetResourceObject(weaponIcon);
 	WeaponImage->SetBrush(brush);
 }

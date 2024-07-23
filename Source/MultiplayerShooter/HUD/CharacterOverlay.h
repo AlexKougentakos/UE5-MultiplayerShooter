@@ -77,4 +77,7 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	UHorizontalBox* SecondaryWeapon{};
+
+	UPROPERTY(meta = (BindWidget))
+	UHorizontalBox* BottomContainer{};
 };

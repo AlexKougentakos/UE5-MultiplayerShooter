@@ -126,12 +126,32 @@ void ABlasterHUD::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSe
 	if (!m_pCharacterOverlay) return;
 
 	if (pMainWeapon)
-		m_pCharacterOverlay->WeaponIcon->SetBrushFromTexture(pMainWeapon->GetKillfeedIcon());
+	{
+		const float containerSize = m_pCharacterOverlay->BottomContainer->GetCachedGeometry().GetAbsoluteSize().X/2;
+		UTexture2D* weaponIcon = pMainWeapon->GetWeaponHolderIcon();
+		float scale = weaponIcon->GetSizeX() > containerSize ? containerSize / weaponIcon->GetSizeX() : 1.f;
+		if (containerSize <= 0.1f) scale = 0.55f; //Because GetCachedGeometry takes some time to initialize the size
+		
+		FSlateBrush brush;
+		brush.ImageSize = FVector2D(weaponIcon->GetSizeX() * scale, weaponIcon->GetSizeY() * scale);
+		brush.TintColor = FColor{255, 255, 255, 255};
+		brush.SetResourceObject(weaponIcon);
+		m_pCharacterOverlay->WeaponIcon->SetBrush(brush);
+	}
 	
 	if (pSecondaryWeapon)
 	{
+		const float containerSize = m_pCharacterOverlay->SecondaryWeapon->GetCachedGeometry().GetAbsoluteSize().X;
+		UTexture2D* weaponIcon = pSecondaryWeapon->GetWeaponHolderIcon();
+		float scale = weaponIcon->GetSizeX() > containerSize ? containerSize / weaponIcon->GetSizeX() - 0.1f: 1.f  - 0.1f;
+		if (containerSize <= 0.1f) scale = 0.5f; //Because GetCachedGeometry takes some time to initialize the size
+		
+		FSlateBrush brush;
+		brush.ImageSize = FVector2D(weaponIcon->GetSizeX() * scale, weaponIcon->GetSizeY() * scale);
+		brush.TintColor = FColor{255, 255, 255, 255};
+		brush.SetResourceObject(weaponIcon);
+		m_pCharacterOverlay->SecondaryWeaponIcon->SetBrush(brush);
 		m_pCharacterOverlay->SecondaryWeapon->SetVisibility(ESlateVisibility::Visible);
-		m_pCharacterOverlay->SecondaryWeaponIcon->SetBrushFromTexture(pSecondaryWeapon->GetKillfeedIcon());
 	}
 	else
 		m_pCharacterOverlay->SecondaryWeapon->SetVisibility(ESlateVisibility::Hidden);

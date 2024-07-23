@@ -26,6 +26,7 @@ void ABlasterGameMode::BeginPlay()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), m_PlayerStarts);
 
 	m_LevelStartingTime = GetWorld()->GetTimeSeconds();
+	
 }
 
 void ABlasterGameMode::Tick(float DeltaSeconds)

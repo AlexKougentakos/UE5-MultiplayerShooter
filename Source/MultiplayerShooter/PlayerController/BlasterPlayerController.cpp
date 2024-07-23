@@ -72,7 +72,7 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	{
 		m_TimeSinceLastPingUpdate = 0.f;
 		m_pHUD = m_pHUD ? m_pHUD : Cast<ABlasterHUD>(GetHUD());
-		if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingText)
+		if (m_pHUD && m_pHUD->m_pCharacterOverlay && m_pHUD->m_pCharacterOverlay->PingText && PlayerState)
 		{
 			const FString pingString = FString::Printf(TEXT("Ping: %d"), FMath::CeilToInt(PlayerState->GetPingInMilliseconds()));
 			m_pHUD->m_pCharacterOverlay->PingText->SetText(FText::FromString(pingString));
@@ -100,6 +100,7 @@ void ABlasterPlayerController::HandleTimeSync(float DeltaSeconds)
 	{
 		m_TimeSinceLastSync = 0.f;
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, TEXT("GetTimeSeconds: " + FString::SanitizeFloat(GetWorld()->GetTimeSeconds())));
 	}
 }
 

@@ -163,6 +163,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Killfeed Icon")
 	UTexture2D* m_pKillfeedIcon{};
 
+	UPROPERTY(EditAnywhere, Category = "Effects", DisplayName = "Weapon Holder Icon")
+	UTexture2D* m_pWeaponHolderIcon{};
+
 	/*
 	 * AMMO
 	 */
@@ -215,6 +218,7 @@ public:
 	EFireType GetFireType() const { return m_FireType; }
 	USoundCue* GetPickupSound() const { return m_pPickupSound; }
 	UTexture2D* GetKillfeedIcon() const { return m_pKillfeedIcon; }
+	UTexture2D* GetWeaponHolderIcon() const { return m_pWeaponHolderIcon; }
 	bool ShouldDestroyWeapon() const { return m_ShouldDestroyWeapon; }
 	void SetShouldDestroyWeapon(const bool shouldDestroy) { m_ShouldDestroyWeapon = shouldDestroy; }
 	bool UseScatter() const { return m_UseScatter; }

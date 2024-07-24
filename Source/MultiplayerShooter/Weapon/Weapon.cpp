@@ -80,7 +80,7 @@ void AWeapon::EnableCustomDepth(bool enable) const
 	m_pWeaponMesh->SetRenderCustomDepth(enable);
 }
 
-FVector AWeapon::GetVectorWithSpread(const FVector& hitTarget) const
+FVector AWeapon::GetVectorWithSpread(const FVector& hitTarget, float totalSpreadMultiplier) const
 {
 	const USkeletalMeshSocket* muzzleSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
 	if (!muzzleSocket) return {};
@@ -89,11 +89,11 @@ FVector AWeapon::GetVectorWithSpread(const FVector& hitTarget) const
 	const FVector start = muzzleTransform.GetLocation();
 	const FVector vectorToTargetNormalized = (hitTarget - start).GetSafeNormal();
 	const FVector sphereCenter = start + vectorToTargetNormalized * m_DistanceToSpreadSphere;
-	const FVector randomVector = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, m_SphereRadius);
+	const FVector randomVector = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, m_SphereRadius * totalSpreadMultiplier);
 	const FVector end = sphereCenter + randomVector;
 	const FVector toEndLocation = end - start;
 
-	// DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius, 12, FColor::Red, true, 1.f);
+	DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius * totalSpreadMultiplier, 12, FColor::Red, true, 1.f);
 	// DrawDebugSphere(GetWorld(), end, 5.f, 12, FColor::Green, true, 1.f);
 	// DrawDebugLine(GetWorld(), hitStart, hitStart + toEndLocation * BULLET_TRACE_LENGTH, FColor::Green, true, 1.f);
 

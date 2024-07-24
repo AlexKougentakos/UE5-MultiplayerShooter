@@ -15,7 +15,7 @@ class MULTIPLAYERSHOOTER_API AProjectileWeapon : public AWeapon
 {
 	GENERATED_BODY()
 public:
-	void SpawnParticleEffect(const FVector& hitTarget);
+	void SpawnProjectile(const FVector& hitTarget);
 	virtual void Fire(const FVector& hitTarget) override;
 private:
 	UPROPERTY(EditAnywhere, Category = "Projectile Weapon Properties", DisplayName = "Projectile Class")

@@ -14,7 +14,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	void FireShotgun(const TArray<FVector_NetQuantize>& hitLocations);
-	void ShotgunGetVectorWithSpread(const FVector& hitTarget, TArray<FVector_NetQuantize>& outShotLocations) const;
+	void ShotgunGetVectorWithSpread(const FVector& hitTarget, TArray<FVector_NetQuantize>& outShotLocations, float totalSpreadMultiplier) const;
 private:
 
 	UPROPERTY(EditAnywhere, DisplayName = "Number of Pellets", Category = "Weapon Stats|Shooting")

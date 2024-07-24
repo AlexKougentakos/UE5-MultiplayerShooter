@@ -133,7 +133,7 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 	}
 }
 
-void AShotgun::ShotgunGetVectorWithSpread(const FVector& hitTarget, TArray<FVector_NetQuantize>& outShotLocations) const
+void AShotgun::ShotgunGetVectorWithSpread(const FVector& hitTarget, TArray<FVector_NetQuantize>& outShotLocations, float totalSpreadMultiplier) const
 {
 	const USkeletalMeshSocket* muzzleSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
 	if (!muzzleSocket) return;

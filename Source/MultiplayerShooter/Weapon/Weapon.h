@@ -81,7 +81,7 @@ public:
 	
 	void EnableCustomDepth(bool enable) const;
 
-	FVector GetVectorWithSpread(const FVector& hitTarget) const;
+	FVector GetVectorWithSpread(const FVector& hitTarget, float totalSpreadMultiplier) const;
 protected:
 	virtual void BeginPlay() override;
 	
@@ -120,9 +120,24 @@ protected:
 		
 		UPROPERTY(EditAnywhere, DisplayName = "Spread Sphere Distance", Category = "Weapon Stats|Weapon Scatter", meta = (ToolTip = "The smaller the value, the bigger the spread"))
 		float m_DistanceToSpreadSphere{ 800.f };
+	
+		float m_SphereRadius{ 50.f };
 
-		UPROPERTY(EditAnywhere, DisplayName = "Sphere Radius", Category = "Weapon Stats|Weapon Scatter", meta = (ToolTip = "The bigger the value, the bigger the spread"))
-		float m_SphereRadius{ 75.f };
+	
+		UPROPERTY(EditAnywhere, DisplayName = "Base Spread", Category = "Weapon Stats|Weapon Scatter")
+		float m_BaseSpread{ 0.5f };
+		UPROPERTY(EditAnywhere, DisplayName = "Spread Increment", Category = "Weapon Stats|Weapon Scatter")
+		float m_InAirFactor{ 1.5f };
+		UPROPERTY(EditAnywhere, DisplayName = "Aim Factor", Category = "Weapon Stats|Weapon Scatter")
+		float m_AimFactor{ -.5f };
+		UPROPERTY(EditAnywhere, DisplayName = "Shooting Factor", Category = "Weapon Stats|Weapon Scatter")
+		float m_CrouchingFactor{ -.5f };
+		UPROPERTY(EditAnywhere, DisplayName = "Crouching Factor", Category = "Weapon Stats|Weapon Scatter")
+		float m_MovingFactorMin{ 0.25f };
+		UPROPERTY(EditAnywhere, DisplayName = "Moving Factor Max", Category = "Weapon Stats|Weapon Scatter")
+		float m_MovingFactorMax{ 1.5f };
+		UPROPERTY(EditAnywhere, DisplayName = "Shooting Factor", Category = "Weapon Stats|Weapon Scatter")
+		float m_ShootingFactor{ .2f };
 	
 	UPROPERTY(Replicated, EditAnywhere, Category = "Server Side Rewind", DisplayName = "Use Server Side Rewind")
 	bool m_UseServerSideRewind{false};
@@ -206,4 +221,15 @@ public:
 	void SetShouldDestroyWeapon(const bool shouldDestroy) { m_ShouldDestroyWeapon = shouldDestroy; }
 	bool UseScatter() const { return m_UseScatter; }
 	EWeaponState GetWeaponState() const { return m_WeaponState; }
+
+	//Spread Getters
+	float GetBaseSpread() const { return m_BaseSpread; }
+	float GetDistanceToSpreadSphere() const { return m_DistanceToSpreadSphere; }
+	float GetSphereRadius() const { return m_SphereRadius; }
+	float GetInAirFactor() const { return m_InAirFactor; }
+	float GetAimFactor() const { return m_AimFactor; }
+	float GetCrouchingFactor() const { return m_CrouchingFactor; }
+	float GetMovingFactorMin() const { return m_MovingFactorMin; }
+	float GetMovingFactorMax() const { return m_MovingFactorMax; }
+	float GetShootingFactor() const { return m_ShootingFactor; }
 };

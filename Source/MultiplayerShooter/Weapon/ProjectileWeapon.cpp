@@ -6,10 +6,10 @@ void AProjectileWeapon::Fire(const FVector& hitTarget)
 {
 	Super::Fire(hitTarget);
 
-	SpawnParticleEffect(hitTarget);
+	SpawnProjectile(hitTarget);
 }
 
-void AProjectileWeapon::SpawnParticleEffect(const FVector& hitTarget)
+void AProjectileWeapon::SpawnProjectile(const FVector& hitTarget)
 {	
 	const auto pWeaponMesh = GetWeaponMesh();
 	const auto pMuzzleFlashSocket = pWeaponMesh->GetSocketByName(FName("MuzzleFlash"));

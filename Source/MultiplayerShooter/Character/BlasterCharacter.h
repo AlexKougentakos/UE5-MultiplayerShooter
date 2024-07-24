@@ -297,6 +297,9 @@ private: // Functions
 	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatedBy, AActor* damageCauser);
 
 	void TraceForWeaponPickup();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetOverlappingWeapon(AWeapon* pWeapon);
 	
 	UFUNCTION()
 	void UpdateDissolveMaterial(float dissolveValue);

@@ -415,7 +415,6 @@ void ABlasterCharacter::PlayThrowGrenadeMontage() const
 
 void ABlasterCharacter::PlayWeaponSwapMontage() const
 {
-	UE_LOG(LogTemp, Warning, TEXT("PlayWeaponSwapMontage"));
 	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
 	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
 	checkf(m_pWeaponSwapMontage, TEXT("Weapon Swap Montage is nullptr"));
@@ -574,12 +573,10 @@ void ABlasterCharacter::LookUp(const float value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Equip button pressed"));
 	if (!m_pCombat || m_DisabledGameplay) return;
 	
 	if (m_pCombat->m_CombatState == ECombatState::ECS_Unoccupied)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Server Equip button pressed"));
 		ServerEquipButtonPressed();
 	}
 	
@@ -808,6 +805,8 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 
 void ABlasterCharacter::TraceForWeaponPickup()
 {
+	if (!IsLocallyControlled()) return;
+
 	FHitResult hitResult{};
 	FVector2D viewport{};
 	GEngine->GameViewport->GetViewportSize(viewport);
@@ -817,15 +816,15 @@ void ABlasterCharacter::TraceForWeaponPickup()
 	FVector crosshairWorldDirection{};
 
 	const bool screenToWorldSucceeded =
-		UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(GetWorld(), 0), crosshairLocation, crosshairWorldPosition, crosshairWorldDirection);
+	   UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(GetWorld(), 0), crosshairLocation, crosshairWorldPosition, crosshairWorldDirection);
 
 	if (!screenToWorldSucceeded) return;
 
 	FVector start = crosshairWorldPosition;
-	
+    
 	const float distanceToCharacter = FVector::Dist(start, GetActorLocation());
 	start += crosshairWorldDirection * (distanceToCharacter + 50.f);
-	
+    
 	const FVector end = start + crosshairWorldDirection * m_PickUpDistance;
 	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ETC_PickUp);
 
@@ -834,13 +833,28 @@ void ABlasterCharacter::TraceForWeaponPickup()
 		AWeapon* pWeapon = Cast<AWeapon>(hitResult.GetActor());
 		if (pWeapon)
 		{
-			SetOverlappingWeapon(pWeapon);
+			ServerSetOverlappingWeapon(pWeapon);
 		}
 	}
-	else
+	else if (m_pOverlappingWeapon)
 	{
-		SetOverlappingWeapon(nullptr);
+		ServerSetOverlappingWeapon(nullptr);
 	}
+}
+
+void ABlasterCharacter::ServerSetOverlappingWeapon_Implementation(AWeapon* pWeapon)
+{
+    if (m_pOverlappingWeapon)
+    {
+        m_pOverlappingWeapon->ShowPickupWidget(false);
+    }
+    
+    m_pOverlappingWeapon = pWeapon;
+    
+    if (m_pOverlappingWeapon)
+    {
+        m_pOverlappingWeapon->ShowPickupWidget(true);
+    }
 }
 
 void ABlasterCharacter::HideCameraWhenPlayerIsClose()
@@ -910,8 +924,7 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon)
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (!m_pCombat) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("ServerEquipButtonPressed_Implementation"));
+	
 	//If we have two weapons and we are not overlapping any then we use this button to switch weapons
 	if (m_pCombat->HasWeapon() && m_pCombat->HasSecondaryWeapon() && !m_pOverlappingWeapon)
 		m_pCombat->SwapWeapons();

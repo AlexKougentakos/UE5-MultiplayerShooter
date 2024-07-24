@@ -312,14 +312,14 @@ void UCombatComponent::FireWeaponBasedOnFireType()
 
 void UCombatComponent::FireProjectileWeapon()
 {
-	m_HitTarget = m_pEquippedWeapon->UseScatter() ? m_pEquippedWeapon->GetVectorWithSpread(m_HitTarget, m_HudPackage.CrosshairSpread) : m_HitTarget;
+	m_HitTarget = m_pEquippedWeapon->UseScatter() ? m_pEquippedWeapon->GetVectorWithSpread(m_HitTarget, FMath::Max(0.f, m_HudPackage.CrosshairSpread)) : m_HitTarget;
 	if(!m_pCharacter->HasAuthority()) LocalFire(m_HitTarget); //We don't want to shoot twice on the server
 	ServerFire(m_HitTarget);
 }
 
 void UCombatComponent::FireHitScanWeapon()
 {
-	m_HitTarget = m_pEquippedWeapon->UseScatter() ? m_pEquippedWeapon->GetVectorWithSpread(m_HitTarget, m_HudPackage.CrosshairSpread) : m_HitTarget;
+	m_HitTarget = m_pEquippedWeapon->UseScatter() ? m_pEquippedWeapon->GetVectorWithSpread(m_HitTarget, FMath::Max(0.f, m_HudPackage.CrosshairSpread)) : m_HitTarget;
 	if(!m_pCharacter->HasAuthority()) LocalFire(m_HitTarget); //We don't want to shoot twice on the server
 	ServerFire(m_HitTarget);
 }
@@ -330,7 +330,7 @@ void UCombatComponent::FireShotgun()
 	const AShotgun* pShotgun = Cast<AShotgun>(m_pEquippedWeapon);
 	checkf(pShotgun, TEXT("Equipped weapon is not a shotgun"));
 	
-	pShotgun->ShotgunGetVectorWithSpread(m_HitTarget, outShotLocations, m_HudPackage.CrosshairSpread);
+	pShotgun->ShotgunGetVectorWithSpread(m_HitTarget, outShotLocations, FMath::Max(0.f, m_HudPackage.CrosshairSpread) );
 	if(!m_pCharacter->HasAuthority()) ShotgunLocalFire(outShotLocations); //We don't want to shoot twice on the server
 	ShotgunServerFire(outShotLocations);
 }
@@ -605,8 +605,11 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 	const FVector2D velocityMultiplierRange{m_pEquippedWeapon->GetMovingFactorMin(), m_pEquippedWeapon->GetMovingFactorMax()};
 	FVector velocity = m_pCharacter->GetVelocity();
 	velocity.Z = 0.f;
-	
-	const float crosshairVelocityFactor =  FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
+		
+	float crosshairVelocityFactor =  FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
+	//if the player is not actually moving then we won't apply the velocity factor
+	if (velocity.Size() < 0.5f)
+		crosshairVelocityFactor = 0.f;
 	
 	if (m_pCharacter->GetMovementComponent()->IsFalling())
 		m_CrosshairInAirFactor = FMath::FInterpTo(m_CrosshairInAirFactor, m_pEquippedWeapon->GetInAirFactor(), deltaTime, 2.25f);
@@ -625,7 +628,7 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 		
 
 	m_CrosshairShootingFactor = FMath::FInterpTo(m_CrosshairShootingFactor, m_pEquippedWeapon->GetShootingFactor(), deltaTime, 30.f);
-
+	
 	//Add all the different spread factors together
 	m_HudPackage.CrosshairSpread =
 		m_pEquippedWeapon->GetBaseSpread() + // Base spread

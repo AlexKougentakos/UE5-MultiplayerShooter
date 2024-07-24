@@ -126,13 +126,13 @@ protected:
 	
 		UPROPERTY(EditAnywhere, DisplayName = "Base Spread", Category = "Weapon Stats|Weapon Scatter")
 		float m_BaseSpread{ 0.5f };
-		UPROPERTY(EditAnywhere, DisplayName = "Spread Increment", Category = "Weapon Stats|Weapon Scatter")
+		UPROPERTY(EditAnywhere, DisplayName = "In Air Factor", Category = "Weapon Stats|Weapon Scatter")
 		float m_InAirFactor{ 1.5f };
 		UPROPERTY(EditAnywhere, DisplayName = "Aim Factor", Category = "Weapon Stats|Weapon Scatter")
 		float m_AimFactor{ -.5f };
-		UPROPERTY(EditAnywhere, DisplayName = "Shooting Factor", Category = "Weapon Stats|Weapon Scatter")
-		float m_CrouchingFactor{ -.5f };
 		UPROPERTY(EditAnywhere, DisplayName = "Crouching Factor", Category = "Weapon Stats|Weapon Scatter")
+		float m_CrouchingFactor{ -.5f };
+		UPROPERTY(EditAnywhere, DisplayName = "Moving Factor Min", Category = "Weapon Stats|Weapon Scatter")
 		float m_MovingFactorMin{ 0.25f };
 		UPROPERTY(EditAnywhere, DisplayName = "Moving Factor Max", Category = "Weapon Stats|Weapon Scatter")
 		float m_MovingFactorMax{ 1.5f };

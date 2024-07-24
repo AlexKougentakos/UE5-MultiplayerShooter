@@ -100,7 +100,6 @@ void ABlasterPlayerController::HandleTimeSync(float DeltaSeconds)
 	{
 		m_TimeSinceLastSync = 0.f;
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
-		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, TEXT("GetTimeSeconds: " + FString::SanitizeFloat(GetWorld()->GetTimeSeconds())));
 	}
 }
 

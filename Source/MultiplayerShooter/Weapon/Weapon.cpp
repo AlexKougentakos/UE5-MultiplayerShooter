@@ -32,7 +32,8 @@ AWeapon::AWeapon()
 
 	// Ignore all collision for clients and we will enable it for the server
 	m_pAreaSphere->SetCollisionResponseToAllChannels(ECR_Ignore); 
-	m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	m_pAreaSphere->SetCollisionResponseToChannel(ETC_PickUp, ECR_Block);
 
 	m_pPickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pick Up Widget"));
 	m_pPickUpWidget->SetupAttachment(RootComponent);
@@ -45,7 +46,7 @@ void AWeapon::BeginPlay()
 
 	m_CurrentAmmo = m_MaxAmmo;
 	
-	if (HasAuthority())
+	//if (HasAuthority())
 	{
 		// Activate sphere in the server
 		m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);

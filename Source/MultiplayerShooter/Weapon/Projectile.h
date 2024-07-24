@@ -105,6 +105,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, DisplayName = "Projectile Impact Sound", Category = "Effects|Impact")
 	USoundCue* m_pImpactSound{};
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Player Impact Sound", Category = "Effects|Impact")
+	USoundCue* m_pPlayerImpactSound{};
 
 
 	UPROPERTY(EditAnywhere, DisplayName = "Trail Effect", Category = "Effects")

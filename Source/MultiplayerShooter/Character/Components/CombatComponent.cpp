@@ -598,6 +598,8 @@ void UCombatComponent::SetHudCrosshairs(float deltaTime)
 		m_HudPackage.CrosshairsRight = nullptr;
 		m_HudPackage.CrosshairsBottom = nullptr;
 		m_HudPackage.CrosshairsLeft = nullptr;
+		m_pHud->SetHudPackage(m_HudPackage);
+		return;
 	}
 	
 	// Calculate the spread

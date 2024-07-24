@@ -53,14 +53,6 @@ void AProjectile::Tick(float DeltaTime)
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
-
-	if (m_pImpactSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
-	}
-
-	if (m_pGrassImpactEffect)
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pGrassImpactEffect, GetActorTransform());
 }
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
@@ -85,7 +77,10 @@ void AProjectile::MulticastOnHit_Implementation(const UPhysicalMaterial* physica
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GetImpactEffect(physicalMaterial), GetActorTransform());
 
 	//Play sound
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
+	if (physicalMaterial == m_pPlayerPhysicalMaterial)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pPlayerImpactSound, GetActorLocation());
+	else
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
 
 	Destroy();
 }

@@ -16,6 +16,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/MultiplayerShooter.h"
 #include "MultiplayerShooter/GameModes/BlasterGameMode.h"
+#include "MultiplayerShooter/GameModes/LobbyGameMode.h"
 #include "MultiplayerShooter/GameState/BlasterGameState.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
@@ -857,7 +858,7 @@ void ABlasterCharacter::ServerSetOverlappingWeapon_Implementation(AWeapon* pWeap
     }
 }
 
-void ABlasterCharacter::HideCameraWhenPlayerIsClose()
+void ABlasterCharacter::HideCameraWhenPlayerIsClose() const
 {
 	if (!IsLocallyControlled()) return;
 
@@ -934,6 +935,12 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 
 void ABlasterCharacter::ServerLeaveGame_Implementation()
 {
+	if (GetWorld()->GetAuthGameMode<ALobbyGameMode>())
+	{
+		OnLeftGame.Broadcast();
+		return;
+	}
+	
 	ABlasterGameMode* pGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 	ABlasterPlayerState* pPlayerState = GetPlayerState<ABlasterPlayerState>();
 	if (pGameMode && pPlayerState)

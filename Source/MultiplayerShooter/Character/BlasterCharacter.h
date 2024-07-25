@@ -181,7 +181,7 @@ private: // Variables
 	UAnimMontage* m_pWeaponSwapMontage{};
 
 	
-	void HideCameraWhenPlayerIsClose();
+	void HideCameraWhenPlayerIsClose() const;
 	UPROPERTY(EditAnywhere, DisplayName = "Player Hide Distance", meta = (ToolTip = "The minimum distance there needs to be between the player and the camera for the camera to remain active"))
 	float m_PlayerHideDistance{200.f}; // The minimum distance there needs to be between the player and the camera for the camera to remain active
 	

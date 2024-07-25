@@ -1,6 +1,5 @@
 ﻿#include "BlasterPlayerController.h"
 
-#include "Components/HorizontalBox.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
@@ -44,7 +43,7 @@ void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 void ABlasterPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
+	
 	UE_LOG(LogBlasterHUD, Log, TEXT("OnPossess called"));
 
 	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(InPawn);
@@ -64,7 +63,7 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 void ABlasterPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
+	
 	SetHudTime();
 
 	m_TimeSinceLastPingUpdate += DeltaSeconds;
@@ -81,7 +80,6 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	HandleHighPingWarning(DeltaSeconds);
 	HandleTimeSync(DeltaSeconds);
 	PollInitialize();
-	
 }
 
 void ABlasterPlayerController::SetupInputComponent()

@@ -4,6 +4,8 @@
 #include "Components/Button.h"
 #include "GameFramework/GameModeBase.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
+#include "MultiplayerShooter/GameModes/BlasterGameMode.h"
+#include "MultiplayerShooter/GameModes/LobbyGameMode.h"
 
 void UReturnToMainMenu::MenuSetup()
 {
@@ -71,7 +73,15 @@ void UReturnToMainMenu::ReturnButtonClicked()
 	const APlayerController* pPlayerController = GetWorld()->GetFirstPlayerController();
 	if (!pPlayerController) return;
 
+	const ALobbyGameMode* pGameMode = GetWorld()->GetAuthGameMode<ALobbyGameMode>();
 	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>( pPlayerController->GetPawn());
+	if (pGameMode && pCharacter) //we are in the waiting lobby, so we don't have any clean up to do so we can just leave
+	{
+		OnPlayerLeftGame();
+		pCharacter->OnLeftGame.AddDynamic(this, &ThisClass::OnPlayerLeftGame);
+		return;
+	}
+	
 	if (pCharacter)
 	{
 		pCharacter->ServerLeaveGame();
@@ -94,7 +104,7 @@ void UReturnToMainMenu::OnDestroySession(const bool wasSuccessful)
 	const UWorld* pWorld = GetWorld();
 	if (!pWorld) return;
 
-	auto gameMode = pWorld->GetAuthGameMode<AGameModeBase>();
+	AGameModeBase* gameMode = pWorld->GetAuthGameMode<AGameModeBase>();
 	if (gameMode)
 	{
 		gameMode->ReturnToMainMenuHost();

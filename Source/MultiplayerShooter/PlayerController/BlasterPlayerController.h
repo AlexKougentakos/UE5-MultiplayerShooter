@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
@@ -104,8 +102,6 @@ private:
 	
 	UFUNCTION(Client, Reliable)
 	void ClientEliminationAnnouncement(APlayerState* pAttacker, APlayerState* pVictim, AWeapon* pWeaponUsed);
-
-	
 	
 	UPROPERTY() UCharacterOverlay* m_pCharacterOverlay{};
 	

@@ -16,6 +16,6 @@ void ALobbyGameMode::PostLogin(APlayerController* newPlayer)
 		checkf(world != nullptr, TEXT("World is null"));
 
 		bUseSeamlessTravel = true;
-		world->ServerTravel(FString("/Game/Levels/L_GameMap?listen"));
+		world->ServerTravel(FString("/Game/Levels/L_MainLevel?listen"));
 	}
 }

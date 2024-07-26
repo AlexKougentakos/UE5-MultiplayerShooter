@@ -169,10 +169,13 @@ void UCombatComponent::PickupAmmo(const EWeaponType weaponType, const int ammoAm
 	checkf(m_CarriedAmmoMap.Contains(weaponType), TEXT("Carried ammo map does not contain the weapon type"));
 
 	m_CarriedAmmoMap[weaponType] += ammoAmount;
-	m_CarriedAmmo = m_CarriedAmmoMap[weaponType];
-
+	//Update the carried ammo if it's the same weapon type
+	if (HasWeapon() && m_pEquippedWeapon->GetWeaponType() == weaponType)
+		m_CarriedAmmo = m_CarriedAmmoMap[weaponType];
+	
+	UpdateAmmoHud();
 	//Update the hud only when the equipped weapon is the same as the weapon type of the ammo you picked up
-	UpdateAmmoValues(HasWeapon() && m_pEquippedWeapon->GetWeaponType() == weaponType);
+	//UpdateAmmoValues(HasWeapon() && m_pEquippedWeapon->GetWeaponType() == weaponType);
 
 	if (HasWeapon() &&
 		m_pEquippedWeapon->GetWeaponType() == weaponType &&

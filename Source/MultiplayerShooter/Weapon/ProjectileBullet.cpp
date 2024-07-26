@@ -38,8 +38,9 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 		const float damage = Hit.BoneName.ToString() == "head" ? m_HeadShotDamage : m_Damage;
 		UGameplayStatics::ApplyDamage(OtherActor, damage, pOwnerController, this, UDamageType::StaticClass());
 
-		//Super should be called last since we are calling the Destroy function in it
-		OnHeadShot(OtherActor);
+		//Call this instead of super since they lead to the same function
+		if (Hit.BoneName.ToString() == "head") OnHeadShot(OtherActor);
+		else Super::OnHit(HitComponent, OtherActor, OtherComponent, NormalImpulse, Hit);
 		return;
 	}
 

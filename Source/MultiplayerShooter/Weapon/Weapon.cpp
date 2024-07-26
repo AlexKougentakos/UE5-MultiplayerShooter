@@ -157,7 +157,7 @@ void AWeapon::OnEquipped()
 	}
 }
 
-void AWeapon::OnEquippedSecondary()
+void AWeapon:: OnEquippedSecondary()
 {
 	ShowPickupWidget(false);
 	m_pAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -226,7 +226,7 @@ void AWeapon::OnRep_Owner()
 		m_pWeaponHolder = nullptr;
 		m_pWeaponHolderController = nullptr;
 	}
-	else UpdateHudAmmo();	
+	else if (m_WeaponState != EWeaponState::EWS_EquippedSecondary) UpdateHudAmmo();
 }
 
 void AWeapon::OnPingTooHigh(bool isPingTooHigh)

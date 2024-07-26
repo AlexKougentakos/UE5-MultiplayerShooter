@@ -507,17 +507,14 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
 	if (!m_pEquippedWeapon->HasAmmoInMagazine())
 	{
 		Reload();
-	}
-	
-	m_pEquippedWeapon->UpdateHudAmmo();
-	
+	}	
 }
 
 void UCombatComponent::EquipSecondaryWeapon(AWeapon* const pWeapon)
 {
 	m_pSecondaryWeapon = pWeapon;
-	m_pSecondaryWeapon->SetOwner(m_pCharacter);
 	m_pSecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	m_pSecondaryWeapon->SetOwner(m_pCharacter);
 
 	//This has to be after the set weapon state
 	AttachActorToBackpack(pWeapon);
@@ -558,7 +555,6 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pEquippedWeapon->GetPickupSound(), m_pCharacter->GetActorLocation());
 
 	UpdateAmmoHud();
-	m_pEquippedWeapon->UpdateHudAmmo();
 	UpdateAmmoValues(true);
 	UpdateWeaponHUD();
 }

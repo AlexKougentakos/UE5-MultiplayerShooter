@@ -94,7 +94,7 @@ FVector AWeapon::GetVectorWithSpread(const FVector& hitTarget, float totalSpread
 	const FVector end = sphereCenter + randomVector;
 	const FVector toEndLocation = end - start;
 
-	DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius * totalSpreadMultiplier, 12, FColor::Red, true, 1.f);
+	//DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius * totalSpreadMultiplier, 12, FColor::Red, true, 1.f);
 	// DrawDebugSphere(GetWorld(), end, 5.f, 12, FColor::Green, true, 1.f);
 	// DrawDebugLine(GetWorld(), hitStart, hitStart + toEndLocation * BULLET_TRACE_LENGTH, FColor::Green, true, 1.f);
 

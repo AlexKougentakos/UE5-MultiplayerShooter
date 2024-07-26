@@ -361,9 +361,10 @@ void ABlasterCharacter::EliminationTimerFinished()
 		OnLeftGame.Broadcast();
 		return;
 	}
-	if (!m_PlayerLeftGame)
-		GetWorld()->GetAuthGameMode<ABlasterGameMode>()->RequestRespawn(this, m_pPlayerController);
-	
+
+	const auto pGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	if (!m_PlayerLeftGame && pGameMode)
+		pGameMode->RequestRespawn(this, m_pPlayerController);
 }
 
 void ABlasterCharacter::PlayFireMontage(const bool isAiming) const

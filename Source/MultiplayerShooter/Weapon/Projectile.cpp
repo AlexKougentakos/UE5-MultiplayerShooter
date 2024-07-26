@@ -62,13 +62,21 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 	
 	if (HasAuthority())
 	{
-		MulticastOnHit(GetMaterialOfActor(OtherActor));
+		MulticastOnHit(GetMaterialOfActor(OtherActor), false);
 	}
 }
 
+void AProjectile::OnHeadShot(AActor* pHitActor)
+{
+	if (!pHitActor) return;
+	
+	if (HasAuthority())
+	{
+		MulticastOnHit(GetMaterialOfActor(pHitActor), true);
+	}
+}
 
-
-void AProjectile::MulticastOnHit_Implementation(const UPhysicalMaterial* physicalMaterial)
+void AProjectile::MulticastOnHit_Implementation(const UPhysicalMaterial* physicalMaterial, bool isHeadShot)
 {
 	checkf(m_pMetalImpactEffect, TEXT("Impact effect is nullptr"));
 	checkf(m_pImpactSound, TEXT("Impact sound is nullptr"));
@@ -76,14 +84,18 @@ void AProjectile::MulticastOnHit_Implementation(const UPhysicalMaterial* physica
 	//Play effect
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GetImpactEffect(physicalMaterial), GetActorTransform());
 
+	
 	//Play sound
-	if (physicalMaterial == m_pPlayerPhysicalMaterial)
+	if (isHeadShot)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pHeadshotImpactSound, GetActorLocation());
+	else if (physicalMaterial == m_pPlayerPhysicalMaterial)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pPlayerImpactSound, GetActorLocation());
 	else
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
 
 	Destroy();
 }
+
 
 const UPhysicalMaterial* AProjectile::GetMaterialOfActor(AActor* OtherActor) const
 {
@@ -110,6 +122,8 @@ const UPhysicalMaterial* AProjectile::GetMaterialOfActor(AActor* OtherActor) con
 
 	return materialOfHitObject;
 }
+
+
 
 void AProjectile::SpawnTrailSystem()
 {

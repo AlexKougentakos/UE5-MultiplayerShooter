@@ -57,12 +57,14 @@ protected:
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastOnHit(const UPhysicalMaterial* physicalMaterial);
+	void MulticastOnHit(const UPhysicalMaterial* physicalMaterial, bool isHeadShot);
 	
 	virtual UParticleSystem* GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const;
 
 	const UPhysicalMaterial* GetMaterialOfActor(AActor* OtherActor) const;
 
+	void OnHeadShot(AActor* pHitActor);
+	
 	void SpawnTrailSystem();
 	void StartDestroyTimer();
 	void DestroyTimerFinished();
@@ -109,6 +111,8 @@ protected:
 	UPROPERTY(EditAnywhere, DisplayName = "Player Impact Sound", Category = "Effects|Impact")
 	USoundCue* m_pPlayerImpactSound{};
 
+	UPROPERTY(EditAnywhere, DisplayName = "Headshot Impact Sound", Category = "Effects|Impact")
+	USoundCue* m_pHeadshotImpactSound{};
 
 	UPROPERTY(EditAnywhere, DisplayName = "Trail Effect", Category = "Effects")
 	UNiagaraSystem* m_pTrailEffect{};

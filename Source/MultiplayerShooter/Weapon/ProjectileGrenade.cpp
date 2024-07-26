@@ -39,5 +39,7 @@ void AProjectileGrenade::OnBounce(const FHitResult& HitResult, const FVector& Im
 void AProjectileGrenade::Destroyed()
 {
 	DoDamageWithFallOff(m_InnerDamageRadius, m_OuterDamageRadius, m_Damage);
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pMetalImpactEffect, GetActorLocation(), FRotator::ZeroRotator, true);
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, GetActorLocation());
 	Super::Destroyed();
 }

@@ -21,7 +21,7 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
     if (!pOwnerController && HasAuthority()) return; 
 
     const USkeletalMeshSocket* muzzleSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
-    bool isHeadShot{false};
+    bool playImpactSound{true};
     if (!muzzleSocket) return;
     
     const FTransform muzzleTransform = muzzleSocket->GetSocketTransform(GetWeaponMesh());
@@ -39,9 +39,17 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
           auto damageType = UDamageType::StaticClass();
           if (hitResult.BoneName.ToString() == "head")
           {
-             isHeadShot = true;
+             playImpactSound = false;
              damage = m_HeadShotDamage;
              damageType = UHeadshotDamageType::StaticClass();
+          	
+          	if (m_pHeadshotImpactSound)
+          		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pHeadshotImpactSound, hitResult.ImpactPoint);
+          }
+          else
+          {
+          	if (m_pPlayerImpactSound)
+          		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pPlayerImpactSound, hitResult.ImpactPoint);
           }
           UGameplayStatics::ApplyDamage(pCharacter, damage, pOwnerController, this, damageType);
        }
@@ -74,10 +82,8 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 
         UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pEffect, hitResult.ImpactPoint, newRotation);
     }
-    
-    if (isHeadShot && m_pHeadshotImpactSound)
-       UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pHeadshotImpactSound, hitResult.ImpactPoint);
-    else if (m_pImpactSound)
+	
+    if (playImpactSound && m_pImpactSound)
        UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, hitResult.ImpactPoint);
 }
 void AHitScanWeapon::WeaponTraceHit(const FVector& traceStart, const FVector& hitTarget, FHitResult& outHitResult) const
@@ -111,6 +117,8 @@ UParticleSystem* AHitScanWeapon::GetImpactEffect(const UPhysicalMaterial* physic
 
 const UPhysicalMaterial* AHitScanWeapon::GetMaterialOfActor(AActor* OtherActor) const
 {
+	if (!OtherActor) return m_pMetalPhysicalMaterial;
+	
 	const UPhysicalMaterial* materialOfHitObject = {};
 	const ABlasterCharacter* pBlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	if (pBlasterCharacter)

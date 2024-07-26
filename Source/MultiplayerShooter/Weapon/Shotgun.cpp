@@ -7,6 +7,7 @@
 #include "MultiplayerShooter/Character/Components/LagCompensationComponent.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 AShotgun::AShotgun()
 {
@@ -46,6 +47,7 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 		{
 			FHitResult hitResult{};
 			WeaponTraceHit(start, hitLocation, hitResult);
+			bool playSoundEffect = true;
 
 			ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(hitResult.GetActor());
 			if (pCharacter)
@@ -56,20 +58,38 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitLocations)
 				{
 					if (headshotHitMap.Contains(pCharacter)) headshotHitMap[pCharacter]++;
 					else headshotHitMap.Emplace(pCharacter, 1);
+
+					if (m_pHeadshotImpactSound)
+						UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pHeadshotImpactSound, hitResult.ImpactPoint);
 				}
 				else
 				{
 					if (hitMap.Contains(pCharacter)) hitMap[pCharacter]++;
 					else hitMap.Emplace(pCharacter, 1);
+
+					if (m_pPlayerImpactEffect)
+						UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pPlayerImpactSound, hitResult.ImpactPoint);
 				}
-
-				
 			}
 
-			if (m_pImpactParticles)
+			UParticleSystem* pEffect = GetImpactEffect(GetMaterialOfActor(hitResult.GetActor()));
+			//Calculate the correct rotation for the impact effect
+			if (pEffect)
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_pImpactParticles, hitResult.ImpactPoint, hitResult.ImpactNormal.Rotation());
+				FVector upVector = hitResult.ImpactNormal;
+				FVector forwardVector = FVector::CrossProduct(upVector, FVector::RightVector);
+				if (forwardVector.IsNearlyZero())
+				{
+					forwardVector = FVector::CrossProduct(upVector, FVector::ForwardVector);
+				}
+				FVector rightVector = FVector::CrossProduct(upVector, forwardVector);
+				FRotator newRotation = UKismetMathLibrary::MakeRotationFromAxes(forwardVector, rightVector, upVector);
+
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pEffect, hitResult.ImpactPoint, newRotation);
 			}
+			
+			if (playSoundEffect)
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pImpactSound, hitResult.ImpactPoint);
 		}
 		
 		//Apply damage

@@ -23,6 +23,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, DisplayName = "Beam Particles", Category = "Effects")
 	UParticleSystem* m_pBeamParticles{};
+
+
+	UParticleSystem* GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const;
+	const UPhysicalMaterial* GetMaterialOfActor(AActor* OtherActor) const;
 	
 	void WeaponTraceHit(const FVector& traceStart, const FVector& hitTarget, FHitResult& outHitResult) const;
 
@@ -65,6 +69,4 @@ private:
 	UPROPERTY(EditAnywhere, DisplayName = "Rock Physical Material", Category = "Effects|Physical Materials")
 	UPhysicalMaterial* m_pRockPhysicalMaterial{};
 
-	UParticleSystem* GetImpactEffect(const UPhysicalMaterial* physicalMaterial) const;
-	const UPhysicalMaterial* GetMaterialOfActor(AActor* OtherActor) const;
 };

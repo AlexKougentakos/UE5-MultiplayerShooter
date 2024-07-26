@@ -31,6 +31,7 @@ private:
 	void OnChatMessageCommitted(const FText& text, ETextCommit::Type commitMethod);
 
 	UChatMessage* CreateChatMessage(const FString& senderName, const FString& message) const;
+	void AddMessageToContainer(const FString& senderName, const FString& message, UPanelWidget* pContainer, const int maxElements);
 	
 	UPROPERTY(EditAnywhere, Category = "Chat", DisplayName = "Chat Message Class")
 	TSubclassOf<UChatMessage> m_pChatMessageClass{};
@@ -55,4 +56,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Chat", DisplayName = "Recent Message Cap")
 	int m_RecentMessageCap{5};
+
+	UPROPERTY(EditAnywhere, Category = "Chat", DisplayName = "Message History Cap")
+	int m_MessageHistoryCap{30};
 };

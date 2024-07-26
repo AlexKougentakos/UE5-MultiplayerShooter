@@ -473,6 +473,7 @@ void UCombatComponent::SwapWeapons()
 	m_CombatState = ECombatState::ECS_SwappingWeapons;
 
 	m_pCharacter->SetFinishedSwappingWeapons(false);
+	SetAiming(false);
 }
 
 bool UCombatComponent::ShouldSwapWeapons() const

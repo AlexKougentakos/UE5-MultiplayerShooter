@@ -786,9 +786,13 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 
 	UpdateHudHealth();
 	UpdateHudShield();
+	UpdateHudAmmo();
 	
 	if (GetCombatState() == ECombatState::ECS_Reloading)
+	{
 		m_pCombat->m_CombatState = ECombatState::ECS_Unoccupied;
+		m_pCombat->m_IsLocallyReloading = false;
+	}
 
 	PlayHitReactMontage();
 

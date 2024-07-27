@@ -143,6 +143,8 @@ private:
 
 	void InterpolateFOV(const float deltaTime);
 
+	bool m_HideCrosshairs{false};
+
 	// Automatic Fire
 	FTimerHandle m_FireTimer{};
 	bool m_CanFire{true};

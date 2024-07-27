@@ -89,7 +89,9 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& hitResult)
 	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility);
 
 	// Detect when you are aiming at a player
-	if (hitResult.GetActor() && hitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
+	if (m_HideCrosshairs)
+		m_HudPackage.CrosshairColor = FLinearColor::Transparent; 
+	else if (hitResult.GetActor() && hitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		m_HudPackage.CrosshairColor = FLinearColor::Red;
 	else
 		m_HudPackage.CrosshairColor = FLinearColor::White;
@@ -238,7 +240,8 @@ void UCombatComponent::OnRep_CombatState()
 void UCombatComponent::SetAiming(const bool isAiming)
 {
 	//If we are already out of the aiming state, we don't want to set it again
-	if (m_IsAiming == isAiming) return;
+	//Nor if we are not in the unoccupied state
+	if (m_IsAiming == isAiming || m_CombatState != ECombatState::ECS_Unoccupied) return;
 	
 	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
 	ServerSetAiming(isAiming);
@@ -251,6 +254,7 @@ void UCombatComponent::SetAiming(const bool isAiming)
 		m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
 		if (m_pPlayerController)
 			m_pPlayerController->HideUI(isAiming);
+		m_HideCrosshairs = isAiming;
 		m_pCharacter->ShowSniperScopeWidget(isAiming);
 	}
 
@@ -469,11 +473,12 @@ void UCombatComponent::SwapWeapons()
 {
 	if (m_CombatState != ECombatState::ECS_Unoccupied || !m_pCharacter->HasAuthority()) return;
 	
+	SetAiming(false); //Before swapping the combat state
+	
 	m_pCharacter->PlayWeaponSwapMontage();
 	m_CombatState = ECombatState::ECS_SwappingWeapons;
 
 	m_pCharacter->SetFinishedSwappingWeapons(false);
-	SetAiming(false);
 }
 
 bool UCombatComponent::ShouldSwapWeapons() const

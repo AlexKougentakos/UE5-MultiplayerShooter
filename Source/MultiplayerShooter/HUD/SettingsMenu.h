@@ -13,9 +13,13 @@ class MULTIPLAYERSHOOTER_API USettingsMenu : public UUserWidget
 	GENERATED_BODY()
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	
 	UPROPERTY(meta=(BindWidget))
 	UButton* BackButton{};
+
+	UPROPERTY(meta=(BindWidget))
+	UButton* ApplyButton{};
 
 	UPROPERTY(meta=(BindWidget))
 	USlider* ADS_MouseSensitivitySlider{};
@@ -23,11 +27,16 @@ public:
 	UPROPERTY(meta=(BindWidget))
 	USlider* MouseSensitivitySlider{};
 
-	void ApplySensitiveSettings(const float MouseSensitivity, const float ADSSensitivity) const;
 private:
 	UFUNCTION()
 	void OnADSSensitivityChanged(float value);
 	
 	UFUNCTION()
 	void OnMouseSensitivityChanged(float value);
+
+	float m_TemporaryMouseSensitivity{};
+	float m_TemporaryADSSensitivity{};
+	
+	UFUNCTION()
+	void ApplySensitiveSettings();
 };

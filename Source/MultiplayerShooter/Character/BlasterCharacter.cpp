@@ -161,8 +161,9 @@ void ABlasterCharacter::BeginPlay()
 	m_pCombat->UpdateWeaponHUD();
 
 	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
-	
-	pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
+
+	if(pSettings && !pSettings->OnSensitivitySettingsChanged.IsBound())
+		pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
 	
 	m_ADSSensitivityMultiplier = pSettings->GetADSSensitivityMultiplier();
 	m_MouseSensitivityMultiplier = pSettings->GetMouseSensitivityMultiplier();
@@ -292,6 +293,10 @@ void ABlasterCharacter::Destroyed()
 
 	// We do this in the destroyed function since it gets replicated to all clients
 	if (m_pEliminationBotEffectComponent) m_pEliminationBotEffectComponent->DestroyComponent();
+
+	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
+	if(pSettings && !pSettings->OnSensitivitySettingsChanged.IsBound())
+		pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
 }
 
 void ABlasterCharacter::Eliminated(const bool playerLeftGame)

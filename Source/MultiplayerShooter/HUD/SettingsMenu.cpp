@@ -2,6 +2,7 @@
 
 #include "Components/Button.h"
 #include "Components/Slider.h"
+#include "MultiplayerShooter/Character/BlasterCharacter.h"
 #include "MultiplayerShooter/Saving/SensitivitySettings.h"
 
 
@@ -36,7 +37,8 @@ void USettingsMenu::NativeDestruct()
 
 void USettingsMenu::ApplySensitiveSettings()
 {
-	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
+	
+	USensitivitySettings* pSettings = Cast<ABlasterCharacter>(GetOwningPlayerPawn())->GetSensitivitySettings();
 	pSettings->SetMouseSensitivity(m_TemporaryMouseSensitivity);
 	pSettings->SetADSSensitivity(m_TemporaryADSSensitivity);
 	m_TemporaryADSSensitivity = 0.0f;

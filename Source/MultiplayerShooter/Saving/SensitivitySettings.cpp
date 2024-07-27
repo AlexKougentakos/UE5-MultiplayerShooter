@@ -18,24 +18,21 @@ void USensitivitySettings::SetADSSensitivity(float NewSensitivity)
 }
 
 USensitivitySettings* USensitivitySettings::LoadSensitivitySettings()
-{
-	static USensitivitySettings* StaticSettings = nullptr;
+{    
+	USensitivitySettings* Settings = Cast<USensitivitySettings>(UGameplayStatics::LoadGameFromSlot("SensitivitySettings", 0));
     
-	if (!StaticSettings)
+	if (!Settings)
 	{
-		StaticSettings = Cast<USensitivitySettings>(UGameplayStatics::LoadGameFromSlot("SensitivitySettings", 0));
-        
-		if (!StaticSettings)
-		{
-			StaticSettings = Cast<USensitivitySettings>(UGameplayStatics::CreateSaveGameObject(USensitivitySettings::StaticClass()));
-		}
+		Settings = Cast<USensitivitySettings>(UGameplayStatics::CreateSaveGameObject(USensitivitySettings::StaticClass()));
+		UGameplayStatics::SaveGameToSlot(Settings, "SensitivitySettings", 0);
 	}
     
-	return StaticSettings;
+	return Settings;
 }
 
 void USensitivitySettings::SaveSensitivitySettings()
 {
-	OnSensitivitySettingsChanged.Broadcast(m_MouseSensitivityMultiplier, m_ADSSensitivityMultiplier);
+	if (OnSensitivitySettingsChanged.IsBound())
+		OnSensitivitySettingsChanged.Broadcast(m_MouseSensitivityMultiplier, m_ADSSensitivityMultiplier);
 	UGameplayStatics::SaveGameToSlot(this, "SensitivitySettings", 0);
 }

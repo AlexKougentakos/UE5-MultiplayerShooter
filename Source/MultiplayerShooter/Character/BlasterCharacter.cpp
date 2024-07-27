@@ -160,13 +160,17 @@ void ABlasterCharacter::BeginPlay()
 	UpdateHudAmmo();
 	m_pCombat->UpdateWeaponHUD();
 
-	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
+	m_pSensitivitySettings = USensitivitySettings::LoadSensitivitySettings();
 
-	if(pSettings && !pSettings->OnSensitivitySettingsChanged.IsBound())
-		pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
+	if (m_pSensitivitySettings)
+	{
+		if (!m_pSensitivitySettings->OnSensitivitySettingsChanged.IsBound())
+			m_pSensitivitySettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
 	
-	m_ADSSensitivityMultiplier = pSettings->GetADSSensitivityMultiplier();
-	m_MouseSensitivityMultiplier = pSettings->GetMouseSensitivityMultiplier();
+		m_ADSSensitivityMultiplier = m_pSensitivitySettings->GetADSSensitivityMultiplier();
+		m_MouseSensitivityMultiplier = m_pSensitivitySettings->GetMouseSensitivityMultiplier();	
+	}
+	
 }
 
 void ABlasterCharacter::PollInitialize(float deltaTime)

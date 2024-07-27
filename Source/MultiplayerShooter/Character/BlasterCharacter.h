@@ -10,6 +10,7 @@
 #include "MultiplayerShooter/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class USensitivitySettings;
 class UNiagaraComponent;
 class UNiagaraSystem;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
@@ -114,6 +115,8 @@ public:
 	void MulticastGainedTheLead();
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastLostTheLead();
+
+	USensitivitySettings* GetSensitivitySettings() {return m_pSensitivitySettings;}
 	
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
@@ -136,6 +139,9 @@ private: // Variables
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* m_pOverlappingWeapon{};
+
+	UPROPERTY()
+	USensitivitySettings* m_pSensitivitySettings{};
 
 	UPROPERTY(EditAnywhere, DisplayName = "Pick Up Distance", Category = "Player Stats")
 	float m_PickUpDistance{200.f};

@@ -39,8 +39,13 @@ void USettingsMenu::ApplySensitiveSettings()
 {
 	
 	USensitivitySettings* pSettings = Cast<ABlasterCharacter>(GetOwningPlayerPawn())->GetSensitivitySettings();
-	pSettings->SetMouseSensitivity(m_TemporaryMouseSensitivity);
-	pSettings->SetADSSensitivity(m_TemporaryADSSensitivity);
+	
+	//If the difference between the temporary sensitivity and the current sensitivity is not zero, set the new sensitivity
+	if (!FMath::IsNearlyZero(m_TemporaryMouseSensitivity - pSettings->GetMouseSensitivityMultiplier()))
+		pSettings->SetMouseSensitivity(m_TemporaryMouseSensitivity);
+	if (!FMath::IsNearlyZero(m_TemporaryADSSensitivity - pSettings->GetADSSensitivityMultiplier()))
+		pSettings->SetADSSensitivity(m_TemporaryADSSensitivity);
+	
 	m_TemporaryADSSensitivity = 0.0f;
 	m_TemporaryMouseSensitivity = 0.0f;
 	pSettings->SaveSensitivitySettings();

@@ -1,10 +1,11 @@
 #include "ReturnToMainMenu.h"
 
 #include "MultiplayerSessionsSubsystem.h"
+#include "SettingsMenu.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanel.h"
 #include "GameFramework/GameModeBase.h"
 #include "MultiplayerShooter/Character/BlasterCharacter.h"
-#include "MultiplayerShooter/GameModes/BlasterGameMode.h"
 #include "MultiplayerShooter/GameModes/LobbyGameMode.h"
 
 void UReturnToMainMenu::MenuSetup()
@@ -30,12 +31,20 @@ void UReturnToMainMenu::MenuSetup()
 	m_pSessionsSubsystem = pGameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 	if (!m_pSessionsSubsystem) return;
 
+	SettingsMenu->SetVisibility(ESlateVisibility::Hidden);
+	
 	//if (!m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.IsBound())
 	m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UReturnToMainMenu::OnDestroySession);
 
 	checkf(ReturnButton, TEXT("ReturnButton is nullptr"));
 	if (!ReturnButton->OnClicked.IsBound())
 		ReturnButton->OnClicked.AddDynamic(this, &UReturnToMainMenu::ReturnButtonClicked);
+
+	if (!OptionsButton->OnClicked.IsBound())
+		OptionsButton->OnClicked.AddDynamic(this, &UReturnToMainMenu::OptionsButtonClicked);
+
+	if (!SettingsMenu->BackButton->OnClicked.IsBound())
+		SettingsMenu->BackButton->OnClicked.AddDynamic(this, &UReturnToMainMenu::GoBackToPauseScreen);
 }
 
 void UReturnToMainMenu::MenuTeardown()
@@ -57,13 +66,16 @@ void UReturnToMainMenu::MenuTeardown()
 		ReturnButton->OnClicked.RemoveDynamic(this, &UReturnToMainMenu::ReturnButtonClicked);
 	if (m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.IsBound())
 		m_pSessionsSubsystem->MultiplayerOnDestroySessionComplete.RemoveDynamic(this, &UReturnToMainMenu::OnDestroySession);
+
+	// Re-set visibility
+	PauseScreen->SetVisibility(ESlateVisibility::Visible);
+	SettingsMenu->SetVisibility(ESlateVisibility::Hidden);
 }
 
 bool UReturnToMainMenu::Initialize()
 {
 	if(!Super::Initialize()) return false;
-
-
+	
 	return true;
 }
 
@@ -91,6 +103,19 @@ void UReturnToMainMenu::ReturnButtonClicked()
 	{
 		ReturnButton->SetIsEnabled(true);
 	}
+}
+
+void UReturnToMainMenu::OptionsButtonClicked()
+{
+	PauseScreen->SetVisibility(ESlateVisibility::Hidden);
+	SettingsMenu->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UReturnToMainMenu::GoBackToPauseScreen()
+{
+	// Re-set visibility
+	PauseScreen->SetVisibility(ESlateVisibility::Visible);
+	SettingsMenu->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UReturnToMainMenu::OnDestroySession(const bool wasSuccessful)

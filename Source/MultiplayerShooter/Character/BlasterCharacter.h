@@ -257,6 +257,13 @@ private: // Variables
 	TSubclassOf<AWeapon> m_DefaultWeaponClass;
 
 	bool m_PlayerLeftGame{};
+
+	/*
+	 * SENSITIVITY SETTINGS
+	 */
+	float m_ADSSensitivityMultiplier{};
+	float m_MouseSensitivityMultiplier{};
+	
 private: // Functions
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(const  AWeapon* const pOldWeapon) const;
@@ -304,6 +311,9 @@ private: // Functions
 	UFUNCTION()
 	void UpdateDissolveMaterial(float dissolveValue);
 	void StartDissolve();
+
+	UFUNCTION()
+	void UpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity);
 	
 public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);

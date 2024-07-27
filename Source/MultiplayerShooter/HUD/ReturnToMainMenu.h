@@ -4,6 +4,8 @@
 #include "Blueprint/UserWidget.h"
 #include "ReturnToMainMenu.generated.h"
 
+class USettingsMenu;
+class UCanvasPanel;
 class UMultiplayerSessionsSubsystem;
 class UButton;
 /**
@@ -22,10 +24,25 @@ protected:
 
 private:
 	UPROPERTY(meta=(BindWidget))
-	UButton* ReturnButton;
+	UButton* ReturnButton{};
+	
+	UPROPERTY(meta=(BindWidget))
+	UButton* OptionsButton{};
+
+	UPROPERTY(meta=(BindWidget))
+	UCanvasPanel* PauseScreen{};
+
+	UPROPERTY(meta=(BindWidget))
+	USettingsMenu* SettingsMenu{};
 
 	UFUNCTION()
 	void ReturnButtonClicked();
+
+	UFUNCTION()
+	void OptionsButtonClicked();
+
+	UFUNCTION()
+	void GoBackToPauseScreen();
 
 	UPROPERTY() UMultiplayerSessionsSubsystem* m_pSessionsSubsystem{};
 

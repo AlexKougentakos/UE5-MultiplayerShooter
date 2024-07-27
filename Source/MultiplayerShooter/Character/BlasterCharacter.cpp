@@ -20,6 +20,7 @@
 #include "MultiplayerShooter/GameState/BlasterGameState.h"
 #include "MultiplayerShooter/PlayerController/BlasterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
+#include "MultiplayerShooter/Saving/SensitivitySettings.h"
 #include "MultiplayerShooter/Types/TurningInPlace.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
@@ -158,6 +159,13 @@ void ABlasterCharacter::BeginPlay()
 	SpawnDefaultWeapon();
 	UpdateHudAmmo();
 	m_pCombat->UpdateWeaponHUD();
+
+	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
+	
+	pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
+	
+	m_ADSSensitivityMultiplier = pSettings->GetADSSensitivityMultiplier();
+	m_MouseSensitivityMultiplier = pSettings->GetMouseSensitivityMultiplier();
 }
 
 void ABlasterCharacter::PollInitialize(float deltaTime)
@@ -565,12 +573,14 @@ void ABlasterCharacter::MoveRight(const float value)
 
 void ABlasterCharacter::Turn(const float value)
 {
-	AddControllerYawInput(value);
+	const float multiplier = m_pCombat->m_IsAiming ? m_ADSSensitivityMultiplier * m_MouseSensitivityMultiplier : m_MouseSensitivityMultiplier;
+	AddControllerYawInput(value * multiplier);
 }
 
 void ABlasterCharacter::LookUp(const float value)
 {
-	AddControllerPitchInput(value);
+	const float multiplier = m_pCombat->m_IsAiming ? m_ADSSensitivityMultiplier * m_MouseSensitivityMultiplier : m_MouseSensitivityMultiplier;
+	AddControllerPitchInput(value * multiplier);
 }
 
 void ABlasterCharacter::EquipButtonPressed()
@@ -917,6 +927,13 @@ void ABlasterCharacter::StartDissolve()
 	m_pDissolveTimeLine->AddInterpFloat(m_pDissolveCurve, m_DissolveTrack);
 	m_pDissolveTimeLine->Play();
 }
+
+void ABlasterCharacter::UpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity)
+{
+	m_ADSSensitivityMultiplier = ADSSensitivity;
+	m_MouseSensitivityMultiplier = mouseSensitivity;
+}
+
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(const AWeapon* const pOldWeapon) const
 {

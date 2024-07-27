@@ -114,7 +114,9 @@ public:
 	void MulticastGainedTheLead();
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastLostTheLead();
-	
+
+	void UpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity);
+
 private: // Variables
 	UPROPERTY(VisibleAnywhere, Category = Camera, DisplayName = "Camera Boom")
 	USpringArmComponent* m_pCameraBoom{};
@@ -261,7 +263,9 @@ private: // Variables
 	/*
 	 * SENSITIVITY SETTINGS
 	 */
+	UPROPERTY(Replicated)
 	float m_ADSSensitivityMultiplier{};
+	UPROPERTY(Replicated)
 	float m_MouseSensitivityMultiplier{};
 	
 private: // Functions
@@ -308,12 +312,14 @@ private: // Functions
 	UFUNCTION(Server, Reliable)
 	void ServerSetOverlappingWeapon(AWeapon* pWeapon);
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastUpdateSensitivitySettings(float mouseSensitivity, float ADSSensitivity);
+
+	
 	UFUNCTION()
 	void UpdateDissolveMaterial(float dissolveValue);
 	void StartDissolve();
 
-	UFUNCTION()
-	void UpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity);
 	
 public: // Getters & Setters
 	void SetOverlappingWeapon(AWeapon* const pWeapon);

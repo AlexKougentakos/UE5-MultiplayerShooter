@@ -4,7 +4,7 @@
 #include "GameFramework/SaveGame.h"
 #include "SensitivitySettings.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSensitivitySettingsChanged, float , MouseSensitivity, float, ADSSensitivity);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSensitivitySettingsChanged, float, MouseSensitivity, float, ADSSensitivity);
 
 UCLASS()
 class MULTIPLAYERSHOOTER_API USensitivitySettings : public USaveGame
@@ -13,29 +13,31 @@ class MULTIPLAYERSHOOTER_API USensitivitySettings : public USaveGame
 
 public:
 	USensitivitySettings();
-
+	
 	// Load and Save functions
-	UFUNCTION(BlueprintCallable, Category = "Sensitivity")
-	static USensitivitySettings* LoadSensitivitySettings();
-
+	UFUNCTION()
+	static USensitivitySettings* GetSensitivitySettings();
+    
 	UFUNCTION(BlueprintCallable, Category = "Sensitivity")
 	void SaveSensitivitySettings();
 
+	UPROPERTY(BlueprintAssignable, Category = "Sensitivity")
 	FOnSensitivitySettingsChanged OnSensitivitySettingsChanged;
-private:
-	UPROPERTY()
-	float m_MouseSensitivityMultiplier;
 
-	UPROPERTY()
-	float m_ADSSensitivityMultiplier;
-	
+	// Debug function
+	void LogDelegateInfo() const;
+    
+private:
+    float m_MouseSensitivityMultiplier;
+    float m_ADSSensitivityMultiplier;
+    
 public: // Getters & Setters
 	UFUNCTION(BlueprintCallable, Category = "Sensitivity")
 	float GetMouseSensitivityMultiplier() const { return m_MouseSensitivityMultiplier; }
 
 	UFUNCTION(BlueprintCallable, Category = "Sensitivity")
 	float GetADSSensitivityMultiplier() const { return m_ADSSensitivityMultiplier; }
-	
+    
 	UFUNCTION(BlueprintCallable, Category = "Sensitivity")
 	void SetMouseSensitivity(float NewSensitivity);
 

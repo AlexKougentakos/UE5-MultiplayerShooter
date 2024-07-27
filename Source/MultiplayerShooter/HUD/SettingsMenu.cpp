@@ -9,8 +9,8 @@ void USettingsMenu::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	ADS_MouseSensitivitySlider->SetValue(USensitivitySettings::LoadSensitivitySettings()->GetADSSensitivityMultiplier());
-	MouseSensitivitySlider->SetValue(USensitivitySettings::LoadSensitivitySettings()->GetMouseSensitivityMultiplier());
+	ADS_MouseSensitivitySlider->SetValue(USensitivitySettings::GetSensitivitySettings()->GetADSSensitivityMultiplier());
+	MouseSensitivitySlider->SetValue(USensitivitySettings::GetSensitivitySettings()->GetMouseSensitivityMultiplier());
 
 	if (!ApplyButton->OnClicked.IsBound())
 		ApplyButton->OnClicked.AddDynamic(this, &USettingsMenu::ApplySensitiveSettings);
@@ -35,10 +35,12 @@ void USettingsMenu::NativeDestruct()
 }
 
 void USettingsMenu::ApplySensitiveSettings()
-{
-	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
-	pSettings->SetMouseSensitivity(m_TemporaryMouseSensitivity);
-	pSettings->SetADSSensitivity(m_TemporaryADSSensitivity);
+{	
+	USensitivitySettings* pSettings = USensitivitySettings::GetSensitivitySettings();
+	if (!FMath::IsNearlyZero(m_TemporaryMouseSensitivity))
+		pSettings->SetMouseSensitivity(m_TemporaryMouseSensitivity);
+	if (!FMath::IsNearlyZero(m_TemporaryADSSensitivity))
+		pSettings->SetADSSensitivity(m_TemporaryADSSensitivity);
 	m_TemporaryADSSensitivity = 0.0f;
 	m_TemporaryMouseSensitivity = 0.0f;
 	pSettings->SaveSensitivitySettings();
@@ -50,7 +52,7 @@ void USettingsMenu::OnADSSensitivityChanged(float value)
 	m_TemporaryADSSensitivity = value;
 
 	//If the value is the same as the current sensitivity, disable the apply button
-	if (FMath::IsNearlyZero(m_TemporaryADSSensitivity - USensitivitySettings::LoadSensitivitySettings()->GetADSSensitivityMultiplier()))
+	if (FMath::IsNearlyZero(m_TemporaryADSSensitivity - USensitivitySettings::GetSensitivitySettings()->GetADSSensitivityMultiplier()))
 	{
 		ApplyButton->SetIsEnabled(false);
 	}
@@ -62,7 +64,7 @@ void USettingsMenu::OnMouseSensitivityChanged(float value)
 	m_TemporaryMouseSensitivity = value;
 
 	//If the value is the same as the current sensitivity, disable the apply button
-	if (FMath::IsNearlyZero(m_TemporaryMouseSensitivity - USensitivitySettings::LoadSensitivitySettings()->GetMouseSensitivityMultiplier()))
+	if (FMath::IsNearlyZero(m_TemporaryMouseSensitivity - USensitivitySettings::GetSensitivitySettings()->GetMouseSensitivityMultiplier()))
 	{
 		ApplyButton->SetIsEnabled(false);
 	}

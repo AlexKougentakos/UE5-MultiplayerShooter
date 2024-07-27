@@ -65,6 +65,12 @@ private:
 	
 	unsigned int m_CountDownSeconds{0};
 
+	UFUNCTION()
+	void UpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity);
+
+	UFUNCTION(Server, Reliable)
+	void ServerUpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity);
+	
 	/*
 	 *	SYNC TIME BETWEEN SERVER & CLIENTS
 	 */
@@ -82,7 +88,7 @@ private:
 	float m_TimeSyncFrequency{5.f};
 	float m_TimeSinceLastSync{0.f};
 	float m_SingleTripTime{0.f};
-
+	
 	//Every so often we will request the server time to keep the client in sync
 	void HandleTimeSync(float DeltaSeconds);
 
@@ -163,4 +169,3 @@ public:
 
 	void MarkPingCheckFlag() { m_CheckPingFlag = true; }
 };
-

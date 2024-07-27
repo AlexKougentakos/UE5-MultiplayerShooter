@@ -13,6 +13,7 @@
 #include "MultiplayerShooter/HUD/CharacterOverlay.h"
 #include "MultiplayerShooter/HUD/ReturnToMainMenu.h"
 #include "MultiplayerShooter/PlayerState/BlasterPlayerState.h"
+#include "MultiplayerShooter/Saving/SensitivitySettings.h"
 #include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogBlasterHUD, Log, All);
@@ -58,6 +59,15 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	pCharacter->UpdateHudShield();
 	pCharacter->UpdateHudAmmo();
 	pCharacter->UpdateHudWeapons();
+
+	USensitivitySettings* pSettings = USensitivitySettings::GetSensitivitySettings();
+	if (!pSettings) return;
+
+	if (!pSettings->OnSensitivitySettingsChanged.IsBound())
+		pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ThisClass::UpdateSensitivitySettings);
+    
+	// Initialize with current settings
+	UpdateSensitivitySettings(pSettings->GetMouseSensitivityMultiplier(), pSettings->GetADSSensitivityMultiplier());
 }
 
 void ABlasterPlayerController::Tick(float DeltaSeconds)
@@ -702,6 +712,33 @@ void ABlasterPlayerController::HandleCooldown()
     }
 }
 
+void ABlasterPlayerController::UpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity)
+{
+	UE_LOG(LogTemp, Warning, TEXT("UpdateSensitivitySettings called in controller: Mouse=%f, ADS=%f"), 
+	   mouseSensitivity, ADSSensitivity);
+    
+	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(GetPawn());
+	if (pCharacter)
+	{
+		if (HasAuthority())
+		{
+			pCharacter->UpdateSensitivitySettings(mouseSensitivity, ADSSensitivity);
+		}
+		else
+		{
+			ServerUpdateSensitivitySettings(mouseSensitivity, ADSSensitivity);
+		}
+	}
+}
+
+void ABlasterPlayerController::ServerUpdateSensitivitySettings_Implementation(const float mouseSensitivity, const float ADSSensitivity)
+{
+	ABlasterCharacter* pCharacter = Cast<ABlasterCharacter>(GetPawn());
+	if (pCharacter)
+	{
+		pCharacter->UpdateSensitivitySettings(mouseSensitivity, ADSSensitivity);
+	}
+}
 
 void ABlasterPlayerController::SetHudTime()
 {

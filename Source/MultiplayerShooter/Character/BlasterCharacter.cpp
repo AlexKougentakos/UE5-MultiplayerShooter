@@ -154,19 +154,10 @@ void ABlasterCharacter::BeginPlay()
 
 	if (HasAuthority())
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
-
 	
 	SpawnDefaultWeapon();
 	UpdateHudAmmo();
 	m_pCombat->UpdateWeaponHUD();
-
-	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
-
-	if(pSettings && !pSettings->OnSensitivitySettingsChanged.IsBound())
-		pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
-	
-	m_ADSSensitivityMultiplier = pSettings->GetADSSensitivityMultiplier();
-	m_MouseSensitivityMultiplier = pSettings->GetMouseSensitivityMultiplier();
 }
 
 void ABlasterCharacter::PollInitialize(float deltaTime)
@@ -294,9 +285,13 @@ void ABlasterCharacter::Destroyed()
 	// We do this in the destroyed function since it gets replicated to all clients
 	if (m_pEliminationBotEffectComponent) m_pEliminationBotEffectComponent->DestroyComponent();
 
-	USensitivitySettings* pSettings = USensitivitySettings::LoadSensitivitySettings();
-	if(pSettings && !pSettings->OnSensitivitySettingsChanged.IsBound())
-		pSettings->OnSensitivitySettingsChanged.AddDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
+	USensitivitySettings* pSettings = USensitivitySettings::GetSensitivitySettings();
+	if (pSettings)
+	{
+		pSettings->OnSensitivitySettingsChanged.RemoveDynamic(this, &ABlasterCharacter::UpdateSensitivitySettings);
+		UE_LOG(LogTemp, Warning, TEXT("Unbinding from OnSensitivitySettingsChanged"));
+		pSettings->LogDelegateInfo(); // Log delegate info after unbinding
+	}
 }
 
 void ABlasterCharacter::Eliminated(const bool playerLeftGame)
@@ -934,6 +929,17 @@ void ABlasterCharacter::StartDissolve()
 }
 
 void ABlasterCharacter::UpdateSensitivitySettings(const float mouseSensitivity, const float ADSSensitivity)
+{
+	UE_LOG(LogTemp, Warning, TEXT("UpdateSensitivitySettings called: Mouse=%f, ADS=%f"), 
+	   mouseSensitivity, ADSSensitivity);
+    
+	if (HasAuthority())
+	{
+		MulticastUpdateSensitivitySettings(mouseSensitivity, ADSSensitivity);
+	}
+}
+
+void ABlasterCharacter::MulticastUpdateSensitivitySettings_Implementation(float mouseSensitivity, float ADSSensitivity)
 {
 	m_ADSSensitivityMultiplier = ADSSensitivity;
 	m_MouseSensitivityMultiplier = mouseSensitivity;

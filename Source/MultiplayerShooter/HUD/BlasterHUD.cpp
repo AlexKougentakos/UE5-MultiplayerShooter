@@ -127,6 +127,7 @@ void ABlasterHUD::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSe
 
 	if (pMainWeapon)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Updating main weapon"));
 		const float containerSize = m_pCharacterOverlay->BottomContainer->GetCachedGeometry().GetAbsoluteSize().X/2;
 		UTexture2D* weaponIcon = pMainWeapon->GetWeaponHolderIcon();
 		float scale = weaponIcon->GetSizeX() > containerSize ? containerSize / weaponIcon->GetSizeX() : 1.f;
@@ -141,6 +142,7 @@ void ABlasterHUD::UpdateWeaponHud(const AWeapon* pMainWeapon, const AWeapon* pSe
 	
 	if (pSecondaryWeapon)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Updating secondary weapon"));
 		const float containerSize = m_pCharacterOverlay->SecondaryWeapon->GetCachedGeometry().GetAbsoluteSize().X;
 		UTexture2D* weaponIcon = pSecondaryWeapon->GetWeaponHolderIcon();
 		float scale = weaponIcon->GetSizeX() > containerSize ? containerSize / weaponIcon->GetSizeX() - 0.1f: 1.f  - 0.1f;

@@ -817,7 +817,7 @@ void ABlasterCharacter::ReceiveDamage(AActor* damagedActor, float damage, const 
 
 	const auto pBlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 
-	if (m_CurrentHealth <= 0.f && pBlasterGameMode)
+	if (m_CurrentHealth <= 0.f && pBlasterGameMode && m_IsAlive)
 	{
 		m_pPlayerController = m_pPlayerController ? m_pPlayerController : Cast<ABlasterPlayerController>(GetController());
 		

@@ -5,8 +5,10 @@
 
 #include "BlasterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
+#include "Sound/SoundCue.h"
 
 void UCharacterAnimationInstance::NativeInitializeAnimation()
 {
@@ -37,6 +39,41 @@ void UCharacterAnimationInstance::NativeUpdateAnimation(float deltaTime)
 	{
 		ApplyInverseKinematicsToHand(deltaTime);
 	}
+}
+
+void UCharacterAnimationInstance::PlayStepSound()
+{
+	if (!m_pBlasterCharacter) return;
+	
+	FHitResult hitResult{};
+	const FVector start = m_pBlasterCharacter->GetActorLocation();
+	const FVector end = start - FVector(0.f, 0.f, 100.f);
+	FCollisionQueryParams params{};
+	params.AddIgnoredActor(m_pBlasterCharacter);
+	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECC_Visibility, params);
+		bool validMaterial = false;
+	
+	if (hitResult.GetActor())
+		if (const auto pMesh = hitResult.GetActor()->FindComponentByClass<UStaticMeshComponent>())
+			if (const auto pBodyInstance = pMesh->GetBodyInstance())
+				if (pBodyInstance->GetSimplePhysicalMaterial())
+					validMaterial = true;
+
+		if (!validMaterial)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid"));
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pStoneStepSound, hitResult.Location);
+			return;
+		}
+
+	const UPhysicalMaterial* pMaterialOfHitObject = hitResult.GetActor()->
+	                                          FindComponentByClass<UStaticMeshComponent>()->GetBodyInstance()->
+	                                          GetSimplePhysicalMaterial();
+
+	if (pMaterialOfHitObject == m_pGrassMaterial)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pGrassStepSound, hitResult.Location);
+	else UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pStoneStepSound, hitResult.Location);
+
 }
 
 void UCharacterAnimationInstance::UpdateVariables()

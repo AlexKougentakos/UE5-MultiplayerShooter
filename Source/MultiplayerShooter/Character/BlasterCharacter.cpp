@@ -208,7 +208,12 @@ void ABlasterCharacter::PollInitialize(float deltaTime)
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Combat state: %d"), static_cast<int>(m_pCombat->m_CombatState));
+		UE_LOG(LogTemp, Warning, TEXT("Is Locally Reloading: %d"), m_pCombat->m_IsLocallyReloading);
+	}
 	PollInitialize(DeltaTime);
 	
 	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
@@ -401,17 +406,26 @@ void ABlasterCharacter::PlayFireMontage(const bool isAiming) const
 	pAnimInstance->Montage_JumpToSection(sectionName);
 }
 
-void ABlasterCharacter::PlayHitReactMontage() const
+void ABlasterCharacter::PlayHitReactMontage()
 {	
 	if (!m_pCombat->HasWeapon()) return;
-		
+
+	//Play the montage
 	UAnimInstance* pAnimInstance = GetMesh()->GetAnimInstance();
 	checkf(pAnimInstance, TEXT("AnimInstance is nullptr"));
 	checkf(m_pHitReactMontage, TEXT("Hit React Montage is nullptr"));
-
+	
 	pAnimInstance->Montage_Play(m_pHitReactMontage, 1.f);
 	const FName sectionName = "FromFront";
-	pAnimInstance->Montage_JumpToSection(sectionName); 
+	pAnimInstance->Montage_JumpToSection(sectionName);
+
+	//Reset the combat state in-case we were reloading
+
+	if (m_pCombat->m_CombatState == ECombatState::ECS_Reloading)
+	{
+		m_pCombat->m_CombatState = ECombatState::ECS_Unoccupied;
+		m_pCombat->m_IsLocallyReloading = false;
+	}
 }
 
 void ABlasterCharacter::PlayEliminationMontage() const

@@ -47,7 +47,7 @@ public:
 	void Eliminated(const bool playerLeftGame = false);
 
 	void PlayFireMontage(const bool isAiming) const;
-	void PlayHitReactMontage() const;
+	void PlayHitReactMontage();
 	void PlayEliminationMontage() const;
 	void PlayRifleReloadMontage() const;
 	void PlayThrowGrenadeMontage() const;

@@ -218,6 +218,7 @@ void UCombatComponent::OnRep_CombatState()
 	{
 	case ECombatState::ECS_Unoccupied:
 		if (m_IsFireButtonPressed) Fire();
+		if (m_pCharacter->IsLocallyControlled()) m_IsLocallyReloading = false;
 		break;
 	case ECombatState::ECS_Reloading:
 		if (!m_pCharacter->IsLocallyControlled()) HandleReloadingForBothServerAndClient();
@@ -233,6 +234,8 @@ void UCombatComponent::OnRep_CombatState()
 	case ECombatState::ECS_SwappingWeapons:
 		if (!m_pCharacter->IsLocallyControlled()) //we already played the animation locally for the player to avoid delays
 			m_pCharacter->PlayWeaponSwapMontage();
+		else m_IsLocallyReloading = false;
+		
 		break;
 	}
 }
@@ -365,7 +368,6 @@ void UCombatComponent::FireTimerFinished()
 	{
 		Reload();
 	}
-	
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()

@@ -87,4 +87,16 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"), DisplayName = "Transform Right Hand")
 	bool m_TransformRightHand{};
+
+	UPROPERTY(EditAnywhere, Category = Sound, DisplayName = "Grass Step Sound")
+	USoundCue* m_pGrassStepSound{};
+
+	UPROPERTY(EditAnywhere, Category = Sound, DisplayName = "Stone Step Sound")
+	USoundCue* m_pStoneStepSound{};
+
+	UPROPERTY(EditAnywhere, Category = Sound, DisplayName = "Grass Phyiscal Material")
+	UPhysicalMaterial* m_pGrassMaterial{};
+	
+	UFUNCTION(BlueprintCallable)
+	void PlayStepSound();
 };

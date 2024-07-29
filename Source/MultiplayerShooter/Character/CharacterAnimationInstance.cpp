@@ -47,7 +47,7 @@ void UCharacterAnimationInstance::PlayStepSound()
 	
 	FHitResult hitResult{};
 	const FVector start = m_pBlasterCharacter->GetActorLocation();
-	const FVector end = start - FVector(0.f, 0.f, 100.f);
+	const FVector end = start - FVector(0.f, 0.f, m_pBlasterCharacter->GetDefaultHalfHeight() + 20.f);
 	FCollisionQueryParams params{};
 	params.AddIgnoredActor(m_pBlasterCharacter);
 	GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECC_Visibility, params);
@@ -61,7 +61,6 @@ void UCharacterAnimationInstance::PlayStepSound()
 
 		if (!validMaterial)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invalid"));
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pStoneStepSound, hitResult.Location);
 			return;
 		}
@@ -73,7 +72,6 @@ void UCharacterAnimationInstance::PlayStepSound()
 	if (pMaterialOfHitObject == m_pGrassMaterial)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pGrassStepSound, hitResult.Location);
 	else UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_pStoneStepSound, hitResult.Location);
-
 }
 
 void UCharacterAnimationInstance::UpdateVariables()

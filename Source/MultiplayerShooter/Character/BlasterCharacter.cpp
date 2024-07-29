@@ -208,12 +208,7 @@ void ABlasterCharacter::PollInitialize(float deltaTime)
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (!HasAuthority())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Combat state: %d"), static_cast<int>(m_pCombat->m_CombatState));
-		UE_LOG(LogTemp, Warning, TEXT("Is Locally Reloading: %d"), m_pCombat->m_IsLocallyReloading);
-	}
+	
 	PollInitialize(DeltaTime);
 	
 	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())

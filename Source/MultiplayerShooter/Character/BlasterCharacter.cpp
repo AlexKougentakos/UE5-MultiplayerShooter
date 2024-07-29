@@ -312,7 +312,11 @@ void ABlasterCharacter::Eliminated(const bool playerLeftGame)
 		if (m_pCombat->m_pEquippedWeapon->ShouldDestroyWeapon())
 			m_pCombat->m_pEquippedWeapon->Destroy();
 		else
+		{
+			if (m_pCombat->m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper && m_pCombat->m_IsAiming)
+				m_pCombat->ShowSniperScope(false);
 			m_pCombat->m_pEquippedWeapon->Drop();
+		}
 	}
 	if (m_pCombat->HasSecondaryWeapon()) m_pCombat->m_pSecondaryWeapon->Drop();
 	m_pCombat->UpdateWeaponHUD();

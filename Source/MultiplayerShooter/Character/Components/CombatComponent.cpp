@@ -245,6 +245,7 @@ void UCombatComponent::SetAiming(const bool isAiming)
 	//If we are already out of the aiming state, we don't want to set it again
 	//Nor if we are not in the unoccupied state
 	if (m_IsAiming == isAiming || m_CombatState != ECombatState::ECS_Unoccupied) return;
+	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
 	
 	m_IsAiming = isAiming; //This is being set here to minimize delay on the local client for the events that require it
 	ServerSetAiming(isAiming);
@@ -254,11 +255,7 @@ void UCombatComponent::SetAiming(const bool isAiming)
 
 	if (HasWeapon() && m_pCharacter->IsLocallyControlled() && m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper)
 	{
-		m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
-		if (m_pPlayerController)
-			m_pPlayerController->HideUI(isAiming);
-		m_HideCrosshairs = isAiming;
-		m_pCharacter->ShowSniperScopeWidget(isAiming);
+		ShowSniperScope(isAiming);
 	}
 
 	if (m_pCharacter->IsLocallyControlled()) m_IsAimButtonPressed = isAiming;
@@ -269,6 +266,19 @@ void UCombatComponent::OnRep_Aiming()
 	if (!m_pCharacter->IsLocallyControlled()) return;
 	
 	m_IsAiming = m_IsAimButtonPressed;	
+}
+
+
+void UCombatComponent::ShowSniperScope(const bool showScope)
+{
+	if (m_IsAiming != showScope) return;
+	
+	m_pPlayerController = m_pPlayerController == nullptr ? Cast<ABlasterPlayerController>(m_pCharacter->GetController()) : m_pPlayerController;
+	if (m_pPlayerController)
+		m_pPlayerController->HideUI(showScope);
+	
+	m_HideCrosshairs = showScope;
+	m_pCharacter->ShowSniperScopeWidget(showScope);
 }
 
 void UCombatComponent::FireButtonPressed(const bool isPressed)
@@ -449,7 +459,11 @@ void UCombatComponent::EquipWeapon(AWeapon* const pWeapon)
 		if (m_pEquippedWeapon->ShouldDestroyWeapon())
 			m_pEquippedWeapon->Destroy();
 		else
+		{
+			if (m_pEquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper && m_IsAiming)
+				ShowSniperScope(false);
 			m_pEquippedWeapon->Drop();
+		}
 	}
 
 	if (HasWeapon() && !HasSecondaryWeapon())
@@ -487,6 +501,7 @@ bool UCombatComponent::ShouldSwapWeapons() const
 {
 	return HasWeapon() && HasSecondaryWeapon() && m_CombatState == ECombatState::ECS_Unoccupied;
 }
+
 
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* const pWeapon)
 {

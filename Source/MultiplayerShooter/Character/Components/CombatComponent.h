@@ -44,6 +44,8 @@ public:
 	void SwapWeapons();
 	bool ShouldSwapWeapons() const;
 
+	void ShowSniperScope(const bool showScope);
+
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(const bool isAiming);

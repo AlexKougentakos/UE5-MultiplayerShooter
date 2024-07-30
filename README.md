@@ -4,7 +4,7 @@
 
 This is a game I made as a learning project, while following a Udemy course on Networking in Unreal Engine 5. I did that in order to better understand networking, as well as C++ inside Unreal Engine. Despite the fact that I followed a course, I still abided by my programming principles that I was tought and strayed from the course when I deemed necessary.
 ## Important
-In order to play you can <a href="https://github.com/AlexKougentakos/UE5-MultiplayerShooter/releases/download/Release/Multiplayer-Shooter-Game-v1.0.0.zip" target="_blank" rel="noopener noreferrer">download the game from the releases</a>, but you need to have steam open BEFORE you open the application and every person who wants to join your lobby have to have their steam region set to the same as you. It is very simple to change your steam region.
+In order to play you can <a href="https://github.com/AlexKougentakos/UE5-MultiplayerShooter/releases/tag/Release" target="_blank" rel="noopener noreferrer">download the game from the releases</a>, but you need to have steam open BEFORE you open the application and every person who wants to join your lobby have to have their steam region set to the same as you. It is very simple to change your steam region.
 
 Go to Steam -> Settings -> Downloads -> Download Region
 <div style="display: flex; justify-content: space-between;">

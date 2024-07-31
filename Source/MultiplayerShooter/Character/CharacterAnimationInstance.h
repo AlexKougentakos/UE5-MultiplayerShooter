@@ -9,6 +9,7 @@
 
 class AWeapon;
 class ABlasterCharacter;
+class USoundCue;
 UCLASS()
 class MULTIPLAYERSHOOTER_API UCharacterAnimationInstance : public UAnimInstance
 {

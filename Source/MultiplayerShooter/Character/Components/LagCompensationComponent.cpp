@@ -61,7 +61,7 @@ void ULagCompensationComponent::ShowFramePackage(const FFramePackage& framePacka
 			hitBox.Value.BoxExtend,
 			hitBox.Value.Rotation.Quaternion(),
 			color,
-			true);
+			false, 0.4f);
 	}
 }
 
@@ -324,8 +324,8 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHitProjectile(const FF
 	FPredictProjectilePathParams pathParams{};
 	pathParams.bTraceWithChannel = true;
 	pathParams.bTraceWithCollision = true;
-		pathParams.DrawDebugTime = 5.f;
-		pathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+		// pathParams.DrawDebugTime = 5.f;
+		// pathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
 	pathParams.LaunchVelocity = initialVelocity;
 	pathParams.MaxSimTime = m_MaxRecordingTime;
 	pathParams.ProjectileRadius = 5.f;
@@ -483,6 +483,8 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& framePackage)
 
 		framePackage.HitBoxInfo.Add(hitBox.Key, boxInfo);
 	}
+
+	ShowFramePackage(framePackage, FColor::Red);
 }
 
 FFramePackage ULagCompensationComponent::InterpolateBetweenFrames(const FFramePackage& olderFrame,

@@ -484,7 +484,7 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& framePackage)
 		framePackage.HitBoxInfo.Add(hitBox.Key, boxInfo);
 	}
 
-	ShowFramePackage(framePackage, FColor::Red);
+	// ShowFramePackage(framePackage, FColor::Red);
 }
 
 FFramePackage ULagCompensationComponent::InterpolateBetweenFrames(const FFramePackage& olderFrame,

@@ -10,8 +10,13 @@ void USettingsMenu::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	ADS_MouseSensitivitySlider->SetValue(USensitivitySettings::LoadSensitivitySettings()->GetADSSensitivityMultiplier());
-	MouseSensitivitySlider->SetValue(USensitivitySettings::LoadSensitivitySettings()->GetMouseSensitivityMultiplier());
+	// Load sensitivity settings
+	const auto SensitivitySettings = USensitivitySettings::LoadSensitivitySettings();
+	m_TemporaryADSSensitivity = SensitivitySettings->GetADSSensitivityMultiplier();
+	m_TemporaryMouseSensitivity = SensitivitySettings->GetMouseSensitivityMultiplier();
+	
+	ADS_MouseSensitivitySlider->SetValue(m_TemporaryADSSensitivity);
+	MouseSensitivitySlider->SetValue(m_TemporaryMouseSensitivity);
 
 	if (!ApplyButton->OnClicked.IsBound())
 		ApplyButton->OnClicked.AddDynamic(this, &USettingsMenu::ApplySensitiveSettings);
@@ -22,6 +27,7 @@ void USettingsMenu::NativeConstruct()
 	
 	ApplyButton->SetIsEnabled(false);
 }
+
 
 void USettingsMenu::NativeDestruct()
 {
@@ -37,8 +43,10 @@ void USettingsMenu::NativeDestruct()
 
 void USettingsMenu::ApplySensitiveSettings()
 {
-	
-	USensitivitySettings* pSettings = Cast<ABlasterCharacter>(GetOwningPlayerPawn())->GetSensitivitySettings();
+	const auto character = Cast<ABlasterCharacter>(GetOwningPlayerPawn());
+	if (!character) return;
+	USensitivitySettings* pSettings = character->GetSensitivitySettings();
+	if (!pSettings) return;
 	
 	//If the difference between the temporary sensitivity and the current sensitivity is not zero, set the new sensitivity
 	if (!FMath::IsNearlyZero(m_TemporaryMouseSensitivity - pSettings->GetMouseSensitivityMultiplier()))
